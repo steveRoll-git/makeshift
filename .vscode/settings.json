@@ -4,5 +4,6 @@
         "duplicate-set-field",
         "inject-field"
     ],
-    "Lua.runtime.version": "LuaJIT"
+    "Lua.runtime.version": "LuaJIT",
+    "Lua.workspace.ignoreSubmodules": false
 }
