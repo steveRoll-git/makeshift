@@ -39,9 +39,10 @@ function sceneEditor:mouseReleased(button)
 end
 
 function sceneEditor:mouseMoved(x, y)
+  local mx, my = self:getRelativeMouse()
   if self.draggingObject then
-    self.draggingObject.object.x = x + self.draggingObject.offsetX
-    self.draggingObject.object.y = y + self.draggingObject.offsetY
+    self.draggingObject.object.x = mx + self.draggingObject.offsetX
+    self.draggingObject.object.y = my + self.draggingObject.offsetY
   end
 end
 
@@ -54,10 +55,10 @@ function sceneEditor:render(x, y, w, h)
     lg.setColor(1, 1, 1, 0.5)
     lg.setLineWidth(1)
     lg.rectangle("line",
-      self.selectedObject.x - 1,
-      self.selectedObject.y - 1,
-      self.selectedObject.image:getWidth() + 2,
-      self.selectedObject.image:getHeight() + 2)
+      self.selectedObject.x,
+      self.selectedObject.y,
+      self.selectedObject.image:getWidth(),
+      self.selectedObject.image:getHeight())
   end
   lg.pop()
   lg.setScissor()

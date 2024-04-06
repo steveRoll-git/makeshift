@@ -24,7 +24,7 @@ local function addScene()
       lastUntitledNumber = math.max(lastUntitledNumber, 1)
     end
   end
-  
+
   local id = guid()
   ---@type Scene
   local newScene = {
@@ -35,6 +35,11 @@ local function addScene()
   return newScene
 end
 
+local function getScenes()
+  return currentProject.scenes
+end
+
 return {
-  addScene = addScene
+  addScene = addScene,
+  getScenes = getScenes,
 }

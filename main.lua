@@ -2,6 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
+local treeView = require "ui.treeView"
 
 local sceneEditor = require "ui.sceneEditor"
 
@@ -18,6 +19,19 @@ table.insert(newScene.objects, {
 })
 
 local editor = sceneEditor(newScene)
+
+local libraryPanel = treeView()
+
+local function sceneItemModels()
+  ---@type TreeItemModel[]
+  local items = {}
+  for _, scene in pairs(project.getScenes()) do
+    table.insert(items, { text = scene.name })
+  end
+  return items
+end
+
+libraryPanel:setItems(sceneItemModels())
 
 local uiScene = zap.createScene()
 
@@ -37,6 +51,8 @@ end
 
 function love.draw()
   uiScene:begin()
-  editor:render(0, 0, lg.getDimensions())
+  local panelW = 200
+  libraryPanel:render(0, 0, panelW, lg.getHeight())
+  editor:render(panelW, 0, lg.getWidth() - panelW, lg.getHeight())
   uiScene:finish()
 end
