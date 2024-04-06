@@ -5,6 +5,8 @@ local zap = require "lib.zap.zap"
 
 local sceneEditor = require "ui.sceneEditor"
 
+local hexToColor = require "util.hexToColor"
+
 local editor = sceneEditor()
 
 editor.engine:addObject({
@@ -14,6 +16,8 @@ editor.engine:addObject({
 })
 
 local scene = zap.createScene()
+
+lg.setBackgroundColor(hexToColor(0x181818))
 
 function love.mousemoved(x, y, dx, dy)
   scene:setMousePosition(x, y)
