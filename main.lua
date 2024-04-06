@@ -7,19 +7,17 @@ local sceneEditor = require "ui.sceneEditor"
 
 local hexToColor = require "util.hexToColor"
 
----@type Scene
-local testScene = {
-  name = "test",
-  objects = {
-    {
-      image = lg.newImage("images/transparency.png"),
-      x = 200,
-      y = 100
-    }
-  }
-}
+local project = require "project"
 
-local editor = sceneEditor(testScene)
+local newScene = project.addScene()
+
+table.insert(newScene.objects, {
+  image = lg.newImage("images/transparency.png"),
+  x = 200,
+  y = 100
+})
+
+local editor = sceneEditor(newScene)
 
 local uiScene = zap.createScene()
 
