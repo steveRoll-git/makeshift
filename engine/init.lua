@@ -22,6 +22,7 @@ end
 
 function engine:draw()
   for _, o in ipairs(self.objects.list) do
+    lg.setColor(1, 1, 1)
     lg.draw(o.image, o.x, o.y)
   end
 end
