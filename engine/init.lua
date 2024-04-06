@@ -1,4 +1,5 @@
 local orderedSet = require "util.orderedSet"
+local deepCopy = require "util.deepCopy"
 local love = love
 local lg = love.graphics
 
@@ -39,7 +40,7 @@ local function createEngine(scene)
   self.objects = orderedSet.new()
   if scene then
     for _, obj in ipairs(scene.objects) do
-      self:addObject(obj)
+      self:addObject(deepCopy(obj))
     end
   end
   return self
