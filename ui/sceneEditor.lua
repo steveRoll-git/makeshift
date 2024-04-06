@@ -6,6 +6,7 @@ local engine = require "engine"
 
 ---@class SceneEditor: Zap.ElementClass
 ---@field selectedObject Object?
+---@field draggingObject {object: Object, offsetX: number, offsetY: number}
 ---@operator call:SceneEditor
 local sceneEditor = zap.elementClass()
 
@@ -21,8 +22,26 @@ function sceneEditor:mousePressed(button)
     local obj = self.engine.objects.list[i]
     if mx >= obj.x and my >= obj.y and mx < obj.x + obj.image:getWidth() and my < obj.y + obj.image:getHeight() then
       self.selectedObject = obj
+      self.draggingObject = {
+        object = obj,
+        offsetX = obj.x - mx,
+        offsetY = obj.y - my,
+      }
       break
     end
+  end
+end
+
+function sceneEditor:mouseReleased(button)
+  if self.draggingObject then
+    self.draggingObject = nil
+  end
+end
+
+function sceneEditor:mouseMoved(x, y)
+  if self.draggingObject then
+    self.draggingObject.object.x = x + self.draggingObject.offsetX
+    self.draggingObject.object.y = y + self.draggingObject.offsetY
   end
 end
 
