@@ -7,32 +7,38 @@ local sceneEditor = require "ui.sceneEditor"
 
 local hexToColor = require "util.hexToColor"
 
-local editor = sceneEditor()
+---@type Scene
+local testScene = {
+  name = "test",
+  objects = {
+    {
+      image = lg.newImage("images/transparency.png"),
+      x = 200,
+      y = 100
+    }
+  }
+}
 
-editor.engine:addObject({
-  image = lg.newImage("images/transparency.png"),
-  x = 200,
-  y = 100
-})
+local editor = sceneEditor(testScene)
 
-local scene = zap.createScene()
+local uiScene = zap.createScene()
 
 lg.setBackgroundColor(hexToColor(0x181818))
 
 function love.mousemoved(x, y, dx, dy)
-  scene:setMousePosition(x, y)
+  uiScene:setMousePosition(x, y)
 end
 
 function love.mousepressed(x, y, btn)
-  scene:mousePressed(btn)
+  uiScene:mousePressed(btn)
 end
 
 function love.mousereleased(x, y, btn)
-  scene:mouseReleased(btn)
+  uiScene:mouseReleased(btn)
 end
 
 function love.draw()
-  scene:begin()
+  uiScene:begin()
   editor:render(0, 0, lg.getDimensions())
-  scene:finish()
+  uiScene:finish()
 end

@@ -9,8 +9,8 @@ local engine = require "engine"
 ---@operator call:SceneEditor
 local sceneEditor = zap.elementClass()
 
-function sceneEditor:init()
-  self.engine = engine.createEngine()
+function sceneEditor:init(scene)
+  self.engine = engine.createEngine(scene)
 end
 
 function sceneEditor:mousePressed(button)

@@ -7,6 +7,10 @@ local lg = love.graphics
 ---@field y number
 ---@field image love.Image
 
+---@class Scene
+---@field name string
+---@field objects Object[]
+
 -- An instance of a running Makeshift engine.<br>
 -- Used in the editor and the runtime.
 ---@class Engine
@@ -27,9 +31,17 @@ function engine:draw()
   end
 end
 
-local function createEngine()
+---Creates a new Engine.
+---@param scene Scene?
+---@return Engine
+local function createEngine(scene)
   local self = setmetatable({}, engine)
   self.objects = orderedSet.new()
+  if scene then
+    for _, obj in ipairs(scene.objects) do
+      self:addObject(obj)
+    end
+  end
   return self
 end
 
