@@ -11,11 +11,48 @@ local textMargin = 8
 ---@field text string
 ---@field active boolean
 ---@field font love.Font
+---@field index number
+---@field layoutX number
+---@field draggable boolean
+---@field isDragging boolean
+---@field dragStartX number
+---@field dragStartY number
+---@field dragX number
 ---@operator call:Tab
 local tab = zap.elementClass()
 
 function tab:mousePressed()
   self:getParent() --[[@as TabView]]:setActiveTab(self)
+  if self.draggable then
+    self.dragStartX, self.dragStartY = self:getRelativeMouse()
+    local mx = self:getAbsoluteMouse()
+    self.dragX = mx - self.dragStartX
+    self.isDragging = true
+  end
+end
+
+function tab:mouseReleased()
+  if self.isDragging then
+    self.isDragging = false
+  end
+end
+
+function tab:mouseMoved(mx, my)
+  if self.isDragging then
+    local tabView = self:getParent() --[[@as TabView]]
+    self.dragX = mx - self.dragStartX
+    local x, _, w, _ = self:getView()
+    local midX = x + w / 2
+    for i, otherTab in ipairs(tabView.tabs) do
+      if otherTab ~= self then
+        local x2, _, w2, _ = otherTab:getView()
+        if midX >= x2 and midX < x2 + w2 then
+          tabView:setTabIndex(self, i)
+          break
+        end
+      end
+    end
+  end
 end
 
 function tab:preferredWidth()

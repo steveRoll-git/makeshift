@@ -6,7 +6,7 @@ local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
 
 ---@class TabView: Zap.ElementClass
----@field private tabs Tab[]
+---@field tabs Tab[]
 ---@field private activeTab Tab
 ---@field font love.Font
 ---@operator call:TabView
@@ -21,9 +21,31 @@ function tabView:setTabs(tabs)
     newTab.text = tabModel.text
     newTab.content = tabModel.content
     newTab.font = self.font
+    newTab.draggable = true
     table.insert(self.tabs, newTab)
+    newTab.index = #self.tabs
   end
+  self:layoutTabs()
   self:setActiveTab(self.tabs[1])
+end
+
+---Set a tab's index.
+---@param tab Tab
+---@param index number
+function tabView:setTabIndex(tab, index)
+  table.remove(self.tabs, tab.index)
+  table.insert(self.tabs, index, tab)
+  self:layoutTabs()
+end
+
+---Update all the tabs' `index` and `layoutX` according to their index.
+function tabView:layoutTabs()
+  local x = 0
+  for i, tab in ipairs(self.tabs) do
+    tab.layoutX = x
+    tab.index = i
+    x = x + tab:preferredWidth()
+  end
 end
 
 ---Sets the active tab.
@@ -40,16 +62,27 @@ function tabView:tabBarHeight()
   return self.font:getHeight() + 16
 end
 
+---@param tab Tab
+---@param x number
+---@param y number
+function tabView:renderTab(tab, x, y)
+  local tabX = (tab.isDragging and tab.dragX or x + tab.layoutX)
+  local tabW = tab:preferredWidth()
+  tab:render(tabX, y, tabW, self:tabBarHeight())
+  lg.setColor(hexToColor(0x2b2b2b))
+  lg.setLineStyle("rough")
+  lg.setLineWidth(1)
+  lg.line(tabX, y, tabX, y + self:tabBarHeight())
+end
+
 function tabView:render(x, y, w, h)
-  local tabX = x
   for _, tab in ipairs(self.tabs) do
-    local tabW = tab:preferredWidth()
-    tab:render(tabX, y, tabW, self:tabBarHeight())
-    tabX = tabX + tabW
-    lg.setColor(hexToColor(0x2b2b2b))
-    lg.setLineStyle("rough")
-    lg.setLineWidth(1)
-    lg.line(tabX, y, tabX, y + self:tabBarHeight())
+    if tab ~= self.activeTab then
+      self:renderTab(tab, x, y)
+    end
+  end
+  if self.activeTab then
+    self:renderTab(self.activeTab, x, y)
   end
   self.activeTab.content:render(x, y + self:tabBarHeight(), w, h - self:tabBarHeight())
   lg.setColor(hexToColor(0x2b2b2b))
