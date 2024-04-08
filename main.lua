@@ -3,8 +3,8 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local treeView = require "ui.treeView"
-
 local sceneEditor = require "ui.sceneEditor"
+local tabView = require "ui.tabView"
 
 local hexToColor = require "util.hexToColor"
 
@@ -33,6 +33,23 @@ end
 
 libraryPanel:setItems(sceneItemModels())
 
+local testTabView = tabView()
+testTabView.font = lg.getFont()
+testTabView:setTabs {
+  {
+    text = "Wow a Scene",
+    content = editor
+  },
+  {
+    text = "Scenes List",
+    content = libraryPanel
+  },
+  {
+    text = "Another Tab",
+    content = libraryPanel
+  }
+}
+
 local uiScene = zap.createScene()
 
 lg.setBackgroundColor(hexToColor(0x181818))
@@ -51,8 +68,6 @@ end
 
 function love.draw()
   uiScene:begin()
-  local panelW = 200
-  libraryPanel:render(0, 0, panelW, lg.getHeight())
-  editor:render(panelW, 0, lg.getWidth() - panelW, lg.getHeight())
+  testTabView:render(0, 0, lg.getDimensions())
   uiScene:finish()
 end

@@ -36,10 +36,6 @@ function treeView:render(x, y, w, h)
     item:render(x, itemY, w, itemH)
     itemY = itemY + itemH
   end
-  lg.setColor(hexToColor(0x2b2b2b))
-  lg.setLineStyle("rough")
-  lg.setLineWidth(1)
-  lg.rectangle("line", x, y, w, h)
 end
 
 return treeView
