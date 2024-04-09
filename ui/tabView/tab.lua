@@ -42,11 +42,14 @@ function tab:mouseMoved(mx, my)
     local tabView = self:getParent() --[[@as TabView]]
     self.dragX = mx - self.dragStartX
     local x, _, w, _ = self:getView()
-    local midX = x + w / 2
+    -- Code for switching the order of tabs when dragging them
     for i, otherTab in ipairs(tabView.tabs) do
       if otherTab ~= self then
         local x2, _, w2, _ = otherTab:getView()
-        if midX >= x2 and midX < x2 + w2 then
+        local mid2 = x2 + w2 / 2
+        if
+            (otherTab.index > self.index and x + w >= mid2 and x + w < x2 + w2) or
+            (otherTab.index < self.index and x >= x2 and x < mid2) then
           tabView:setTabIndex(self, i)
           break
         end
