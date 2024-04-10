@@ -8,8 +8,7 @@ local lg = love.graphics
 ---@field y number
 ---@field image love.Image
 
----@class Scene
----@field name string
+---@class Scene: Resource
 ---@field objects Object[]
 
 -- An instance of a running Makeshift engine.<br>

@@ -22,16 +22,16 @@ local editor = sceneEditor(newScene)
 
 local libraryPanel = treeView()
 
-local function sceneItemModels()
+local function resourceItemModels()
   ---@type TreeItemModel[]
   local items = {}
-  for _, scene in pairs(project.getScenes()) do
-    table.insert(items, { text = scene.name })
+  for _, resource in pairs(project.getResources()) do
+    table.insert(items, { text = resource.name })
   end
   return items
 end
 
-libraryPanel:setItems(sceneItemModels())
+libraryPanel:setItems(resourceItemModels())
 
 local testTabView = tabView()
 testTabView.font = lg.getFont()
@@ -41,7 +41,7 @@ testTabView:setTabs {
     content = editor
   },
   {
-    text = "Scenes List",
+    text = "Library",
     content = libraryPanel
   },
   {
