@@ -25,7 +25,9 @@ transparency:setWrap("repeat", "repeat")
 ---@field panStart {x: number, y: number}?
 ---@field viewTransform love.Transform
 ---@field transparencyQuad love.Quad
----@field currentTool ToolType
+---@field currentToolType ToolType
+---@field toolSize number
+---@field currentColor number[]
 ---@operator call:SpriteEditor
 local spriteEditor = zap.elementClass()
 
@@ -42,7 +44,7 @@ function spriteEditor:init()
   self.tools = {
     pencil = {
       onDrag = function(fromX, fromY, toX, toY)
-        
+        self:paintCircle(fromX, fromY, toX, toY, self.currentColor)
       end
     },
     fill = {
@@ -51,7 +53,9 @@ function spriteEditor:init()
       end
     }
   }
-  self.currentTool = "pencil"
+  self.currentToolType = "pencil"
+  self.toolSize = 1
+  self.currentColor = { 1, 1, 1, 1 }
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
@@ -85,6 +89,21 @@ end
 ---@return love.ImageData
 function spriteEditor:currentImageData()
   return self:currentFrame().imageData
+end
+
+---Returns the currently active tool.
+---@return table
+function spriteEditor:currentTool()
+  return self.tools[self.currentToolType]
+end
+
+---Returns the position of the mouse in image coordinates.
+---@return number x
+---@return number y
+function spriteEditor:mouseImageCoords()
+  local mx, my = self:getRelativeMouse()
+  local ix, iy = self.viewTransform:inverseTransformPoint(mx, my)
+  return ix, iy
 end
 
 ---Appends a new frame to the edited object. If `width` and `height` are not given, the size will be the same as the object's last frame.
@@ -123,6 +142,11 @@ function spriteEditor:setPixel(x, y, color)
   if self:inRange(x, y) then
     self:currentImageData():setPixel(x, y, color)
   end
+end
+
+---Updates the displayed image of the current frame to the contents of the ImageData.
+function spriteEditor:updateImage()
+  self:currentFrame().image:replacePixels(self:currentImageData())
 end
 
 ---Fills an ellipse in the image.
@@ -193,7 +217,7 @@ end
 ---@param fromX number
 ---@param fromY number
 ---@param color number[]
-function spriteEditor:paintCircle(toX, toY, fromX, fromY, color)
+function spriteEditor:paintCircle(fromX, fromY, toX, toY, color)
   local size = self.toolSize
 
   local currentX, currentY = fromX, fromY
@@ -215,12 +239,22 @@ function spriteEditor:paintCircle(toX, toY, fromX, fromY, color)
     nextX, nextY = currentX + dirX / step, currentY + dirY / step
     count = count + 1
   until dist(currentX, currentY, toX, toY) <= 0.5
-
-  self.clean = false
 end
 
 function spriteEditor:mousePressed(button)
-  if button == 3 then
+  if button == 1 then
+    local ix, iy = self:mouseImageCoords()
+    local tool = self:currentTool()
+    if tool.onDrag then
+      tool.onDrag(ix, iy, ix, iy)
+      self:updateImage()
+      self.dragDrawing = true
+      self.prevToolX = ix
+      self.prevToolY = iy
+    elseif tool.onPress then
+      tool.onPress(ix, iy)
+    end
+  elseif button == 3 then
     self.panning = true
     local mx, my = self:getAbsoluteMouse()
     self.panStart = {
@@ -231,13 +265,21 @@ function spriteEditor:mousePressed(button)
 end
 
 function spriteEditor:mouseReleased(button)
-  if button == 3 then
+  if button == 1 then
+    self.dragDrawing = false
+  elseif button == 3 then
     self.panning = false
   end
 end
 
 function spriteEditor:mouseMoved(x, y)
-  if self.panning then
+  if self.dragDrawing then
+    local ix, iy = self:mouseImageCoords()
+    self:currentTool().onDrag(self.prevToolX, self.prevToolY, ix, iy)
+    self:updateImage()
+    self.prevToolX = ix
+    self.prevToolY = iy
+  elseif self.panning then
     self.panX = x + self.panStart.x
     self.panY = y + self.panStart.y
   end

@@ -15,7 +15,7 @@ local itemPadding = 6
 local toolbarItem = zap.elementClass()
 
 function toolbarItem:mousePressed(btn)
-  self:spriteEditor().currentTool = self.toolName
+  self:spriteEditor().currentToolType = self.toolName
 end
 
 ---Gets the parent SpriteEditor.
@@ -25,7 +25,7 @@ function toolbarItem:spriteEditor()
 end
 
 function toolbarItem:render(x, y, w, h)
-  if self:spriteEditor().currentTool == self.toolName then
+  if self:spriteEditor().currentToolType == self.toolName then
     lg.setColor(1, 1, 1, 0.2)
   elseif self:isHovered() then
     lg.setColor(1, 1, 1, 0.08)
