@@ -4,6 +4,7 @@ local lg = love.graphics
 local zap = require "lib.zap.zap"
 local treeView = require "ui.treeView"
 local sceneEditor = require "ui.sceneEditor"
+local spriteEditor = require "ui.spriteEditor"
 local tabView = require "ui.tabView"
 
 local hexToColor = require "util.hexToColor"
@@ -19,6 +20,14 @@ table.insert(newScene.objects, {
 })
 
 local editor = sceneEditor(newScene)
+
+local testSpriteEditor = spriteEditor()
+testSpriteEditor.editingObject = {
+  x = 0,
+  y = 0,
+  frames = {}
+}
+testSpriteEditor:addFrame(128, 128)
 
 local libraryPanel = treeView()
 
@@ -36,6 +45,10 @@ libraryPanel:setItems(resourceItemModels())
 local testTabView = tabView()
 testTabView.font = lg.getFont()
 testTabView:setTabs {
+  {
+    text = "Sprite Editor",
+    content = testSpriteEditor
+  },
   {
     text = "Wow a Scene",
     content = editor

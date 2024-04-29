@@ -6,6 +6,10 @@ local lg = love.graphics
 ---@class Object
 ---@field x number
 ---@field y number
+---@field frames SpriteFrame[] A list of all the frames in this object. They are all assumed to be the same size.
+
+---@class SpriteFrame
+---@field imageData love.ImageData
 ---@field image love.Image
 
 ---@class Scene: Resource
