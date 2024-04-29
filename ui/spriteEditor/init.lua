@@ -8,6 +8,7 @@ local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
 local toolbar = require "ui.spriteEditor.toolbar"
 local images = require "images"
+local colorPicker = require "ui.colorPicker"
 
 local initialImageSize = 128
 
@@ -33,6 +34,7 @@ transparency:setWrap("repeat", "repeat")
 ---@field currentToolType ToolType
 ---@field toolSize number
 ---@field currentColor number[]
+---@field colorPickerOpen boolean
 ---@operator call:SpriteEditor
 local spriteEditor = zap.elementClass()
 
@@ -44,7 +46,12 @@ function spriteEditor:init()
   self.viewTransform = love.math.newTransform()
   self.transparencyQuad = lg.newQuad(0, 0, 128, 128, transparency:getDimensions())
 
-  self.toolbar = toolbar()
+  self.currentColor = { 1, 1, 1, 1 }
+
+  self.toolbar = toolbar(self.currentColor)
+
+  self.colorPicker = colorPicker(self.currentColor)
+  self.colorPickerOpen = false
 
   self.tools = {
     pencil = {
@@ -65,7 +72,6 @@ function spriteEditor:init()
   }
   self.currentToolType = "pencil"
   self.toolSize = 1
-  self.currentColor = { 1, 1, 1, 1 }
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
@@ -398,6 +404,17 @@ function spriteEditor:render(x, y, w, h)
 
   self.toolbar:render(x, y + h / 2 - self.toolbar:desiredHeight() / 2,
     self.toolbar:desiredWidth(), self.toolbar:desiredHeight())
+
+  if self.colorPickerOpen then
+    local ix, iy, iw, ih = self.toolbar.colorTool:getView()
+    local pickerWidth = 200
+    local pickerHeight = 80
+    self.colorPicker:render(
+      ix + iw + 12,
+      iy + ih / 2 - pickerHeight / 2,
+      pickerWidth,
+      pickerHeight)
+  end
 
   local zoomPercentString = ("%d%%"):format(self.zoom * 100)
   local zoomPercentW = lg.getFont():getWidth(zoomPercentString)
