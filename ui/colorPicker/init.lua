@@ -69,7 +69,7 @@ function colorPicker:render(x, y, w, h)
   w = w - padding * 2
   h = h - padding * 2
 
-  local sliderHeight = h / #self.sliders
+  local sliderHeight = math.floor(h / #self.sliders)
   for i, s in ipairs(self.sliders) do
     local sliderY = y + sliderHeight * (i - 1)
     lg.setColor(1, 1, 1)
