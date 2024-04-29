@@ -2,14 +2,18 @@ local love = love
 local lg = love.graphics
 
 local hexToColor = require "util.hexToColor"
+local dist = require "util.dist"
 local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
+local toolbar = require "ui.spriteEditor.toolbar"
 local images = require "images"
 
 local initialImageSize = 128
 
 local transparency = images["transparency.png"]
 transparency:setWrap("repeat", "repeat")
+
+---@alias ToolType "pencil" | "fill"
 
 ---@class SpriteEditor: Zap.ElementClass
 ---@field editingObject Object
@@ -21,6 +25,7 @@ transparency:setWrap("repeat", "repeat")
 ---@field panStart {x: number, y: number}?
 ---@field viewTransform love.Transform
 ---@field transparencyQuad love.Quad
+---@field currentTool ToolType
 ---@operator call:SpriteEditor
 local spriteEditor = zap.elementClass()
 
@@ -31,6 +36,22 @@ function spriteEditor:init()
   self.currentFrameIndex = 1
   self.viewTransform = love.math.newTransform()
   self.transparencyQuad = lg.newQuad(0, 0, 128, 128, transparency:getDimensions())
+
+  self.toolbar = toolbar()
+
+  self.tools = {
+    pencil = {
+      onDrag = function(fromX, fromY, toX, toY)
+        
+      end
+    },
+    fill = {
+      onPress = function(x, y)
+
+      end
+    }
+  }
+  self.currentTool = "pencil"
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
@@ -86,7 +107,7 @@ function spriteEditor:addFrame(width, height)
   self:updateTransparencyQuad()
 end
 
----Returns whether `x` and `y` are inside the image's dimentions.
+---Returns whether `x` and `y` are inside the image's dimensions.
 ---@param x number
 ---@param y number
 ---@return boolean
@@ -229,14 +250,6 @@ function spriteEditor:render(x, y, w, h)
   lg.push()
   lg.translate(x, y)
 
-  -- local ox, oy = self.viewTransform:transformPoint(0, 0)
-  -- lg.setColor(1, 1, 1)
-  -- lg.circle("fill", ox, oy, 3)
-  -- lg.setColor(0, 0, 0)
-  -- lg.setLineStyle("smooth")
-  -- lg.setLineWidth(1)
-  -- lg.circle("line", ox, oy, 3)
-
   local tx, ty = self.viewTransform:transformPoint(0, 0)
   lg.setColor(1, 1, 1)
   lg.draw(transparency, self.transparencyQuad, tx, ty)
@@ -245,6 +258,10 @@ function spriteEditor:render(x, y, w, h)
   lg.draw(self:currentFrame().image)
 
   lg.pop()
+
+  self.toolbar:render(x, y + h / 2 - self.toolbar:desiredHeight() / 2,
+    self.toolbar:desiredWidth(), self.toolbar:desiredHeight())
+
   lg.setScissor()
 end
 
