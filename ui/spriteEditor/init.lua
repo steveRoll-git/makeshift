@@ -2,6 +2,7 @@ local love = love
 local lg = love.graphics
 
 local hexToColor = require "util.hexToColor"
+local compareColors = require "util.compareColors"
 local dist = require "util.dist"
 local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
@@ -49,7 +50,7 @@ function spriteEditor:init()
     },
     fill = {
       onPress = function(x, y)
-
+        self:floodFill(x, y, self.currentColor)
       end
     }
   }
@@ -241,6 +242,57 @@ function spriteEditor:paintCircle(fromX, fromY, toX, toY, color)
   until dist(currentX, currentY, toX, toY) <= 0.5
 end
 
+---Scanline flood fill algorithm, adapted from:
+---https://lodev.org/cgtutor/floodfill.html
+---@param origX number
+---@param origY number
+---@param newColor number[]
+function spriteEditor:floodFill(origX, origY, newColor)
+  local imageData = self:currentImageData()
+
+  local oldColor = { imageData:getPixel(origX, origY) }
+
+  if compareColors(oldColor, newColor) then
+    return
+  end
+
+  local stack = {}
+  table.insert(stack, origX)
+  table.insert(stack, origY)
+
+  while #stack > 0 do
+    local y = table.remove(stack)
+    local x = table.remove(stack)
+    local spanAbove = false
+    local spanBelow = false
+    local x1 = x
+    while x1 >= 0 and compareColors(oldColor, imageData:getPixel(x1, y)) do
+      x1 = x1 - 1
+    end
+    x1 = x1 + 1
+    while x1 < imageData:getWidth() and compareColors(oldColor, imageData:getPixel(x1, y)) do
+      imageData:setPixel(x1, y, newColor)
+      if not spanAbove and y > 0 and compareColors(oldColor, imageData:getPixel(x1, y - 1)) then
+        table.insert(stack, x1)
+        table.insert(stack, y - 1)
+        spanAbove = true
+      elseif spanAbove and y > 0 and not compareColors(oldColor, imageData:getPixel(x1, y - 1)) then
+        spanAbove = false
+      end
+      if not spanBelow and y < imageData:getHeight() - 1 and
+          compareColors(oldColor, imageData:getPixel(x1, y + 1)) then
+        table.insert(stack, x1)
+        table.insert(stack, y + 1)
+        spanBelow = true
+      elseif spanBelow and y < imageData:getHeight() - 1 and
+          not compareColors(oldColor, imageData:getPixel(x1, y + 1)) then
+        spanBelow = false
+      end
+      x1 = x1 + 1
+    end
+  end
+end
+
 function spriteEditor:mousePressed(button)
   if button == 1 then
     local ix, iy = self:mouseImageCoords()
@@ -251,8 +303,9 @@ function spriteEditor:mousePressed(button)
       self.dragDrawing = true
       self.prevToolX = ix
       self.prevToolY = iy
-    elseif tool.onPress then
+    elseif tool.onPress and self:inRange(ix, iy) then
       tool.onPress(ix, iy)
+      self:updateImage()
     end
   elseif button == 3 then
     self.panning = true
