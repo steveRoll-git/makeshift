@@ -13,6 +13,8 @@ local initialImageSize = 128
 
 local transparentColor = { 0, 0, 0, 0 }
 
+local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
+
 local transparency = images["transparency.png"]
 transparency:setWrap("repeat", "repeat")
 
@@ -75,8 +77,8 @@ function spriteEditor:updateViewTransform()
     0,
     self.zoom,
     self.zoom,
-    math.floor(-w / 2),
-    math.floor(-h / 2))
+    0,
+    0)
 end
 
 ---Updates `transparencyQuad`'s viewport to fit the size of the image.
@@ -111,7 +113,7 @@ end
 function spriteEditor:mouseImageCoords()
   local mx, my = self:getRelativeMouse()
   local ix, iy = self.viewTransform:inverseTransformPoint(mx, my)
-  return ix, iy
+  return math.floor(ix), math.floor(iy)
 end
 
 ---Appends a new frame to the edited object. If `width` and `height` are not given, the size will be the same as the object's last frame.
@@ -127,10 +129,10 @@ function spriteEditor:addFrame(width, height)
     imageData = love.image.newImageData(width, height)
   }
   frame.image = lg.newImage(frame.imageData)
+  frame.image:setFilter("linear", "nearest")
   table.insert(self.editingObject.frames, frame)
+
   self.currentFrameIndex = #self.editingObject.frames
-  self.panX = -width / 2
-  self.panY = -height / 2
   self:updateTransparencyQuad()
 end
 
@@ -345,6 +347,39 @@ function spriteEditor:mouseMoved(x, y)
   end
 end
 
+function spriteEditor:wheelMoved(x, y)
+  local newZoom = self.zoom
+  if y > 0 then
+    for i = 1, #zoomValues do
+      if zoomValues[i] > self.zoom then
+        newZoom = zoomValues[i]
+        break
+      end
+    end
+  elseif y < 0 then
+    for i = #zoomValues, 1, -1 do
+      if zoomValues[i] < self.zoom then
+        newZoom = zoomValues[i]
+        break
+      end
+    end
+  end
+  if newZoom ~= self.zoom then
+    local mx, my = self:getRelativeMouse()
+
+    local placeX = (mx - self.panX) / (self:currentImageData():getWidth() * self.zoom)
+    local placeY = (my - self.panY) / (self:currentImageData():getHeight() * self.zoom)
+
+    self.zoom = newZoom
+    self:updateViewTransform()
+
+    self.panX = -(self:currentImageData():getWidth() * self.zoom * placeX) + mx
+    self.panY = -(self:currentImageData():getHeight() * self.zoom * placeY) + my
+
+    self:updateTransparencyQuad()
+  end
+end
+
 function spriteEditor:render(x, y, w, h)
   self:updateViewTransform()
 
@@ -363,6 +398,18 @@ function spriteEditor:render(x, y, w, h)
 
   self.toolbar:render(x, y + h / 2 - self.toolbar:desiredHeight() / 2,
     self.toolbar:desiredWidth(), self.toolbar:desiredHeight())
+
+  local zoomPercentString = ("%d%%"):format(self.zoom * 100)
+  local zoomPercentW = lg.getFont():getWidth(zoomPercentString)
+  lg.setColor(0, 0, 0, 0.4)
+  lg.rectangle("fill",
+    x + w - zoomPercentW,
+    y + h - lg.getFont():getHeight(),
+    zoomPercentW + 3,
+    lg.getFont():getHeight() + 3,
+    3)
+  lg.setColor(1, 1, 1)
+  lg.printf(zoomPercentString, x, y + h - lg.getFont():getHeight(), w, "right")
 
   lg.setScissor()
 end

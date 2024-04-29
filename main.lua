@@ -79,6 +79,10 @@ function love.mousereleased(x, y, btn)
   uiScene:mouseReleased(btn)
 end
 
+function love.wheelmoved(x, y)
+  uiScene:wheelMoved(x, y)
+end
+
 function love.draw()
   uiScene:begin()
   testTabView:render(0, 0, lg.getDimensions())
