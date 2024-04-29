@@ -47,12 +47,17 @@ function toolbar:init()
   pencilTool.image = images["icons/edit_48.png"]
   pencilTool.toolName = "pencil"
 
+  local eraserTool = toolbarItem()
+  eraserTool.image = images["icons/eraser_48.png"]
+  eraserTool.toolName = "eraser"
+
   local fillTool = toolbarItem()
   fillTool.image = images["icons/bucket_48.png"]
   fillTool.toolName = "fill"
 
   self.tools = {
     pencilTool,
+    eraserTool,
     fillTool
   }
 end

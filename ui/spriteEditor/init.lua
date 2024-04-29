@@ -13,7 +13,7 @@ local initialImageSize = 128
 local transparency = images["transparency.png"]
 transparency:setWrap("repeat", "repeat")
 
----@alias ToolType "pencil" | "fill"
+---@alias ToolType "pencil" | "eraser" | "fill"
 
 ---@class SpriteEditor: Zap.ElementClass
 ---@field editingObject Object
