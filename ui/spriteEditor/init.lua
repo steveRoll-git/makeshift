@@ -11,6 +11,8 @@ local images = require "images"
 
 local initialImageSize = 128
 
+local transparentColor = { 0, 0, 0, 0 }
+
 local transparency = images["transparency.png"]
 transparency:setWrap("repeat", "repeat")
 
@@ -46,6 +48,11 @@ function spriteEditor:init()
     pencil = {
       onDrag = function(fromX, fromY, toX, toY)
         self:paintCircle(fromX, fromY, toX, toY, self.currentColor)
+      end
+    },
+    eraser = {
+      onDrag = function(fromX, fromY, toX, toY)
+        self:paintCircle(fromX, fromY, toX, toY, transparentColor)
       end
     },
     fill = {
