@@ -4,10 +4,11 @@ local lg = love.graphics
 local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
+local images = require "images"
 
 local initialImageSize = 128
 
-local transparency = lg.newImage("images/transparency.png")
+local transparency = images["transparency.png"]
 transparency:setWrap("repeat", "repeat")
 
 ---@class SpriteEditor: Zap.ElementClass
