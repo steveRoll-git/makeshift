@@ -50,11 +50,22 @@ function slider:setValue(v)
   self.onChange()
 end
 
+---Updates the slider's value when the mouse is clicked or dragged on it.
+function slider:dragValue()
+  local mx, _ = self:getRelativeMouse()
+  local _, _, w, _ = self:getView()
+  self:setValue(self.minValue + (mx / w) * (self.maxValue - self.minValue))
+end
+
+function slider:mousePressed(btn)
+  if btn == 1 then
+    self:dragValue()
+  end
+end
+
 function slider:mouseMoved()
   if self:isPressed(1) then
-    local mx, _ = self:getRelativeMouse()
-    local _, _, w, _ = self:getView()
-    self:setValue(self.minValue + (mx / w) * (self.maxValue - self.minValue))
+    self:dragValue()
   end
 end
 
