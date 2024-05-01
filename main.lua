@@ -6,6 +6,7 @@ local treeView = require "ui.treeView"
 local sceneEditor = require "ui.sceneEditor"
 local spriteEditor = require "ui.spriteEditor"
 local tabView = require "ui.tabView"
+local images = require "images"
 
 local hexToColor = require "util.hexToColor"
 
@@ -14,7 +15,7 @@ local project = require "project"
 local newScene = project.addScene()
 
 table.insert(newScene.objects, {
-  image = lg.newImage("images/transparency.png"),
+  image = images["transparency.png"],
   x = 200,
   y = 100
 })
