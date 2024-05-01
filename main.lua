@@ -14,6 +14,38 @@ local project = require "project"
 
 local newScene = project.addScene()
 
+---@type Zap.Element?
+local popup
+local popupRendered = false
+---@type number, number, number, number
+local popupX, popupY, popupW, popupH
+
+function GetPopup()
+  return popup
+end
+
+---Opens `element` as a popup.<br>
+---Popups disappear when the mouse clicks anywhere outside of them.
+---@param element Zap.Element
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function OpenPopup(element, x, y, w, h)
+  popup = element
+  popupX = x
+  popupY = y
+  popupW = w
+  popupH = h
+  popupRendered = false
+end
+
+---Closes the currently open popup element.
+function ClosePopup()
+  popup = nil
+  popupRendered = false
+end
+
 table.insert(newScene.objects, {
   image = images["transparency.png"],
   x = 200,
@@ -74,6 +106,9 @@ end
 
 function love.mousepressed(x, y, btn)
   uiScene:mousePressed(btn)
+  if popup and popupRendered and not popup:isInHierarchy(uiScene:getPressedElement()) then
+    ClosePopup()
+  end
 end
 
 function love.mousereleased(x, y, btn)
@@ -87,5 +122,9 @@ end
 function love.draw()
   uiScene:begin()
   testTabView:render(0, 0, lg.getDimensions())
+  if popup then
+    popup:render(popupX, popupY, popupW, popupH)
+    popupRendered = true
+  end
   uiScene:finish()
 end

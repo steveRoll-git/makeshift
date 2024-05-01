@@ -53,7 +53,11 @@ end
 
 function colorItem:mousePressed()
   local spriteEditor = self:getParent():getParent() --[[@as SpriteEditor]]
-  spriteEditor.colorPickerOpen = not spriteEditor.colorPickerOpen
+  if GetPopup() ~= spriteEditor.colorPicker then
+    spriteEditor:openColorPicker()
+  else
+    ClosePopup()
+  end
 end
 
 function colorItem:render(x, y, w, h)

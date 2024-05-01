@@ -34,7 +34,6 @@ transparency:setWrap("repeat", "repeat")
 ---@field currentToolType ToolType
 ---@field toolSize number
 ---@field currentColor number[]
----@field colorPickerOpen boolean
 ---@operator call:SpriteEditor
 local spriteEditor = zap.elementClass()
 
@@ -51,7 +50,6 @@ function spriteEditor:init()
   self.toolbar = toolbar(self.currentColor)
 
   self.colorPicker = colorPicker(self.currentColor)
-  self.colorPickerOpen = false
 
   self.tools = {
     pencil = {
@@ -308,6 +306,17 @@ function spriteEditor:floodFill(origX, origY, newColor)
   end
 end
 
+function spriteEditor:openColorPicker()
+  local pickerWidth = 200
+  local pickerHeight = 80
+  local ix, iy, iw, ih = self.toolbar.colorTool:getView()
+  OpenPopup(self.colorPicker,
+    ix + iw + 12,
+    iy + ih / 2 - pickerHeight / 2,
+    pickerWidth,
+    pickerHeight)
+end
+
 function spriteEditor:mousePressed(button)
   if button == 1 then
     local ix, iy = self:mouseImageCoords()
@@ -404,17 +413,6 @@ function spriteEditor:render(x, y, w, h)
 
   self.toolbar:render(x, y + h / 2 - self.toolbar:desiredHeight() / 2,
     self.toolbar:desiredWidth(), self.toolbar:desiredHeight())
-
-  if self.colorPickerOpen then
-    local ix, iy, iw, ih = self.toolbar.colorTool:getView()
-    local pickerWidth = 200
-    local pickerHeight = 80
-    self.colorPicker:render(
-      ix + iw + 12,
-      iy + ih / 2 - pickerHeight / 2,
-      pickerWidth,
-      pickerHeight)
-  end
 
   local zoomPercentString = ("%d%%"):format(self.zoom * 100)
   local zoomPercentW = lg.getFont():getWidth(zoomPercentString)
