@@ -47,21 +47,7 @@ function ClosePopup()
   popupRendered = false
 end
 
-table.insert(newScene.objects, {
-  image = images["transparency.png"],
-  x = 200,
-  y = 100
-})
-
 local editor = sceneEditor(newScene)
-
-local testSpriteEditor = spriteEditor()
-testSpriteEditor.editingObject = {
-  x = 0,
-  y = 0,
-  frames = {}
-}
-testSpriteEditor:addFrame(128, 128)
 
 local libraryPanel = treeView()
 
@@ -82,10 +68,6 @@ testTabView:setTabs {
   {
     text = "Wow a Scene",
     content = editor
-  },
-  {
-    text = "Sprite Editor",
-    content = testSpriteEditor
   },
   {
     text = "Library",

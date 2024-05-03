@@ -227,17 +227,10 @@ function spriteEditor:mouseImageCoords()
   return math.floor(ix), math.floor(iy)
 end
 
----Appends a new frame to the edited object. If `width` and `height` are not given, the size will be the same as the object's last frame.
----@param width number?
----@param height number?
-function spriteEditor:addFrame(width, height)
-  if not width then
-    width, height = self.editingObject.frames[#self.editingObject.frames].imageData:getDimensions()
-  end
-  ---@cast width number
-  ---@cast height number
+---Appends a new frame to the edited object.
+function spriteEditor:addFrame()
   local frame = {
-    imageData = love.image.newImageData(width, height)
+    imageData = love.image.newImageData(self.editingObject.w, self.editingObject.h)
   }
   frame.image = lg.newImage(frame.imageData)
   frame.image:setFilter("linear", "nearest")

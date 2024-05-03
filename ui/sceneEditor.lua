@@ -6,6 +6,7 @@ local engine = require "engine"
 local toolbar = require "ui.toolbar"
 local images = require "images"
 local hexToColor = require "util.hexToColor"
+local spriteEditor = require "ui.spriteEditor"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -29,30 +30,48 @@ end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
 function sceneView:updateViewTransform()
-  self.viewTransform
-      :reset()
-      :scale(self.zoom, self.zoom)
-      :translate(
-        -self.panX,
-        -self.panY)
+  if self.spriteEditor then
+    self.viewTransform
+        :reset()
+        :scale(self.spriteEditor.zoom, self.spriteEditor.zoom)
+        :translate(
+          self.spriteEditor.panX / self.spriteEditor.zoom - self.selectedObject.x,
+          self.spriteEditor.panY / self.spriteEditor.zoom - self.selectedObject.y)
+  else
+    self.viewTransform
+        :reset()
+        :scale(self.zoom, self.zoom)
+        :translate(-self.panX, -self.panY)
+  end
+end
+
+function sceneView:startCreatingObject()
+  self.creatingObject = true
+  self.creationX = nil
+  self.creationY = nil
+  love.mouse.setCursor(love.mouse.getSystemCursor("crosshair"))
 end
 
 function sceneView:mousePressed(button)
   if button == 1 then
-    self.selectedObject = nil
-    local mx, my = self:getRelativeMouse()
-    mx, my = self.viewTransform:inverseTransformPoint(mx, my)
-    for i = #self.engine.objects.list, 1, -1 do
-      ---@type Object
-      local obj = self.engine.objects.list[i]
-      if mx >= obj.x and my >= obj.y and mx < obj.x + obj.image:getWidth() and my < obj.y + obj.image:getHeight() then
-        self.selectedObject = obj
-        self.draggingObject = {
-          object = obj,
-          offsetX = obj.x - mx,
-          offsetY = obj.y - my,
-        }
-        break
+    if self.creatingObject then
+      self.creationX, self.creationY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
+    else
+      self.selectedObject = nil
+      local mx, my = self:getRelativeMouse()
+      mx, my = self.viewTransform:inverseTransformPoint(mx, my)
+      for i = #self.engine.objects.list, 1, -1 do
+        ---@type Object
+        local obj = self.engine.objects.list[i]
+        if mx >= obj.x and my >= obj.y and mx < obj.x + obj.w and my < obj.y + obj.h then
+          self.selectedObject = obj
+          self.draggingObject = {
+            object = obj,
+            offsetX = obj.x - mx,
+            offsetY = obj.y - my,
+          }
+          break
+        end
       end
     end
   elseif button == 3 then
@@ -66,8 +85,35 @@ function sceneView:mousePressed(button)
 end
 
 function sceneView:mouseReleased(button)
-  if button == 1 and self.draggingObject then
-    self.draggingObject = nil
+  if button == 1 then
+    if self.creatingObject then
+      local mx, my = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
+      local x = math.min(mx, self.creationX)
+      local y = math.min(my, self.creationY)
+      local w = math.floor(math.abs(mx - self.creationX))
+      local h = math.floor(math.abs(my - self.creationY))
+
+      ---@type Object
+      local newObject = {
+        x = x,
+        y = y,
+        w = w,
+        h = h,
+        frames = {}
+      }
+      self.engine.objects:add(newObject)
+      self.spriteEditor = spriteEditor()
+      self.spriteEditor.editingObject = newObject
+      self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(newObject.x, newObject.y)
+      self.spriteEditor.zoom = self.zoom
+      self.spriteEditor:addFrame()
+      self.selectedObject = newObject
+
+      self.creatingObject = false
+      love.mouse.setCursor()
+    elseif self.draggingObject then
+      self.draggingObject = nil
+    end
   elseif button == 3 then
     self.panning = false
   end
@@ -124,25 +170,30 @@ function sceneView:render(x, y, w, h)
   lg.push()
   lg.translate(x, y)
   self:updateViewTransform()
+  lg.push()
   lg.applyTransform(self.viewTransform)
 
-  lg.setLineStyle("rough")
-  lg.setColor(1, 1, 1, 0.1)
-  for lineX = math.ceil(self.panX / self.gridSize) * self.gridSize, self.panX + w / self.zoom, self.gridSize do
-    if lineX == 0 then
-      lg.setLineWidth(3)
-    else
-      lg.setLineWidth(1)
+  do
+    local x1, y1 = self.viewTransform:inverseTransformPoint(0, 0)
+    local x2, y2 = self.viewTransform:inverseTransformPoint(w, h)
+    lg.setLineStyle("rough")
+    lg.setColor(1, 1, 1, 0.1)
+    for lineX = math.ceil(x1 / self.gridSize) * self.gridSize, x2, self.gridSize do
+      if lineX == 0 then
+        lg.setLineWidth(3)
+      else
+        lg.setLineWidth(1)
+      end
+      lg.line(lineX, y1, lineX, y2)
     end
-    lg.line(lineX, self.panY, lineX, self.panY + h / self.zoom)
-  end
-  for lineY = math.ceil(self.panY / self.gridSize) * self.gridSize, self.panY + h / self.zoom, self.gridSize do
-    if lineY == 0 then
-      lg.setLineWidth(3)
-    else
-      lg.setLineWidth(1)
+    for lineY = math.ceil(y1 / self.gridSize) * self.gridSize, y2, self.gridSize do
+      if lineY == 0 then
+        lg.setLineWidth(3)
+      else
+        lg.setLineWidth(1)
+      end
+      lg.line(x1, lineY, x2, lineY)
     end
-    lg.line(self.panX, lineY, self.panX + w / self.zoom, lineY)
   end
 
   self.engine:draw()
@@ -153,8 +204,19 @@ function sceneView:render(x, y, w, h)
     lg.rectangle("line",
       self.selectedObject.x,
       self.selectedObject.y,
-      self.selectedObject.image:getWidth(),
-      self.selectedObject.image:getHeight())
+      self.selectedObject.frames[1].image:getWidth(),
+      self.selectedObject.frames[1].image:getHeight())
+  end
+
+  lg.pop()
+
+  if self.creatingObject and self.creationX then
+    local x1, y1 = self.viewTransform:transformPoint(self.creationX, self.creationY)
+    local x2, y2 = self:getRelativeMouse()
+    lg.setColor(1, 1, 1, 0.2)
+    lg.setLineWidth(2)
+    lg.setLineStyle("rough")
+    lg.rectangle("line", x1, y1, x2 - x1, y2 - y1)
   end
 
   lg.pop()
@@ -176,7 +238,7 @@ function sceneEditor:init(scene)
       text = "New Object",
       image = images["icons/add_box_24.png"],
       action = function()
-
+        self.sceneView:startCreatingObject()
       end
     }
   }
@@ -187,6 +249,9 @@ function sceneEditor:render(x, y, w, h)
   self.toolbar:render(x, y, w, toolbarH)
 
   self.sceneView:render(x, y + toolbarH, w, h - toolbarH)
+  if self.sceneView.spriteEditor then
+    self.sceneView.spriteEditor:render(x, y + toolbarH, w, h - toolbarH)
+  end
 
   lg.setColor(hexToColor(0x2b2b2b))
   lg.setLineStyle("rough")

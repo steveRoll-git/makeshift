@@ -6,6 +6,8 @@ local lg = love.graphics
 ---@class Object
 ---@field x number
 ---@field y number
+---@field w number
+---@field h number
 ---@field frames SpriteFrame[] A list of all the frames in this object. They are all assumed to be the same size.
 
 ---@class SpriteFrame
@@ -30,8 +32,9 @@ end
 
 function engine:draw()
   for _, o in ipairs(self.objects.list) do
+    ---@cast o Object
     lg.setColor(1, 1, 1)
-    lg.draw(o.image, o.x, o.y)
+    lg.draw(o.frames[1].image, o.x, o.y)
   end
 end
 
