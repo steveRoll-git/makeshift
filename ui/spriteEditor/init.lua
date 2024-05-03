@@ -24,6 +24,15 @@ local clearMap = function()
   return 0, 0, 0, 0
 end
 
+local stencilShader = lg.newShader [[
+  vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
+    if (Texel(texture, texture_coords).a == 0) {
+      discard;
+    }
+    return vec4(1.0);
+  }
+]]
+
 ---Sets the imageData's pixel only if x and y are in range.
 ---@param imageData love.ImageData
 ---@param x number
@@ -154,6 +163,13 @@ function spriteEditor:init()
   self.brushPreview = love.graphics.newImage(self.brushPreviewData)
   self.brushPreview:setFilter("linear", "nearest")
   self:updateBrushPreview()
+
+  self.brushOutlineStencil = function()
+    local ix, iy = self:mouseImageCoords()
+    lg.setShader(stencilShader)
+    lg.draw(self.brushPreview, ix - math.floor(self.toolSize / 2), iy - math.floor(self.toolSize / 2))
+    lg.setShader()
+  end
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
@@ -445,10 +461,37 @@ function spriteEditor:render(x, y, w, h)
   lg.applyTransform(self.viewTransform)
   lg.draw(self:currentFrame().image)
 
+  local ix, iy = self:mouseImageCoords()
   if self.currentToolType == "pencil" then
-    local ix, iy = self:mouseImageCoords()
     lg.setColor(self.currentColor)
     lg.draw(self.brushPreview, ix - math.floor(self.toolSize / 2), iy - math.floor(self.toolSize / 2))
+  elseif self.currentToolType == "eraser" then
+    if self.zoom > 1 then
+      lg.push()
+      lg.translate(1 / self.zoom, 0)
+      lg.stencil(self.brushOutlineStencil, "increment", 1, true)
+      lg.translate(0, 1 / self.zoom)
+      lg.stencil(self.brushOutlineStencil, "increment", 1, true)
+      lg.translate(-1 / self.zoom, 0)
+      lg.stencil(self.brushOutlineStencil, "increment", 1, true)
+      lg.translate(0, -1 / self.zoom)
+      lg.stencil(self.brushOutlineStencil, "increment", 1, true)
+      lg.pop()
+
+      lg.setStencilTest("equal", 2)
+      lg.setColor(0, 0, 0)
+      lg.rectangle("fill",
+        ix - math.floor(self.toolSize / 2),
+        iy - math.floor(self.toolSize / 2),
+        self.toolSize + 1,
+        self.toolSize + 1)
+      lg.setStencilTest()
+    else
+      lg.setColor(0, 0, 0)
+      lg.setLineWidth(1 / self.zoom)
+      lg.setLineStyle("rough")
+      lg.circle("line", ix, iy, self.toolSize / 2)
+    end
   end
 
   lg.pop()
