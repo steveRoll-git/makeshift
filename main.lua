@@ -1,16 +1,16 @@
 local love = love
 local lg = love.graphics
 
+require "util.windowsDarkMode"
+
+love.window.maximize()
+
 local zap = require "lib.zap.zap"
 local treeView = require "ui.treeView"
 local sceneEditor = require "ui.sceneEditor"
-local spriteEditor = require "ui.spriteEditor"
 local tabView = require "ui.tabView"
-local images = require "images"
 local fonts = require "fonts"
-
 local hexToColor = require "util.hexToColor"
-
 local project = require "project"
 
 local newScene = project.addScene()
