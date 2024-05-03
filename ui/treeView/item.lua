@@ -2,6 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
+local fonts = require "fonts"
 
 ---@class TreeViewItem: Zap.ElementClass
 ---@field text string
@@ -10,7 +11,7 @@ local zap = require "lib.zap.zap"
 local treeViewItem = zap.elementClass()
 
 function treeViewItem:init()
-  self.font = lg.newFont(14)
+  self.font = fonts("Inter-Regular.ttf", 14)
 end
 
 function treeViewItem:desiredHeight()

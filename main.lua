@@ -7,6 +7,7 @@ local sceneEditor = require "ui.sceneEditor"
 local spriteEditor = require "ui.spriteEditor"
 local tabView = require "ui.tabView"
 local images = require "images"
+local fonts = require "fonts"
 
 local hexToColor = require "util.hexToColor"
 
@@ -76,7 +77,7 @@ end
 libraryPanel:setItems(resourceItemModels())
 
 local testTabView = tabView()
-testTabView.font = lg.getFont()
+testTabView.font = fonts("Inter-Regular.ttf", 14)
 testTabView:setTabs {
   {
     text = "Wow a Scene",

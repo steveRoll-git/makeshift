@@ -6,8 +6,9 @@ local slider = require "ui.colorPicker.slider"
 local hsvToRgb = require "util.hsvToRgb"
 local rgbToHsv = require "util.rgbToHsv"
 local hexToColor = require "util.hexToColor"
+local fonts = require "fonts"
 
-local labelFont = lg.getFont()
+local labelFont = fonts("Inter-Regular.ttf", 14)
 
 local slidersHSV = {
   {

@@ -4,6 +4,7 @@ local lg = love.graphics
 local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local button = require "ui.button"
+local fonts = require "fonts"
 
 ---@class Toolbar: Zap.ElementClass
 ---@field private buttons Zap.Element[]
@@ -20,7 +21,7 @@ function toolbar:setItems(items)
     b.text = item.text
     b.onClick = item.action
     b.displayMode = "textAfterImage"
-    b.font = lg.newFont(14)
+    b.font = fonts("Inter-Regular.ttf", 14)
     b.textImageMargin = 3
     table.insert(self.buttons, b)
   end
