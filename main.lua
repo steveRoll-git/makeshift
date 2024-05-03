@@ -79,12 +79,12 @@ local testTabView = tabView()
 testTabView.font = lg.getFont()
 testTabView:setTabs {
   {
-    text = "Sprite Editor",
-    content = testSpriteEditor
-  },
-  {
     text = "Wow a Scene",
     content = editor
+  },
+  {
+    text = "Sprite Editor",
+    content = testSpriteEditor
   },
   {
     text = "Library",

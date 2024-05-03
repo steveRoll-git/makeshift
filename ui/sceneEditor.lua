@@ -3,6 +3,8 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local engine = require "engine"
+local toolbar = require "ui.toolbar"
+local images = require "images"
 
 ---@class SceneEditor: Zap.ElementClass
 ---@field selectedObject Object?
@@ -12,6 +14,17 @@ local sceneEditor = zap.elementClass()
 
 function sceneEditor:init(scene)
   self.engine = engine.createEngine(scene)
+
+  self.toolbar = toolbar()
+  self.toolbar:setItems {
+    {
+      text = "New Object",
+      image = images["icons/add_box_24.png"],
+      action = function()
+
+      end
+    }
+  }
 end
 
 function sceneEditor:mousePressed(button)
@@ -47,6 +60,11 @@ function sceneEditor:mouseMoved(x, y)
 end
 
 function sceneEditor:render(x, y, w, h)
+  local toolbarH = self.toolbar:desiredHeight()
+  self.toolbar:render(x, y, w, toolbarH)
+
+  y = y + toolbarH
+  h = h - toolbarH
   lg.setScissor(x, y, w, h)
   lg.push()
   lg.translate(x, y)
