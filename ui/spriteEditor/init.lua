@@ -467,6 +467,9 @@ function spriteEditor:wheelMoved(x, y)
     end
     if newZoom ~= self.zoom then
       local mx, my = self:getRelativeMouse()
+      if not self.embedded then
+        my = my - self.topToolbar:desiredHeight()
+      end
 
       local placeX = (mx - self.panX) / (self:currentImageData():getWidth() * self.zoom)
       local placeY = (my - self.panY) / (self:currentImageData():getHeight() * self.zoom)
