@@ -5,6 +5,7 @@ local zap = require "lib.zap.zap"
 local engine = require "engine"
 local toolbar = require "ui.toolbar"
 local images = require "images"
+local hexToColor = require "util.hexToColor"
 
 ---@class SceneView: Zap.ElementClass
 ---@field editor SceneEditor
@@ -95,10 +96,12 @@ function sceneEditor:render(x, y, w, h)
   local toolbarH = self.toolbar:desiredHeight()
   self.toolbar:render(x, y, w, toolbarH)
 
-  y = y + toolbarH
-  h = h - toolbarH
+  self.sceneView:render(x, y + toolbarH, w, h - toolbarH)
 
-  self.sceneView:render(x, y, w, h)
+  lg.setColor(hexToColor(0x2b2b2b))
+  lg.setLineStyle("rough")
+  lg.setLineWidth(1)
+  lg.line(x, y + toolbarH, x + w, y + toolbarH)
 end
 
 return sceneEditor
