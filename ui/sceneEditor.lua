@@ -53,6 +53,9 @@ function sceneView:startCreatingObject()
 end
 
 function sceneView:exitSpriteEditor()
+  self.zoom = self.spriteEditor.zoom
+  self.panX = -(self.spriteEditor.panX / self.spriteEditor.zoom - self.selectedObject.x)
+  self.panY = -(self.spriteEditor.panY / self.spriteEditor.zoom - self.selectedObject.y)
   self.spriteEditor = nil
 end
 
