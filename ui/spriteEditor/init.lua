@@ -9,6 +9,7 @@ local tab = require "ui.tabView.tab"
 local toolbar = require "ui.spriteEditor.toolbar"
 local images = require "images"
 local colorPicker = require "ui.colorPicker"
+local sign = require "util.sign"
 
 local initialImageSize = 128
 
@@ -391,35 +392,42 @@ function spriteEditor:mouseMoved(x, y)
 end
 
 function spriteEditor:wheelMoved(x, y)
-  local newZoom = self.zoom
-  if y > 0 then
-    for i = 1, #zoomValues do
-      if zoomValues[i] > self.zoom then
-        newZoom = zoomValues[i]
-        break
+  if love.keyboard.isDown("lctrl", "rctrl") then
+    -- change brush size
+    self.toolSize = math.min(math.max(self.toolSize + sign(y), 1), 100)
+    self:updateBrushPreview()
+  else
+    -- zoom
+    local newZoom = self.zoom
+    if y > 0 then
+      for i = 1, #zoomValues do
+        if zoomValues[i] > self.zoom then
+          newZoom = zoomValues[i]
+          break
+        end
+      end
+    elseif y < 0 then
+      for i = #zoomValues, 1, -1 do
+        if zoomValues[i] < self.zoom then
+          newZoom = zoomValues[i]
+          break
+        end
       end
     end
-  elseif y < 0 then
-    for i = #zoomValues, 1, -1 do
-      if zoomValues[i] < self.zoom then
-        newZoom = zoomValues[i]
-        break
-      end
+    if newZoom ~= self.zoom then
+      local mx, my = self:getRelativeMouse()
+
+      local placeX = (mx - self.panX) / (self:currentImageData():getWidth() * self.zoom)
+      local placeY = (my - self.panY) / (self:currentImageData():getHeight() * self.zoom)
+
+      self.zoom = newZoom
+      self:updateViewTransform()
+
+      self.panX = -(self:currentImageData():getWidth() * self.zoom * placeX) + mx
+      self.panY = -(self:currentImageData():getHeight() * self.zoom * placeY) + my
+
+      self:updateTransparencyQuad()
     end
-  end
-  if newZoom ~= self.zoom then
-    local mx, my = self:getRelativeMouse()
-
-    local placeX = (mx - self.panX) / (self:currentImageData():getWidth() * self.zoom)
-    local placeY = (my - self.panY) / (self:currentImageData():getHeight() * self.zoom)
-
-    self.zoom = newZoom
-    self:updateViewTransform()
-
-    self.panX = -(self:currentImageData():getWidth() * self.zoom * placeX) + mx
-    self.panY = -(self:currentImageData():getHeight() * self.zoom * placeY) + my
-
-    self:updateTransparencyQuad()
   end
 end
 
