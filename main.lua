@@ -62,9 +62,9 @@ end
 
 libraryPanel:setItems(resourceItemModels())
 
-local testTabView = tabView()
-testTabView.font = fonts("Inter-Regular.ttf", 14)
-testTabView:setTabs {
+local mainTabView = tabView()
+mainTabView.font = fonts("Inter-Regular.ttf", 14)
+mainTabView:setTabs {
   {
     text = "Wow a Scene",
     content = editor
@@ -78,6 +78,12 @@ testTabView:setTabs {
     content = libraryPanel
   }
 }
+
+---Adds a new tab to the main tabView.
+---@param tab TabModel
+function AddNewTab(tab)
+  mainTabView:addTab(tab)
+end
 
 local uiScene = zap.createScene()
 
@@ -104,7 +110,7 @@ end
 
 function love.draw()
   uiScene:begin()
-  testTabView:render(0, 0, lg.getDimensions())
+  mainTabView:render(0, 0, lg.getDimensions())
   if popup then
     popup:render(popupX, popupY, popupW, popupH)
     popupRendered = true

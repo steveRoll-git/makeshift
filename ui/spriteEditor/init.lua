@@ -163,19 +163,31 @@ function spriteEditor:init(sceneView)
   self.toolSize = 1
 
   self.embedded = not not sceneView
-  local topToolbarItems = {
+  self.topToolbar = topToolbar()
+  self.topToolbar:setItems {
     {
       text = "Back",
       image = images["icons/arrow_back_24.png"],
       action = function()
         sceneView:exitSpriteEditor()
+      end,
+      visible = function()
+        return self.embedded
       end
     },
     {
       text = "Pop Out",
       image = images["icons/open_in_new_24.png"],
       action = function()
-
+        self.embedded = false
+        sceneView:exitSpriteEditor()
+        AddNewTab({
+          text = "Sprite Editor",
+          content = self
+        })
+      end,
+      visible = function()
+        return self.embedded
       end
     },
     {
@@ -185,8 +197,6 @@ function spriteEditor:init(sceneView)
       end
     }
   }
-  self.topToolbar = topToolbar()
-  self.topToolbar:setItems(topToolbarItems)
 
   self.brushPreviewData = love.image.newImageData(128, 128)
   self.brushPreview = love.graphics.newImage(self.brushPreviewData)
@@ -252,6 +262,9 @@ end
 ---@return number y
 function spriteEditor:mouseImageCoords()
   local mx, my = self:getRelativeMouse()
+  if not self.embedded then
+    my = my - self.topToolbar:desiredHeight()
+  end
   local ix, iy = self.viewTransform:inverseTransformPoint(mx, my)
   return math.floor(ix), math.floor(iy)
 end

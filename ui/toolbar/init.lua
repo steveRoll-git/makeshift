@@ -13,8 +13,9 @@ local viewTools = require "util.viewTools"
 local toolbar = zap.elementClass()
 
 ---Sets this toolbar's items.
----@param items {image: love.Image, text: string, action: fun()}[]
+---@param items {image: love.Image, text: string, action: fun(), visible: boolean | fun(): boolean}[]
 function toolbar:setItems(items)
+  self.models = items
   self.buttons = {}
   for _, item in ipairs(items) do
     local b = button()
@@ -37,11 +38,25 @@ function toolbar:render(x, y, w, h)
   lg.rectangle("fill", x, y, w, h)
 
   local itemX = x
-  for _, b in ipairs(self.buttons) do
-    local buttonW = b:desiredWidth() + 12
-    b:render(viewTools.padding(itemX, y, buttonW, h, 1))
-    itemX = itemX + buttonW
+  for i, b in ipairs(self.buttons) do
+    local model = self.models[i]
+    local visible
+    if type(model.visible) == "function" then
+      visible = model.visible()
+    else
+      visible = model.visible or type(model.visible == "nil")
+    end
+    if visible then
+      local buttonW = b:desiredWidth() + 12
+      b:render(viewTools.padding(itemX, y, buttonW, h, 1))
+      itemX = itemX + buttonW
+    end
   end
+
+  lg.setColor(hexToColor(0x2b2b2b))
+  lg.setLineStyle("rough")
+  lg.setLineWidth(1)
+  lg.line(x, y + h, x + w, y + h)
 end
 
 return toolbar

@@ -254,17 +254,13 @@ function sceneEditor:render(x, y, w, h)
     toolbar = self.sceneView.spriteEditor.topToolbar
   end
   local toolbarH = toolbar:desiredHeight()
-  toolbar:render(x, y, w, toolbarH)
 
   self.sceneView:render(x, y + toolbarH, w, h - toolbarH)
   if self.sceneView.spriteEditor then
     self.sceneView.spriteEditor:render(x, y + toolbarH, w, h - toolbarH)
   end
 
-  lg.setColor(hexToColor(0x2b2b2b))
-  lg.setLineStyle("rough")
-  lg.setLineWidth(1)
-  lg.line(x, y + toolbarH, x + w, y + toolbarH)
+  toolbar:render(x, y, w, toolbarH)
 end
 
 return sceneEditor

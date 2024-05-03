@@ -5,6 +5,8 @@ local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
 
+---@alias TabModel {text: string, content: Zap.Element}
+
 ---@class TabView: Zap.ElementClass
 ---@field tabs Tab[]
 ---@field private activeTab Tab
@@ -12,18 +14,25 @@ local tab = require "ui.tabView.tab"
 ---@operator call:TabView
 local tabView = zap.elementClass()
 
+---Adds a new tab.
+---@param tabModel TabModel
+function tabView:addTab(tabModel)
+  local newTab = tab()
+  newTab.text = tabModel.text
+  newTab.content = tabModel.content
+  newTab.font = self.font
+  newTab.draggable = true
+  table.insert(self.tabs, newTab)
+  self:layoutTabs()
+  self:setActiveTab(newTab)
+end
+
 ---Set the tabs shown by this TabContainer.
----@param tabs {text: string, content: Zap.Element}[]
+---@param tabs TabModel[]
 function tabView:setTabs(tabs)
   self.tabs = {}
   for _, tabModel in ipairs(tabs) do
-    local newTab = tab()
-    newTab.text = tabModel.text
-    newTab.content = tabModel.content
-    newTab.font = self.font
-    newTab.draggable = true
-    table.insert(self.tabs, newTab)
-    newTab.index = #self.tabs
+    self:addTab(tabModel)
   end
   self:layoutTabs()
   self:setActiveTab(self.tabs[1])
