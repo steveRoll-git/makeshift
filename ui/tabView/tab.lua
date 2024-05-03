@@ -63,12 +63,24 @@ function tab:preferredWidth()
 end
 
 function tab:render(x, y, w, h)
+  local cornerRadius = 6
+
+  lg.setScissor(x - 1, y, w + 2, h)
   if self.active or self:isHovered() then
     lg.setColor(hexToColor(0x1f1f1f))
   else
     lg.setColor(hexToColor(0x181818))
   end
-  lg.rectangle("fill", x, y, w, h)
+  lg.rectangle("fill", x, y, w, h + cornerRadius, cornerRadius)
+
+  if self.active then
+    lg.setColor(hexToColor(0x2b2b2b))
+    lg.setLineStyle("rough")
+    lg.setLineWidth(1)
+    lg.rectangle("line", x, y + 2, w, h + cornerRadius, cornerRadius)
+  end
+
+  lg.setScissor()
 
   lg.setColor(1, 1, 1)
   lg.setFont(self.font)

@@ -69,10 +69,6 @@ function tabView:renderTab(tab, x, y)
   local tabX = (tab.isDragging and tab.dragX or x + tab.layoutX)
   local tabW = tab:preferredWidth()
   tab:render(tabX, y, tabW, self:tabBarHeight())
-  lg.setColor(hexToColor(0x2b2b2b))
-  lg.setLineStyle("rough")
-  lg.setLineWidth(1)
-  lg.line(tabX, y, tabX, y + self:tabBarHeight())
 end
 
 function tabView:render(x, y, w, h)
