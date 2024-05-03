@@ -10,6 +10,7 @@ local toolbar = require "ui.spriteEditor.toolbar"
 local images = require "images"
 local colorPicker = require "ui.colorPicker"
 local sign = require "util.sign"
+local topToolbar = require "ui.toolbar"
 
 local initialImageSize = 128
 
@@ -122,10 +123,12 @@ end
 ---@field currentToolType ToolType
 ---@field toolSize number
 ---@field currentColor number[]
+---@field embedded boolean Whether this spriteEditor is embedded in a sceneEditor.
 ---@operator call:SpriteEditor
 local spriteEditor = zap.elementClass()
 
-function spriteEditor:init()
+---@param sceneView SceneView
+function spriteEditor:init(sceneView)
   self.panX = 0
   self.panY = 0
   self.zoom = 1
@@ -158,6 +161,32 @@ function spriteEditor:init()
   }
   self.currentToolType = "pencil"
   self.toolSize = 1
+
+  self.embedded = not not sceneView
+  local topToolbarItems = {
+    {
+      text = "Back",
+      image = images["icons/arrow_back_24.png"],
+      action = function()
+        sceneView:exitSpriteEditor()
+      end
+    },
+    {
+      text = "Pop Out",
+      image = images["icons/open_in_new_24.png"],
+      action = function()
+
+      end
+    },
+    {
+      text = "Brush Size",
+      image = images["icons/line_weight_24.png"],
+      action = function()
+      end
+    }
+  }
+  self.topToolbar = topToolbar()
+  self.topToolbar:setItems(topToolbarItems)
 
   self.brushPreviewData = love.image.newImageData(128, 128)
   self.brushPreview = love.graphics.newImage(self.brushPreviewData)
@@ -442,6 +471,12 @@ end
 
 function spriteEditor:render(x, y, w, h)
   self:updateViewTransform()
+
+  if not self.embedded then
+    self.topToolbar:render(x, y, w, topToolbar:desiredHeight())
+    y = y + self.topToolbar:desiredHeight()
+    h = h - self.topToolbar:desiredHeight()
+  end
 
   lg.setScissor(x, y, w, h)
   lg.push()

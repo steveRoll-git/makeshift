@@ -52,6 +52,10 @@ function sceneView:startCreatingObject()
   love.mouse.setCursor(love.mouse.getSystemCursor("crosshair"))
 end
 
+function sceneView:exitSpriteEditor()
+  self.spriteEditor = nil
+end
+
 function sceneView:mousePressed(button)
   if button == 1 then
     if self.creatingObject then
@@ -102,7 +106,7 @@ function sceneView:mouseReleased(button)
         frames = {}
       }
       self.engine.objects:add(newObject)
-      self.spriteEditor = spriteEditor()
+      self.spriteEditor = spriteEditor(self)
       self.spriteEditor.editingObject = newObject
       self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(newObject.x, newObject.y)
       self.spriteEditor.zoom = self.zoom
@@ -245,8 +249,12 @@ function sceneEditor:init(scene)
 end
 
 function sceneEditor:render(x, y, w, h)
-  local toolbarH = self.toolbar:desiredHeight()
-  self.toolbar:render(x, y, w, toolbarH)
+  local toolbar = self.toolbar
+  if self.sceneView.spriteEditor then
+    toolbar = self.sceneView.spriteEditor.topToolbar
+  end
+  local toolbarH = toolbar:desiredHeight()
+  toolbar:render(x, y, w, toolbarH)
 
   self.sceneView:render(x, y + toolbarH, w, h - toolbarH)
   if self.sceneView.spriteEditor then
