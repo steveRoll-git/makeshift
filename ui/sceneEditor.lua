@@ -6,28 +6,21 @@ local engine = require "engine"
 local toolbar = require "ui.toolbar"
 local images = require "images"
 
----@class SceneEditor: Zap.ElementClass
+---@class SceneView: Zap.ElementClass
+---@field editor SceneEditor
+---@field engine Engine
 ---@field selectedObject Object?
 ---@field draggingObject {object: Object, offsetX: number, offsetY: number}
----@operator call:SceneEditor
-local sceneEditor = zap.elementClass()
+---@operator call:SceneView
+local sceneView = zap.elementClass()
 
-function sceneEditor:init(scene)
-  self.engine = engine.createEngine(scene)
-
-  self.toolbar = toolbar()
-  self.toolbar:setItems {
-    {
-      text = "New Object",
-      image = images["icons/add_box_24.png"],
-      action = function()
-
-      end
-    }
-  }
+---@param editor SceneEditor
+function sceneView:init(editor)
+  self.editor = editor
+  self.engine = editor.engine
 end
 
-function sceneEditor:mousePressed(button)
+function sceneView:mousePressed(button)
   self.selectedObject = nil
   local mx, my = self:getRelativeMouse()
   for i = #self.engine.objects.list, 1, -1 do
@@ -45,13 +38,13 @@ function sceneEditor:mousePressed(button)
   end
 end
 
-function sceneEditor:mouseReleased(button)
+function sceneView:mouseReleased(button)
   if self.draggingObject then
     self.draggingObject = nil
   end
 end
 
-function sceneEditor:mouseMoved(x, y)
+function sceneView:mouseMoved(x, y)
   local mx, my = self:getRelativeMouse()
   if self.draggingObject then
     self.draggingObject.object.x = mx + self.draggingObject.offsetX
@@ -59,12 +52,7 @@ function sceneEditor:mouseMoved(x, y)
   end
 end
 
-function sceneEditor:render(x, y, w, h)
-  local toolbarH = self.toolbar:desiredHeight()
-  self.toolbar:render(x, y, w, toolbarH)
-
-  y = y + toolbarH
-  h = h - toolbarH
+function sceneView:render(x, y, w, h)
   lg.setScissor(x, y, w, h)
   lg.push()
   lg.translate(x, y)
@@ -80,6 +68,37 @@ function sceneEditor:render(x, y, w, h)
   end
   lg.pop()
   lg.setScissor()
+end
+
+---@class SceneEditor: Zap.ElementClass
+---@operator call:SceneEditor
+local sceneEditor = zap.elementClass()
+
+function sceneEditor:init(scene)
+  self.engine = engine.createEngine(scene)
+
+  self.sceneView = sceneView(self)
+
+  self.toolbar = toolbar()
+  self.toolbar:setItems {
+    {
+      text = "New Object",
+      image = images["icons/add_box_24.png"],
+      action = function()
+
+      end
+    }
+  }
+end
+
+function sceneEditor:render(x, y, w, h)
+  local toolbarH = self.toolbar:desiredHeight()
+  self.toolbar:render(x, y, w, toolbarH)
+
+  y = y + toolbarH
+  h = h - toolbarH
+
+  self.sceneView:render(x, y, w, h)
 end
 
 return sceneEditor
