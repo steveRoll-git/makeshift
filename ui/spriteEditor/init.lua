@@ -19,6 +19,84 @@ local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 
 local transparency = images["transparency.png"]
 transparency:setWrap("repeat", "repeat")
 
+local clearMap = function()
+  return 0, 0, 0, 0
+end
+
+---Sets the imageData's pixel only if x and y are in range.
+---@param imageData love.ImageData
+---@param x number
+---@param y number
+---@param color number[]
+local function safeSetPixel(imageData, x, y, color)
+  if x >= 0 and x < imageData:getWidth() and y >= 0 and y < imageData:getHeight() then
+    imageData:setPixel(x, y, color)
+  end
+end
+
+---Fills an ellipse in the image.
+---Algorithm from http://members.chello.at/easyfilter/bresenham.html
+---@param imageData love.ImageData
+---@param x0 number
+---@param y0 number
+---@param x1 number
+---@param y1 number
+---@param color number[]
+local function fillEllipse(imageData, x0, y0, x1, y1, color)
+  if (x0 == x1 and y0 == y1) then
+    safeSetPixel(imageData, x0, y0, color)
+    return
+  end
+  local a = math.abs(x1 - x0)
+  local b = math.abs(y1 - y0)
+  local b1 = b % 2
+  local dx = 4 * (1 - a) * b * b
+  local dy = 4 * (b1 + 1) * a * a
+  local err = dx + dy + b1 * a * a
+  local e2
+
+  if (x0 > x1) then
+    x0 = x1
+    x1 = x1 + a
+  end
+  if (y0 > y1) then
+    y0 = y1
+  end
+  y0 = y0 + (b + 1) / 2
+  y1 = y0 - b1
+  a = a * 8 * a
+  b1 = 8 * b * b
+
+  repeat
+    for x = x0, x1 do
+      safeSetPixel(imageData, x, y0, color)
+      safeSetPixel(imageData, x, y1, color)
+    end
+    e2 = 2 * err
+    if (e2 <= dy) then
+      y0 = y0 + 1
+      y1 = y1 - 1
+      dy = dy + a
+      err = err + dy
+    end
+    if (e2 >= dx or 2 * err > dy) then
+      x0 = x0 + 1
+      x1 = x1 - 1
+      dx = dx + b1
+      err = err + dx
+    end
+  until (x0 > x1)
+
+  while (y0 - y1 < b) do
+    safeSetPixel(imageData, x0 - 1, y0, color)
+    safeSetPixel(imageData, x1 + 1, y0, color)
+    y0 = y0 + 1
+    safeSetPixel(imageData, x0 - 1, y1, color)
+    safeSetPixel(imageData, x1 + 1, y1, color)
+    y1 = y1 - 1
+  end
+end
+
 ---@alias ToolType "pencil" | "eraser" | "fill"
 
 ---@class SpriteEditor: Zap.ElementClass
@@ -70,6 +148,11 @@ function spriteEditor:init()
   }
   self.currentToolType = "pencil"
   self.toolSize = 1
+
+  self.brushPreviewData = love.image.newImageData(128, 128)
+  self.brushPreview = love.graphics.newImage(self.brushPreviewData)
+  self.brushPreview:setFilter("linear", "nearest")
+  self:updateBrushPreview()
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
@@ -91,6 +174,13 @@ function spriteEditor:updateTransparencyQuad()
     self:currentImageData():getWidth() * self.zoom,
     self:currentImageData():getHeight() * self.zoom,
     transparency:getDimensions())
+end
+
+---Updates the brush preview to match the current size.
+function spriteEditor:updateBrushPreview()
+  self.brushPreviewData:mapPixel(clearMap)
+  fillEllipse(self.brushPreviewData, 0, 0, self.toolSize - 1, self.toolSize - 1, { 1, 1, 1, 1 })
+  self.brushPreview:replacePixels(self.brushPreviewData)
 end
 
 ---Returns the frame currently being edited.
@@ -163,68 +253,6 @@ function spriteEditor:updateImage()
   self:currentFrame().image:replacePixels(self:currentImageData())
 end
 
----Fills an ellipse in the image.
----Algorithm from http://members.chello.at/easyfilter/bresenham.html
----@param x0 number
----@param y0 number
----@param x1 number
----@param y1 number
----@param color number[]
-function spriteEditor:fillEllipse(x0, y0, x1, y1, color)
-  if (x0 == x1 and y0 == y1) then
-    self:setPixel(x0, y0, color)
-    return
-  end
-  local a = math.abs(x1 - x0)
-  local b = math.abs(y1 - y0)
-  local b1 = b % 2
-  local dx = 4 * (1 - a) * b * b
-  local dy = 4 * (b1 + 1) * a * a
-  local err = dx + dy + b1 * a * a
-  local e2
-
-  if (x0 > x1) then
-    x0 = x1
-    x1 = x1 + a
-  end
-  if (y0 > y1) then
-    y0 = y1
-  end
-  y0 = y0 + (b + 1) / 2
-  y1 = y0 - b1
-  a = a * 8 * a
-  b1 = 8 * b * b
-
-  repeat
-    for x = x0, x1 do
-      self:setPixel(x, y0, color)
-      self:setPixel(x, y1, color)
-    end
-    e2 = 2 * err
-    if (e2 <= dy) then
-      y0 = y0 + 1
-      y1 = y1 - 1
-      dy = dy + a
-      err = err + dy
-    end
-    if (e2 >= dx or 2 * err > dy) then
-      x0 = x0 + 1
-      x1 = x1 - 1
-      dx = dx + b1
-      err = err + dx
-    end
-  until (x0 > x1)
-
-  while (y0 - y1 < b) do
-    self:setPixel(x0 - 1, y0, color)
-    self:setPixel(x1 + 1, y0, color)
-    y0 = y0 + 1
-    self:setPixel(x0 - 1, y1, color)
-    self:setPixel(x1 + 1, y1, color)
-    y1 = y1 - 1
-  end
-end
-
 ---Paints a stroke from one position to another.
 ---@param toX number
 ---@param toY number
@@ -249,7 +277,7 @@ function spriteEditor:paintCircle(fromX, fromY, toX, toY, color)
     local y = currentY + 0.5
     local x1, y1 = x - size / 2, y - size / 2
     local x2, y2 = x + size / 2 - 1, y + size / 2 - 1
-    self:fillEllipse(x1, y1, x2, y2, color)
+    fillEllipse(self:currentImageData(), x1, y1, x2, y2, color)
     nextX, nextY = currentX + dirX / step, currentY + dirY / step
     count = count + 1
   until dist(currentX, currentY, toX, toY) <= 0.5
@@ -408,6 +436,12 @@ function spriteEditor:render(x, y, w, h)
 
   lg.applyTransform(self.viewTransform)
   lg.draw(self:currentFrame().image)
+
+  if self.currentToolType == "pencil" then
+    local ix, iy = self:mouseImageCoords()
+    lg.setColor(self.currentColor)
+    lg.draw(self.brushPreview, ix - math.floor(self.toolSize / 2), iy - math.floor(self.toolSize / 2))
+  end
 
   lg.pop()
 
