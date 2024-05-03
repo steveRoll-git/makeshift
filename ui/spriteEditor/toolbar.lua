@@ -4,6 +4,7 @@ local lg = love.graphics
 local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local images = require "images"
+local viewTools = require "util.viewTools"
 
 local transparency = images["transparency.png"]
 
@@ -120,11 +121,7 @@ function toolbar:render(x, y, w, h)
   for i, item in ipairs(self.tools) do
     local ix, iy, iw, ih = x + itemPadding, y + (i - 1) * (itemSize + itemPadding) + itemPadding, itemSize, itemSize
     if item == self.colorTool then
-      local padding = 4
-      ix = ix + padding
-      iy = iy + padding
-      iw = iw - padding * 2
-      ih = ih - padding * 2
+      ix, iy, iw, ih = viewTools.padding(ix, iy, iw, ih, 4)
     end
     item:render(ix, iy, iw, ih)
   end

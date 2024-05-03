@@ -5,6 +5,7 @@ local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local button = require "ui.button"
 local fonts = require "fonts"
+local viewTools = require "util.viewTools"
 
 ---@class Toolbar: Zap.ElementClass
 ---@field private buttons Zap.Element[]
@@ -38,7 +39,7 @@ function toolbar:render(x, y, w, h)
   local itemX = x
   for _, b in ipairs(self.buttons) do
     local buttonW = b:desiredWidth() + 12
-    b:render(itemX, y, buttonW, h)
+    b:render(viewTools.padding(itemX, y, buttonW, h, 1))
     itemX = itemX + buttonW
   end
 end
