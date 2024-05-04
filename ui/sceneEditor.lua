@@ -57,7 +57,7 @@ end
 ---@param object Object
 function sceneView:openSpriteEditor(object)
   self.spriteEditor = spriteEditor(self)
-  self.spriteEditor.editingObject = object
+  self.spriteEditor.editingObjectData = object.data
   self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(object.x, object.y)
   self.spriteEditor.zoom = self.zoom
 end
@@ -80,7 +80,7 @@ function sceneView:mousePressed(button)
       for i = #self.engine.objects.list, 1, -1 do
         ---@type Object
         local obj = self.engine.objects.list[i]
-        if mx >= obj.x and my >= obj.y and mx < obj.x + obj.w and my < obj.y + obj.h then
+        if mx >= obj.x and my >= obj.y and mx < obj.x + obj.data.w and my < obj.y + obj.data.h then
           self.selectedObject = obj
           self.draggingObject = {
             object = obj,
@@ -110,13 +110,18 @@ function sceneView:mouseReleased(button)
       local w = math.floor(math.abs(mx - self.creationX))
       local h = math.floor(math.abs(my - self.creationY))
 
+      ---@type ObjectData
+      local newData = {
+        type = "objectData",
+        w = w,
+        h = h,
+        frames = {}
+      }
       ---@type Object
       local newObject = {
         x = x,
         y = y,
-        w = w,
-        h = h,
-        frames = {}
+        data = newData
       }
       self.engine.objects:add(newObject)
       self:openSpriteEditor(newObject)
@@ -224,8 +229,8 @@ function sceneView:render(x, y, w, h)
     lg.rectangle("line",
       self.selectedObject.x,
       self.selectedObject.y,
-      self.selectedObject.frames[1].image:getWidth(),
-      self.selectedObject.frames[1].image:getHeight())
+      self.selectedObject.data.frames[1].image:getWidth(),
+      self.selectedObject.data.frames[1].image:getHeight())
   end
 
   lg.pop()
@@ -247,7 +252,9 @@ end
 ---@operator call:SceneEditor
 local sceneEditor = zap.elementClass()
 
+---@param scene Scene
 function sceneEditor:init(scene)
+  self.originalScene = scene
   self.engine = engine.createEngine(scene)
 
   self.sceneView = sceneView(self)
@@ -265,6 +272,13 @@ function sceneEditor:init(scene)
 
   self.zoomSlider = zoomSlider()
   self.zoomSlider.targetTable = self.sceneView
+end
+
+function sceneEditor:writeToScene()
+  self.originalScene.objects = {}
+  for _, o in ipairs(self.engine.objects.list) do
+    table.insert(self.originalScene.objects, o)
+  end
 end
 
 function sceneEditor:render(x, y, w, h)

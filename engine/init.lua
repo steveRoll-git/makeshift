@@ -3,12 +3,15 @@ local deepCopy = require "util.deepCopy"
 local love = love
 local lg = love.graphics
 
----@class Object
----@field x number
----@field y number
+---@class ObjectData: Resource
 ---@field w number
 ---@field h number
 ---@field frames SpriteFrame[] A list of all the frames in this object. They are all assumed to be the same size.
+
+---@class Object
+---@field x number
+---@field y number
+---@field data ObjectData
 
 ---@class SpriteFrame
 ---@field imageData love.ImageData
@@ -34,7 +37,7 @@ function engine:draw()
   for _, o in ipairs(self.objects.list) do
     ---@cast o Object
     lg.setColor(1, 1, 1)
-    lg.draw(o.frames[1].image, o.x, o.y)
+    lg.draw(o.data.frames[1].image, o.x, o.y)
   end
 end
 

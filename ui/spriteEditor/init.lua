@@ -112,7 +112,7 @@ end
 ---@alias ToolType "pencil" | "eraser" | "fill"
 
 ---@class SpriteEditor: Zap.ElementClass
----@field editingObject Object
+---@field editingObjectData ObjectData
 ---@field currentFrameIndex number
 ---@field panX number
 ---@field panY number
@@ -246,7 +246,7 @@ end
 ---Returns the frame currently being edited.
 ---@return SpriteFrame
 function spriteEditor:currentFrame()
-  return self.editingObject.frames[self.currentFrameIndex]
+  return self.editingObjectData.frames[self.currentFrameIndex]
 end
 
 ---Returns the ImageData currently being edited.
@@ -276,13 +276,13 @@ end
 ---Appends a new frame to the edited object.
 function spriteEditor:addFrame()
   local frame = {
-    imageData = love.image.newImageData(self.editingObject.w, self.editingObject.h)
+    imageData = love.image.newImageData(self.editingObjectData.w, self.editingObjectData.h)
   }
   frame.image = lg.newImage(frame.imageData)
   frame.image:setFilter("linear", "nearest")
-  table.insert(self.editingObject.frames, frame)
+  table.insert(self.editingObjectData.frames, frame)
 
-  self.currentFrameIndex = #self.editingObject.frames
+  self.currentFrameIndex = #self.editingObjectData.frames
   self:updateTransparencyQuad()
 end
 

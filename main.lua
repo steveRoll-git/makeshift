@@ -14,8 +14,6 @@ local fonts = require "fonts"
 local hexToColor = require "util.hexToColor"
 local project = require "project"
 
-local newScene = project.addScene()
-
 ---@class Zap.ElementClass
 ---@field mouseDoubleClicked fun(self: Zap.Element, button: any)
 
@@ -50,8 +48,6 @@ function ClosePopup()
   popup = nil
   popupRendered = false
 end
-
-local editor = sceneEditor(newScene)
 
 local libraryPanel = treeView()
 
@@ -151,4 +147,13 @@ function love.draw()
     popupRendered = true
   end
   uiScene:finish()
+end
+
+function love.quit()
+  for _, t in ipairs(mainTabView.tabs) do
+    if t.content.class == sceneEditor then
+      (t.content --[[@as SceneEditor]]):writeToScene()
+    end
+  end
+  project.saveProject()
 end
