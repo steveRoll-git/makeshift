@@ -170,10 +170,9 @@ function sceneView:wheelMoved(x, y)
     end
   end
   if newZoom ~= self.zoom then
-    local mx, my = self:getRelativeMouse()
-    local prevPanX, prevPanY = self.panX, self.panY
-    local prevWorldX, prevWorldY = self.viewTransform:inverseTransformPoint(mx, my)
-    local diffX, diffY = (prevWorldX - prevPanX) * self.zoom / newZoom, (prevWorldY - prevPanY) * self.zoom / newZoom
+    local prevWorldX, prevWorldY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
+    local diffX = (prevWorldX - self.panX) * self.zoom / newZoom
+    local diffY = (prevWorldY - self.panY) * self.zoom / newZoom
 
     self.zoom = newZoom
 
