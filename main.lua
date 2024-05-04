@@ -15,6 +15,9 @@ local project = require "project"
 
 local newScene = project.addScene()
 
+---@class Zap.ElementClass
+---@field mouseDoubleClicked fun(self: Zap.Element, button: any)
+
 ---@type Zap.Element?
 local popup
 local popupRendered = false
@@ -87,6 +90,12 @@ end
 
 local uiScene = zap.createScene()
 
+local lastPressTime
+local lastPressButton
+local lastPressedElement
+-- The maximum time in between clicks that will fire a double click.
+local doubleClickTime = 0.2
+
 lg.setBackgroundColor(hexToColor(0x181818))
 
 function love.mousemoved(x, y, dx, dy)
@@ -95,9 +104,19 @@ end
 
 function love.mousepressed(x, y, btn)
   uiScene:mousePressed(btn)
-  if popup and popupRendered and not popup:isInHierarchy(uiScene:getPressedElement()) then
+  local pressedElement = uiScene:getPressedElement()
+  if btn == lastPressButton and
+      love.timer.getTime() - lastPressTime <= doubleClickTime and
+      pressedElement == lastPressedElement and
+      pressedElement.class.mouseDoubleClicked then
+    pressedElement.class.mouseDoubleClicked(pressedElement, btn)
+  end
+  if popup and popupRendered and not popup:isInHierarchy(pressedElement) then
     ClosePopup()
   end
+  lastPressTime = love.timer.getTime()
+  lastPressButton = btn
+  lastPressedElement = pressedElement
 end
 
 function love.mousereleased(x, y, btn)

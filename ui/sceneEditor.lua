@@ -52,6 +52,15 @@ function sceneView:startCreatingObject()
   love.mouse.setCursor(love.mouse.getSystemCursor("crosshair"))
 end
 
+---Opens an embedded sprite editor.
+---@param object Object
+function sceneView:openSpriteEditor(object)
+  self.spriteEditor = spriteEditor(self)
+  self.spriteEditor.editingObject = object
+  self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(object.x, object.y)
+  self.spriteEditor.zoom = self.zoom
+end
+
 function sceneView:exitSpriteEditor()
   self.zoom = self.spriteEditor.zoom
   self.panX = -(self.spriteEditor.panX / self.spriteEditor.zoom - self.selectedObject.x)
@@ -109,10 +118,7 @@ function sceneView:mouseReleased(button)
         frames = {}
       }
       self.engine.objects:add(newObject)
-      self.spriteEditor = spriteEditor(self)
-      self.spriteEditor.editingObject = newObject
-      self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(newObject.x, newObject.y)
-      self.spriteEditor.zoom = self.zoom
+      self:openSpriteEditor(newObject)
       self.spriteEditor:addFrame()
       self.selectedObject = newObject
 
@@ -136,6 +142,13 @@ function sceneView:mouseMoved(x, y)
     local dx, dy = mx - self.panStart.screenX, my - self.panStart.screenY
     self.panX = self.panStart.worldX - dx / self.zoom
     self.panY = self.panStart.worldY - dy / self.zoom
+  end
+end
+
+function sceneView:mouseDoubleClicked(button)
+  if button == 1 and self.selectedObject then
+    self:openSpriteEditor(self.selectedObject)
+    self.spriteEditor:updateTransparencyQuad()
   end
 end
 
