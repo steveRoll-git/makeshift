@@ -7,6 +7,7 @@ local fonts = require "fonts"
 ---@class TreeViewItem: Zap.ElementClass
 ---@field text string
 ---@field font love.Font?
+---@field onClick function
 ---@operator call:TreeViewItem
 local treeViewItem = zap.elementClass()
 
@@ -16,6 +17,12 @@ end
 
 function treeViewItem:desiredHeight()
   return self.font:getHeight() + 8
+end
+
+function treeViewItem:mouseClicked(button)
+  if button == 1 and self.onClick() then
+    self.onClick()
+  end
 end
 
 function treeViewItem:render(x, y, w, h)

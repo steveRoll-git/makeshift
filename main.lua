@@ -9,6 +9,7 @@ local zap = require "lib.zap.zap"
 local treeView = require "ui.treeView"
 local sceneEditor = require "ui.sceneEditor"
 local tabView = require "ui.tabView"
+local spriteEditor = require "ui.spriteEditor"
 local fonts = require "fonts"
 local hexToColor = require "util.hexToColor"
 local project = require "project"
@@ -58,7 +59,12 @@ local function resourceItemModels()
   ---@type TreeItemModel[]
   local items = {}
   for _, resource in pairs(project.getResources()) do
-    table.insert(items, { text = resource.name })
+    table.insert(items, {
+      text = resource.name,
+      onClick = function()
+        OpenResourceTab(resource)
+      end
+    })
   end
   return items
 end
@@ -69,23 +75,33 @@ local mainTabView = tabView()
 mainTabView.font = fonts("Inter-Regular.ttf", 14)
 mainTabView:setTabs {
   {
-    text = "Wow a Scene",
-    content = editor
-  },
-  {
     text = "Library",
     content = libraryPanel
   },
-  {
-    text = "Another Tab",
-    content = libraryPanel
-  }
 }
 
 ---Adds a new tab to the main tabView.
 ---@param tab TabModel
 function AddNewTab(tab)
   mainTabView:addTab(tab)
+end
+
+---Opens a new tab to edit this resource.
+---@param r Resource
+function OpenResourceTab(r)
+  if r.type == "scene" then
+    AddNewTab({
+      text = r.name,
+      content = sceneEditor(r)
+    })
+  elseif r.type == "objectData" then
+    local e = spriteEditor()
+    e.editingObjectData = r --[[@as ObjectData]]
+    AddNewTab({
+      text = r.name,
+      content = e
+    })
+  end
 end
 
 local uiScene = zap.createScene()

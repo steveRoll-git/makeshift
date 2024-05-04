@@ -14,6 +14,10 @@ local tab = require "ui.tabView.tab"
 ---@operator call:TabView
 local tabView = zap.elementClass()
 
+function tabView:init()
+  self.tabs = {}
+end
+
 ---Adds a new tab.
 ---@param tabModel TabModel
 function tabView:addTab(tabModel)
@@ -88,14 +92,14 @@ function tabView:render(x, y, w, h)
   end
   if self.activeTab then
     self:renderTab(self.activeTab, x, y)
+    self.activeTab.content:render(x, y + self:tabBarHeight(), w, h - self:tabBarHeight())
+    lg.setColor(hexToColor(0x2b2b2b))
+    lg.setLineStyle("rough")
+    lg.setLineWidth(1)
+    local ax, _, aw, _ = self.activeTab:getView()
+    lg.line(x, y + self:tabBarHeight(), ax, y + self:tabBarHeight())
+    lg.line(ax + aw - 1, y + self:tabBarHeight(), x + w, y + self:tabBarHeight())
   end
-  self.activeTab.content:render(x, y + self:tabBarHeight(), w, h - self:tabBarHeight())
-  lg.setColor(hexToColor(0x2b2b2b))
-  lg.setLineStyle("rough")
-  lg.setLineWidth(1)
-  local ax, _, aw, _ = self.activeTab:getView()
-  lg.line(x, y + self:tabBarHeight(), ax, y + self:tabBarHeight())
-  lg.line(ax + aw - 1, y + self:tabBarHeight(), x + w, y + self:tabBarHeight())
 end
 
 return tabView
