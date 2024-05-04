@@ -7,6 +7,7 @@ local toolbar = require "ui.toolbar"
 local images = require "images"
 local hexToColor = require "util.hexToColor"
 local spriteEditor = require "ui.spriteEditor"
+local zoomSlider = require "ui.zoomSlider"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -261,6 +262,9 @@ function sceneEditor:init(scene)
       end
     }
   }
+
+  self.zoomSlider = zoomSlider()
+  self.zoomSlider.targetTable = self.sceneView
 end
 
 function sceneEditor:render(x, y, w, h)
@@ -276,6 +280,11 @@ function sceneEditor:render(x, y, w, h)
   end
 
   toolbar:render(x, y, w, toolbarH)
+
+  if not self.sceneView.spriteEditor then
+    local sliderW, sliderH = self.zoomSlider:desiredWidth() + 6, self.zoomSlider:desiredHeight() + 3
+    self.zoomSlider:render(x + w - sliderW, y + h - sliderH, sliderW, sliderH)
+  end
 end
 
 return sceneEditor

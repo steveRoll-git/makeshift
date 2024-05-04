@@ -11,6 +11,7 @@ local images = require "images"
 local colorPicker = require "ui.colorPicker"
 local sign = require "util.sign"
 local topToolbar = require "ui.toolbar"
+local zoomSlider = require "ui.zoomSlider"
 
 local initialImageSize = 128
 
@@ -197,6 +198,9 @@ function spriteEditor:init(sceneView)
       end
     }
   }
+
+  self.zoomSlider = zoomSlider()
+  self.zoomSlider.targetTable = self
 
   self.brushPreviewData = love.image.newImageData(128, 128)
   self.brushPreview = love.graphics.newImage(self.brushPreviewData)
@@ -543,17 +547,8 @@ function spriteEditor:render(x, y, w, h)
   self.toolbar:render(x, y + h / 2 - self.toolbar:desiredHeight() / 2,
     self.toolbar:desiredWidth(), self.toolbar:desiredHeight())
 
-  local zoomPercentString = ("%d%%"):format(self.zoom * 100)
-  local zoomPercentW = lg.getFont():getWidth(zoomPercentString)
-  lg.setColor(0, 0, 0, 0.4)
-  lg.rectangle("fill",
-    x + w - zoomPercentW,
-    y + h - lg.getFont():getHeight(),
-    zoomPercentW + 3,
-    lg.getFont():getHeight() + 3,
-    3)
-  lg.setColor(1, 1, 1)
-  lg.printf(zoomPercentString, x, y + h - lg.getFont():getHeight(), w, "right")
+  local sliderW, sliderH = self.zoomSlider:desiredWidth() + 6, self.zoomSlider:desiredHeight() + 3
+  self.zoomSlider:render(x + w - sliderW, y + h - sliderH, sliderW, sliderH)
 
   lg.setScissor()
 end
