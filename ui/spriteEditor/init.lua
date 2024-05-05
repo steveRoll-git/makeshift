@@ -184,6 +184,7 @@ function spriteEditor:init(sceneView)
         sceneView:exitSpriteEditor()
         AddNewTab({
           text = "Sprite Editor",
+          icon = images["icons/brush_24.png"],
           content = self,
           closable = true
         })

@@ -5,7 +5,7 @@ local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
 
----@alias TabModel {text: string, content: Zap.Element, closable: boolean}
+---@alias TabModel {text: string, icon: love.Image?, content: Zap.Element, closable: boolean}
 
 ---@class TabView: Zap.ElementClass
 ---@field tabs Tab[]
@@ -23,6 +23,7 @@ end
 function tabView:addTab(tabModel)
   local newTab = tab()
   newTab.text = tabModel.text
+  newTab.icon = tabModel.icon
   newTab.content = tabModel.content
   newTab.font = self.font
   newTab.draggable = true

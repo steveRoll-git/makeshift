@@ -74,6 +74,7 @@ mainTabView.font = fonts("Inter-Regular.ttf", 14)
 mainTabView:setTabs {
   {
     text = "Library",
+    icon = images["icons/library_24.png"],
     content = libraryPanel
   },
 }
@@ -90,6 +91,7 @@ function OpenResourceTab(r)
   if r.type == "scene" then
     AddNewTab({
       text = r.name,
+      icon = images["icons/scene_24.png"],
       content = sceneEditor(r),
       closable = true,
     })

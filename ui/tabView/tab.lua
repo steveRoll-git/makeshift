@@ -7,10 +7,12 @@ local button = require "ui.button"
 local images = require "images"
 
 local textMargin = 8
+local iconTextMargin = 6
 
 ---@class Tab: Zap.ElementClass
 ---@field content Zap.Element
 ---@field text string
+---@field icon love.Image
 ---@field active boolean
 ---@field font love.Font
 ---@field index number
@@ -83,7 +85,9 @@ function tab:mouseClicked(btn)
 end
 
 function tab:desiredWidth()
-  return self.font:getWidth(self.text) + textMargin * 2 + (self.closable and self.closeButton:desiredWidth() or 0)
+  return self.font:getWidth(self.text) + textMargin * 2
+      + (self.closable and self.closeButton:desiredWidth() or 0)
+      + (self.icon and (self.icon:getWidth() + iconTextMargin) or 0)
 end
 
 function tab:render(x, y, w, h)
@@ -106,10 +110,18 @@ function tab:render(x, y, w, h)
 
   lg.setScissor()
 
+  local textX = x + textMargin
+  local textY = y + h / 2 - self.font:getHeight() / 2
+
+  if self.icon then
+    lg.setColor(1, 1, 1)
+    lg.draw(self.icon, math.floor(textX), math.floor(y + h / 2 - self.icon:getHeight() / 2))
+    textX = textX + self.icon:getWidth() + iconTextMargin
+  end
+
   lg.setColor(1, 1, 1)
   lg.setFont(self.font)
-  local textY = y + h / 2 - self.font:getHeight() / 2
-  lg.print(self.text, x + textMargin, textY)
+  lg.print(self.text, textX, textY)
 
   if self.closable then
     lg.setColor(1, 1, 1)
