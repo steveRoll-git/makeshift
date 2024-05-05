@@ -37,13 +37,15 @@ function tab:parentTabView()
   return self:getParent() --[[@as TabView]]
 end
 
-function tab:mousePressed()
-  self:parentTabView():setActiveTab(self)
-  if self.draggable then
-    self.dragStartX, self.dragStartY = self:getRelativeMouse()
-    local mx = self:getAbsoluteMouse()
-    self.dragX = mx - self.dragStartX
-    self.isDragging = true
+function tab:mousePressed(btn)
+  if btn == 1 then
+    self:parentTabView():setActiveTab(self)
+    if self.draggable then
+      self.dragStartX, self.dragStartY = self:getRelativeMouse()
+      local mx = self:getAbsoluteMouse()
+      self.dragX = mx - self.dragStartX
+      self.isDragging = true
+    end
   end
 end
 
@@ -71,6 +73,12 @@ function tab:mouseMoved(mx, my)
         end
       end
     end
+  end
+end
+
+function tab:mouseClicked(btn)
+  if btn == 3 and self.closable then
+    self:parentTabView():closeTab(self)
   end
 end
 
