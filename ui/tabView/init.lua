@@ -5,7 +5,7 @@ local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
 
----@alias TabModel {text: string, content: Zap.Element}
+---@alias TabModel {text: string, content: Zap.Element, closable: boolean}
 
 ---@class TabView: Zap.ElementClass
 ---@field tabs Tab[]
@@ -26,6 +26,7 @@ function tabView:addTab(tabModel)
   newTab.content = tabModel.content
   newTab.font = self.font
   newTab.draggable = true
+  newTab.closable = tabModel.closable
   table.insert(self.tabs, newTab)
   self:layoutTabs()
   self:setActiveTab(newTab)
@@ -57,7 +58,7 @@ function tabView:layoutTabs()
   for i, tab in ipairs(self.tabs) do
     tab.layoutX = x
     tab.index = i
-    x = x + tab:preferredWidth()
+    x = x + tab:desiredWidth()
   end
 end
 
@@ -71,6 +72,20 @@ function tabView:setActiveTab(tab)
   self.activeTab.active = true
 end
 
+---Closes this tab.
+---@param tab Tab
+function tabView:closeTab(tab)
+  table.remove(self.tabs, tab.index)
+  self:layoutTabs()
+  if self.activeTab == tab then
+    if #self.tabs > 0 then
+      self:setActiveTab(self.tabs[math.max(tab.index - 1, 1)])
+    else
+      self.activeTab = nil
+    end
+  end
+end
+
 function tabView:tabBarHeight()
   return self.font:getHeight() + 16
 end
@@ -80,7 +95,7 @@ end
 ---@param y number
 function tabView:renderTab(tab, x, y)
   local tabX = (tab.isDragging and tab.dragX or x + tab.layoutX)
-  local tabW = tab:preferredWidth()
+  local tabW = tab:desiredWidth()
   tab:render(tabX, y, tabW, self:tabBarHeight())
 end
 

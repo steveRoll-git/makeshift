@@ -42,6 +42,17 @@ function button:desiredWidth()
   return totalW
 end
 
+function button:desiredHeight()
+  local height = 0
+  if self:showsText() then
+    height = math.max(height, self.font:getHeight())
+  end
+  if self:showsImage() then
+    height = math.max(height, self.image:getHeight())
+  end
+  return height
+end
+
 function button:render(x, y, w, h)
   if self:isPressed(1) then
     lg.setColor(1, 1, 1, 0.2)

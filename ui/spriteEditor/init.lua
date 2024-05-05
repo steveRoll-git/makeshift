@@ -184,7 +184,8 @@ function spriteEditor:init(sceneView)
         sceneView:exitSpriteEditor()
         AddNewTab({
           text = "Sprite Editor",
-          content = self
+          content = self,
+          closable = true
         })
       end,
       visible = function()

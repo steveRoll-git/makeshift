@@ -3,6 +3,8 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local hexToColor = require "util.hexToColor"
+local button = require "ui.button"
+local images = require "images"
 
 local textMargin = 8
 
@@ -14,6 +16,7 @@ local textMargin = 8
 ---@field index number
 ---@field layoutX number
 ---@field draggable boolean
+---@field closable boolean
 ---@field isDragging boolean
 ---@field dragStartX number
 ---@field dragStartY number
@@ -21,8 +24,21 @@ local textMargin = 8
 ---@operator call:Tab
 local tab = zap.elementClass()
 
+function tab:init()
+  self.closeButton = button()
+  self.closeButton.displayMode = "image"
+  self.closeButton.image = images["icons/close_18.png"]
+  self.closeButton.onClick = function()
+    self:parentTabView():closeTab(self)
+  end
+end
+
+function tab:parentTabView()
+  return self:getParent() --[[@as TabView]]
+end
+
 function tab:mousePressed()
-  self:getParent() --[[@as TabView]]:setActiveTab(self)
+  self:parentTabView():setActiveTab(self)
   if self.draggable then
     self.dragStartX, self.dragStartY = self:getRelativeMouse()
     local mx = self:getAbsoluteMouse()
@@ -58,8 +74,8 @@ function tab:mouseMoved(mx, my)
   end
 end
 
-function tab:preferredWidth()
-  return self.font:getWidth(self.text) + textMargin * 2
+function tab:desiredWidth()
+  return self.font:getWidth(self.text) + textMargin * 2 + (self.closable and self.closeButton:desiredWidth() or 0)
 end
 
 function tab:render(x, y, w, h)
@@ -84,7 +100,17 @@ function tab:render(x, y, w, h)
 
   lg.setColor(1, 1, 1)
   lg.setFont(self.font)
-  lg.print(self.text, x + textMargin, y + h / 2 - self.font:getHeight() / 2)
+  local textY = y + h / 2 - self.font:getHeight() / 2
+  lg.print(self.text, x + textMargin, textY)
+
+  if self.closable then
+    lg.setColor(1, 1, 1)
+    self.closeButton:render(
+      x + w - self.closeButton:desiredWidth() - 4,
+      textY + self.font:getHeight() / 2 - self.closeButton:desiredHeight() / 2 + math.floor(self.font:getHeight() / 10),
+      self.closeButton:desiredWidth(),
+      self.closeButton:desiredHeight())
+  end
 end
 
 return tab

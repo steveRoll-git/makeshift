@@ -90,14 +90,16 @@ function OpenResourceTab(r)
   if r.type == "scene" then
     AddNewTab({
       text = r.name,
-      content = sceneEditor(r)
+      content = sceneEditor(r),
+      closable = true,
     })
   elseif r.type == "objectData" then
     local e = spriteEditor()
     e.editingObjectData = r --[[@as ObjectData]]
     AddNewTab({
       text = r.name,
-      content = e
+      content = e,
+      closable = true,
     })
   end
 end
