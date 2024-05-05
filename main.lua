@@ -2,6 +2,7 @@ local love = love
 local lg = love.graphics
 
 require "util.windowsDarkMode"
+local images = require "images"
 
 love.window.maximize()
 
@@ -57,6 +58,7 @@ local function resourceItemModels()
   for _, resource in pairs(project.getResources()) do
     table.insert(items, {
       text = resource.name,
+      icon = resource.type == "scene" and images["icons/scene_24.png"],
       onClick = function()
         OpenResourceTab(resource)
       end

@@ -7,6 +7,7 @@ local fonts = require "fonts"
 ---@class TreeViewItem: Zap.ElementClass
 ---@field text string
 ---@field font love.Font?
+---@field icon love.Image
 ---@field onClick function
 ---@operator call:TreeViewItem
 local treeViewItem = zap.elementClass()
@@ -30,10 +31,16 @@ function treeViewItem:render(x, y, w, h)
     lg.setColor(1, 1, 1, 0.1)
     lg.rectangle("fill", x, y, w, h)
   end
+  local textX = x + 3
+  if self.icon then
+    lg.setColor(1, 1, 1)
+    lg.draw(self.icon, x, y + h / 2 - self.icon:getHeight() / 2)
+    textX = textX + self.icon:getWidth()
+  end
   local font = self.font or lg.getFont()
   lg.setFont(font)
   lg.setColor(1, 1, 1)
-  lg.print(self.text, x + 3, y + h / 2 - font:getHeight() / 2)
+  lg.print(self.text, textX, y + h / 2 - font:getHeight() / 2)
 end
 
 return treeViewItem

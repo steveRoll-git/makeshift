@@ -8,6 +8,7 @@ local treeViewItem = require "ui.treeView.item"
 
 ---@class TreeItemModel
 ---@field text string
+---@field icon love.Image?
 ---@field onClick function
 
 ---@class TreeView: Zap.ElementClass
@@ -26,6 +27,7 @@ function treeView:setItems(items)
   for _, itemModel in ipairs(items) do
     local item = treeViewItem()
     item.text = itemModel.text
+    item.icon = itemModel.icon
     item.onClick = itemModel.onClick
     table.insert(self.items, item)
   end
