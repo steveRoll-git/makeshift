@@ -157,8 +157,9 @@ end
 
 function love.quit()
   for _, t in ipairs(mainTabView.tabs) do
-    if t.content.class == sceneEditor then
-      (t.content --[[@as SceneEditor]]):writeToScene()
+    if t.content["onClose"] then
+      ---@diagnostic disable-next-line: undefined-field
+      t.content:onClose()
     end
   end
   project.saveProject()

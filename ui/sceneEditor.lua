@@ -281,6 +281,10 @@ function sceneEditor:writeToScene()
   end
 end
 
+function sceneEditor:onClose()
+  self:writeToScene()
+end
+
 function sceneEditor:render(x, y, w, h)
   local toolbar = self.toolbar
   if self.sceneView.spriteEditor then

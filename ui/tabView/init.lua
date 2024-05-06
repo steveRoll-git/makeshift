@@ -85,6 +85,10 @@ function tabView:closeTab(tab)
       self.activeTab = nil
     end
   end
+  if tab.content["onClose"] then
+    ---@diagnostic disable-next-line: undefined-field
+    tab.content:onClose()
+  end
 end
 
 function tabView:tabBarHeight()
