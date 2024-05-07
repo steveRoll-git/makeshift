@@ -1,3 +1,10 @@
+---@param a number
+---@param b number
+---@return boolean
+local function componentEqual(a, b)
+  return math.abs(a - b) < 1 / 255 - 0.0000001
+end
+
 ---@param r1 number
 ---@param g1 number
 ---@param b1 number
@@ -19,5 +26,9 @@ return function(r1, g1, b1, a1, r2, g2, b2, a2)
   end
   a1 = a1 or 1
   a2 = a2 or 1
-  return r1 == r2 and g1 == g2 and b1 == b2 and a1 == a2
+  return
+      componentEqual(r1, r2) and
+      componentEqual(g1, g2) and
+      componentEqual(b1, b2) and
+      componentEqual(a1, a2)
 end
