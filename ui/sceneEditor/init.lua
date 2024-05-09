@@ -8,6 +8,7 @@ local images = require "images"
 local hexToColor = require "util.hexToColor"
 local spriteEditor = require "ui.spriteEditor"
 local zoomSlider = require "ui.zoomSlider"
+local propertiesPanel = require "ui.sceneEditor.propertiesPanel"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -69,19 +70,27 @@ function sceneView:exitSpriteEditor()
   self.spriteEditor = nil
 end
 
+---@param obj Object?
+function sceneView:selectObject(obj)
+  self.selectedObject = obj
+  if obj then
+    self.editor.propertiesPanel:setObject(obj)
+  end
+end
+
 function sceneView:mousePressed(button)
   if button == 1 then
     if self.creatingObject then
       self.creationX, self.creationY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
     else
-      self.selectedObject = nil
+      self:selectObject(nil)
       local mx, my = self:getRelativeMouse()
       mx, my = self.viewTransform:inverseTransformPoint(mx, my)
       for i = #self.engine.objects.list, 1, -1 do
         ---@type Object
         local obj = self.engine.objects.list[i]
         if mx >= obj.x and my >= obj.y and mx < obj.x + obj.data.w and my < obj.y + obj.data.h then
-          self.selectedObject = obj
+          self:selectObject(obj)
           self.draggingObject = {
             object = obj,
             offsetX = obj.x - mx,
@@ -126,7 +135,7 @@ function sceneView:mouseReleased(button)
       self.engine.objects:add(newObject)
       self:openSpriteEditor(newObject)
       self.spriteEditor:addFrame()
-      self.selectedObject = newObject
+      self:selectObject(newObject)
 
       self.creatingObject = false
       love.mouse.setCursor()
@@ -272,6 +281,8 @@ function sceneEditor:init(scene)
 
   self.zoomSlider = zoomSlider()
   self.zoomSlider.targetTable = self.sceneView
+
+  self.propertiesPanel = propertiesPanel()
 end
 
 function sceneEditor:writeToScene()
@@ -302,6 +313,12 @@ function sceneEditor:render(x, y, w, h)
   if not self.sceneView.spriteEditor then
     local sliderW, sliderH = self.zoomSlider:desiredWidth() + 6, self.zoomSlider:desiredHeight() + 3
     self.zoomSlider:render(x + w - sliderW, y + h - sliderH, sliderW, sliderH)
+  end
+
+  if self.sceneView.selectedObject then
+    local pw, ph = 240, 200
+    local margin = 4
+    self.propertiesPanel:render(x + margin, y + h - ph - margin, pw, ph)
   end
 end
 
