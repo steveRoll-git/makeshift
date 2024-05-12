@@ -148,6 +148,12 @@ function textEditor:deleteSelection()
   self.selecting = false
 end
 
+function textEditor:selectAll()
+  self.selecting = true
+  self.cursor.line, self.cursor.col = 1, 1
+  self.selectionStart.line, self.selectionStart.col = #self.lines, #self.lines[#self.lines].string + 1
+end
+
 ---Updates the text displayed on line `i`.
 ---@param i number
 function textEditor:updateLine(i)
@@ -331,6 +337,8 @@ function textEditor:keyPressed(key)
       self.lines[self.cursor.line].string = self:curString() .. deletedLine.string
       self:updateCurLine()
     end
+  elseif ctrlDown and key == "a" then
+    self:selectAll()
   end
 
   if cursorMoved then
