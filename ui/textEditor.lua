@@ -4,12 +4,24 @@ local lg = love.graphics
 local zap = require "lib.zap.zap"
 local clamp = require "util.clamp"
 
+---Returns `true` if `a` is positioned before `b`.
+---@param a TextPosition
+---@param b TextPosition
+---@return boolean
+local function comparePositions(a, b)
+  if a.line == b.line then
+    return a.col < b.col
+  else
+    return a.line < b.line
+  end
+end
+
 ---@alias TextPosition {line: number, col: number}
 
 ---The base for all text editing related elements.
 ---@class TextEditor: Zap.ElementClass
 ---@field font love.Font The font to use when displaying the text.
----@field lines {string: string, text: love.Text}[] A list of all the lines in the textEditor. Do not modify this externally.
+---@field lines {string: string, text: love.Text, width: number}[] A list of all the lines in the textEditor. Do not modify this externally.
 ---@field cursor TextPosition The current position of the cursor in the text.
 ---@field padding number The amount of padding to add in pixels.
 ---@field offsetX number Offset along the X axis, for both drawing and mouse handling.
@@ -18,6 +30,8 @@ local clamp = require "util.clamp"
 ---@field cursorFlashTime number The last time value at which the cursor started flashing.
 ---@field cursorWidth number The line width of the cursor.
 ---@field multiline boolean Whether this editor allows inserting newlines in text.
+---@field selecting boolean Whether a selection is currently active.
+---@field selectionStart TextPosition The position where the selection starts.
 ---@operator call:TextEditor
 local textEditor = zap.elementClass()
 
@@ -31,9 +45,11 @@ function textEditor:init()
     col = 1,
     lastCol = 1
   }
+  self.selectionStart = { line = 1, col = 1 }
   self.cursorFlashSpeed = 2
   self.cursorFlashTime = love.timer.getTime()
   self.cursorWidth = 1
+  self.selectionColor = { 1, 1, 1, 0.2 }
 end
 
 function textEditor:actualOffsetX()
@@ -48,8 +64,11 @@ end
 ---@param text string
 function textEditor:setText(text)
   self.lines = {}
+  local current = 1
   for str in text:gmatch("([^\n]+)") do
-    table.insert(self.lines, { string = str, text = lg.newText(self.font, str) })
+    table.insert(self.lines, { string = str, text = lg.newText(self.font) })
+    self:updateLine(current)
+    current = current + 1
   end
 end
 
@@ -102,11 +121,39 @@ function textEditor:newLine()
   self.cursor.lastCol = self.cursor.col
 end
 
+---Delete the currently selected text.
+function textEditor:deleteSelection()
+  local firstEdge = self:selectionFirstEdge()
+  local lastEdge = self:selectionLastEdge()
+  if firstEdge.line == lastEdge.line then
+    self.lines[self.cursor.line].string =
+        self:curString():sub(1, firstEdge.col - 1) ..
+        self:curString():sub(lastEdge.col)
+    self:updateCurLine()
+  else
+    self.lines[firstEdge.line].string =
+        self.lines[firstEdge.line].string:sub(1, firstEdge.col - 1) ..
+        self.lines[lastEdge.line].string:sub(lastEdge.col)
+    self:updateLine(firstEdge.line)
+    self.lines[lastEdge.line].string =
+        self.lines[lastEdge.line].string:sub(lastEdge.col)
+    table.remove(self.lines, lastEdge.line)
+  end
+  for _ = firstEdge.line + 1, lastEdge.line - 1 do
+    table.remove(self.lines, firstEdge.line + 1)
+  end
+  if self.cursor ~= firstEdge then
+    self.cursor.col, self.cursor.line = firstEdge.col, firstEdge.line
+  end
+  self.selecting = false
+end
+
 ---Updates the text displayed on line `i`.
 ---@param i number
 function textEditor:updateLine(i)
   local l = self.lines[i]
   l.text:set(l.string)
+  l.width = l.text:getWidth()
 end
 
 ---Updates the line the cursor is currently on.
@@ -118,6 +165,18 @@ end
 ---@return string
 function textEditor:curString()
   return self.lines[self.cursor.line].string
+end
+
+---Returns the position at which the selection begins.
+---@return TextPosition
+function textEditor:selectionFirstEdge()
+  return comparePositions(self.cursor, self.selectionStart) and self.cursor or self.selectionStart
+end
+
+---Returns the position at which the selection ends.
+---@return TextPosition
+function textEditor:selectionLastEdge()
+  return comparePositions(self.cursor, self.selectionStart) and self.selectionStart or self.cursor
 end
 
 ---Get the height of all the content in this textEditor, including all the lines and padding.
@@ -174,6 +233,7 @@ end
 function textEditor:keyPressed(key)
   local ctrlDown = love.keyboard.isDown("lctrl", "rctrl")
   local prevLine, prevCol = self.cursor.line, self.cursor.col
+  local cursorMoved = false
 
   if key == "left" then
     self.cursor.col = self.cursor.col - 1
@@ -186,6 +246,7 @@ function textEditor:keyPressed(key)
       end
     end
     self.cursor.lastCol = self.cursor.col
+    cursorMoved = true
   elseif key == "right" then
     self.cursor.col = self.cursor.col + 1
     if self.cursor.col > #self:curString() + 1 then
@@ -197,6 +258,7 @@ function textEditor:keyPressed(key)
       end
     end
     self.cursor.lastCol = self.cursor.col
+    cursorMoved = true
   elseif key == "up" then
     if self.cursor.line == 1 then
       if self.cursor.col ~= 1 then
@@ -210,6 +272,7 @@ function textEditor:keyPressed(key)
         self.cursor.col = #self:curString() + 1
       end
     end
+    cursorMoved = true
   elseif key == "down" then
     if self.cursor.line == #self.lines then
       self.cursor.col = #self:curString() + 1
@@ -221,6 +284,7 @@ function textEditor:keyPressed(key)
         self.cursor.col = #self:curString() + 1
       end
     end
+    cursorMoved = true
   elseif key == "home" then
     if ctrlDown then
       self.cursor.line = 1
@@ -233,10 +297,13 @@ function textEditor:keyPressed(key)
     end
     self.cursor.col = #self:curString() + 1
     self.cursor.lastCol = self.cursor.col
+    cursorMoved = true
   elseif (key == "return" or key == "kpenter") and self.multiline then
     self:newLine()
   elseif key == "backspace" then
-    if self.cursor.col > 1 then
+    if self.selecting then
+      self:deleteSelection()
+    elseif self.cursor.col > 1 then
       self.lines[self.cursor.line].string =
           self:curString():sub(1, self.cursor.col - 2) ..
           self:curString():sub(self.cursor.col)
@@ -251,7 +318,9 @@ function textEditor:keyPressed(key)
       self:updateCurLine()
     end
   elseif key == "delete" then
-    if self.cursor.col < #self:curString() + 1 then
+    if self.selecting then
+      self:deleteSelection()
+    elseif self.cursor.col < #self:curString() + 1 then
       self.lines[self.cursor.line].string =
           self:curString():sub(1, self.cursor.col - 1) ..
           self:curString():sub(self.cursor.col + 1)
@@ -261,6 +330,18 @@ function textEditor:keyPressed(key)
       deletedLine.text:release()
       self.lines[self.cursor.line].string = self:curString() .. deletedLine.string
       self:updateCurLine()
+    end
+  end
+
+  if cursorMoved then
+    if love.keyboard.isDown("lshift", "rshift") then
+      if not self.selecting then
+        self.selecting = true
+        self.selectionStart.line = prevLine
+        self.selectionStart.col = prevCol
+      end
+    else
+      self.selecting = false
     end
   end
 
@@ -274,6 +355,20 @@ end
 function textEditor:mousePressed(button)
   if button == 1 then
     self.cursor.line, self.cursor.col = self:screenToTextPos(self:getRelativeMouse())
+    if love.keyboard.isDown("lshift", "rshift") then
+      self.selecting = true
+    else
+      self.selectionStart.line, self.selectionStart.col = self.cursor.line, self.cursor.col
+      self.selecting = false
+    end
+    self:flashCursor()
+  end
+end
+
+function textEditor:mouseMoved()
+  if self:isPressed(1) then
+    self.cursor.line, self.cursor.col = self:screenToTextPos(self:getRelativeMouse())
+    self.selecting = self.cursor.line ~= self.selectionStart.line or self.cursor.col ~= self.selectionStart.col
     self:flashCursor()
   end
 end
@@ -283,8 +378,25 @@ function textEditor:render(x, y, w, h)
   lg.translate(x + self:actualOffsetX(), y + self:actualOffsetY())
 
   for i, line in ipairs(self.lines) do
+    local lineY = (i - 1) * self.font:getHeight()
+    if self.selecting then
+      if i >= self:selectionFirstEdge().line and i <= self:selectionLastEdge().line then
+        lg.setColor(self.selectionColor)
+        local startX, endX = 0, line.width
+        if i == self:selectionFirstEdge().line then
+          startX = self.font:getWidth(self.lines[i].string:sub(1, self:selectionFirstEdge().col - 1))
+        end
+        if i == self:selectionLastEdge().line then
+          endX = self.font:getWidth(self.lines[i].string:sub(1, self:selectionLastEdge().col - 1))
+        end
+        if i < self:selectionLastEdge().line and self:selectionFirstEdge().line ~= self:selectionLastEdge().line then
+          endX = endX + self.font:getWidth(" ")
+        end
+        lg.rectangle("fill", startX, lineY, endX - startX, self.font:getHeight())
+      end
+    end
     lg.setColor(1, 1, 1)
-    lg.draw(line.text, 0, (i - 1) * self.font:getHeight())
+    lg.draw(line.text, 0, lineY)
   end
 
   if math.floor(love.timer.getTime() * self.cursorFlashSpeed - self.cursorFlashTime) % 2 == 0 then
