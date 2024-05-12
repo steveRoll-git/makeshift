@@ -11,21 +11,27 @@ local love = love
 local lg = love.graphics
 
 require "util.windowsDarkMode"
-local images = require "images"
 
 love.window.maximize()
+
+love.keyboard.setKeyRepeat(true)
 
 local zap = require "lib.zap.zap"
 local treeView = require "ui.treeView"
 local sceneEditor = require "ui.sceneEditor"
 local tabView = require "ui.tabView"
 local spriteEditor = require "ui.spriteEditor"
+local textEditor = require "ui.textEditor"
 local fonts = require "fonts"
 local hexToColor = require "util.hexToColor"
 local project = require "project"
+local images = require "images"
 
 ---@class Zap.ElementClass
 ---@field mouseDoubleClicked fun(self: Zap.Element, button: any)
+---@field keyPressed fun(self: Zap.Element, key: string)
+---@field keyReleased fun(self: Zap.Element, key: string)
+---@field textInput fun(self: Zap.Element, text: string)
 
 ---@type Zap.Element?
 local popup
@@ -78,9 +84,22 @@ end
 
 libraryPanel:setItems(resourceItemModels())
 
+local testTextEditor = textEditor()
+testTextEditor.font = fonts("Inter-Regular.ttf", 16)
+testTextEditor:setText [[
+very cool text
+second line
+wow
+]]
+testTextEditor.multiline = true
+
 local mainTabView = tabView()
 mainTabView.font = fonts("Inter-Regular.ttf", 14)
 mainTabView:setTabs {
+  {
+    text = "Test text editor",
+    content = testTextEditor,
+  },
   {
     text = "Library",
     icon = images["icons/library_24.png"],
@@ -113,6 +132,12 @@ function OpenResourceTab(r)
       closable = true,
     })
   end
+end
+
+---Returns the element that currently has keyboard focus.
+---@return Zap.Element
+local function getFocusedElement()
+  return mainTabView.activeTab.content
 end
 
 local uiScene = zap.createScene()
@@ -152,6 +177,27 @@ end
 
 function love.wheelmoved(x, y)
   uiScene:wheelMoved(x, y)
+end
+
+function love.keypressed(key)
+  local focused = getFocusedElement()
+  if focused.class.keyPressed then
+    focused.class.keyPressed(focused, key)
+  end
+end
+
+function love.keyreleased(key)
+  local focused = getFocusedElement()
+  if focused.class.keyReleased then
+    focused.class.keyReleased(focused, key)
+  end
+end
+
+function love.textinput(text)
+  local focused = getFocusedElement()
+  if focused.class.textInput then
+    focused.class.textInput(focused, text)
+  end
 end
 
 function love.draw()

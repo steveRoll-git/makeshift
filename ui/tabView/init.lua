@@ -9,7 +9,7 @@ local tab = require "ui.tabView.tab"
 
 ---@class TabView: Zap.ElementClass
 ---@field tabs Tab[]
----@field private activeTab Tab
+---@field activeTab Tab
 ---@field font love.Font
 ---@operator call:TabView
 local tabView = zap.elementClass()
