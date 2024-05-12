@@ -32,6 +32,8 @@ end
 ---@field multiline boolean Whether this editor allows inserting newlines in text.
 ---@field selecting boolean Whether a selection is currently active.
 ---@field selectionStart TextPosition The position where the selection starts.
+---@field centerHorizontally boolean Whether to center the text horizontally inside the view. Currently works only on one line.
+---@field centerVertically boolean Whether to center the text vertically inside the view.
 ---@operator call:TextEditor
 local textEditor = zap.elementClass()
 
@@ -39,7 +41,7 @@ function textEditor:init()
   self.lines = {}
   self.offsetX = 0
   self.offsetY = 0
-  self.padding = 3
+  self.padding = 0
   self.cursor = {
     line = 1,
     col = 1,
@@ -53,10 +55,18 @@ function textEditor:init()
 end
 
 function textEditor:actualOffsetX()
+  if self.centerHorizontally then
+    local _, _, w, _ = self:getView()
+    return math.floor(w / 2 - self.lines[1].width / 2)
+  end
   return self.offsetX + self.padding
 end
 
 function textEditor:actualOffsetY()
+  if self.centerVertically then
+    local _, _, _, h = self:getView()
+    return math.floor(h / 2 - self:contentHeight() / 2)
+  end
   return self.offsetY + self.padding
 end
 
@@ -75,6 +85,10 @@ end
 ---Inserts `text` into where the cursor is.
 ---@param text string
 function textEditor:insertText(text)
+  if self.selecting then
+    self:deleteSelection()
+  end
+
   if text:find("\n") then
     local lastLine = ""
     for i = 1, #text do
@@ -102,6 +116,7 @@ function textEditor:insertText(text)
     self.cursor.col = self.cursor.col + #text
     self.cursor.lastCol = self.cursor.col
   end
+
   self:flashCursor()
 end
 
@@ -152,6 +167,24 @@ function textEditor:selectAll()
   self.selecting = true
   self.cursor.line, self.cursor.col = 1, 1
   self.selectionStart.line, self.selectionStart.col = #self.lines, #self.lines[#self.lines].string + 1
+end
+
+---Returns a string with the lines in the given range joined together
+---@param from number
+---@param to number
+---@return string
+function textEditor:concatLines(from, to)
+  local str = ""
+  for i = from, to do
+    str = str .. self.lines[i].string .. (i < to and "\n" or "")
+  end
+  return str
+end
+
+---Returns a string of the entire editor's contents.
+---@return string
+function textEditor:getString()
+  return self:concatLines(1, #self.lines)
 end
 
 ---Updates the text displayed on line `i`.

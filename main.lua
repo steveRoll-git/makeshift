@@ -31,6 +31,7 @@ local images = require "images"
 ---@field mouseDoubleClicked fun(self: Zap.Element, button: any)
 ---@field keyPressed fun(self: Zap.Element, key: string)
 ---@field keyReleased fun(self: Zap.Element, key: string)
+---@field popupClosed fun(self: Zap.Element)
 ---@field textInput fun(self: Zap.Element, text: string)
 
 ---@type Zap.Element?
@@ -61,6 +62,9 @@ end
 
 ---Closes the currently open popup element.
 function ClosePopup()
+  if popup and popup.class.popupClosed then
+    popup.class.popupClosed(popup)
+  end
   popup = nil
   popupRendered = false
 end
@@ -84,22 +88,9 @@ end
 
 libraryPanel:setItems(resourceItemModels())
 
-local testTextEditor = textEditor()
-testTextEditor.font = fonts("Inter-Regular.ttf", 16)
-testTextEditor:setText [[
-very cool text
-second line
-wow
-]]
-testTextEditor.multiline = true
-
 local mainTabView = tabView()
 mainTabView.font = fonts("Inter-Regular.ttf", 14)
 mainTabView:setTabs {
-  {
-    text = "Test text editor",
-    content = testTextEditor,
-  },
   {
     text = "Library",
     icon = images["icons/library_24.png"],
@@ -137,7 +128,11 @@ end
 ---Returns the element that currently has keyboard focus.
 ---@return Zap.Element
 local function getFocusedElement()
-  return mainTabView.activeTab.content
+  if popup then
+    return popup
+  else
+    return mainTabView.activeTab.content
+  end
 end
 
 local uiScene = zap.createScene()
