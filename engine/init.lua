@@ -3,10 +3,14 @@ local deepCopy = require "util.deepCopy"
 local love = love
 local lg = love.graphics
 
+---@class Script: Resource
+---@field code string
+
 ---@class ObjectData: Resource
 ---@field w number
 ---@field h number
 ---@field frames SpriteFrame[] A list of all the frames in this object. They are all assumed to be the same size.
+---@field script Script
 
 ---@class Object
 ---@field x number

@@ -18,9 +18,14 @@ for k, v in pairs(binaryTagTypes) do
   binaryTagLookup[v] = k
 end
 
+local resourceBytes = {
+  external = '\xfe',
+  embedded = '\xfd'
+}
+
 local projectFileMagic = "makeshiftproject"
 
----@alias ResourceType "scene" | "objectData"
+---@alias ResourceType "scene" | "objectData" | "script"
 
 ---@class Resource
 ---@field id string
@@ -90,6 +95,8 @@ local function saveProject()
     f:write(numberToBytes(number))
   end
 
+  local writeEmbeddedOrExternalResource
+
   ---@param r Resource
   local function writeResource(r)
     if r.type == "scene" then
@@ -98,13 +105,7 @@ local function saveProject()
       for _, o in ipairs(r.objects) do
         writeNumber(o.x)
         writeNumber(o.y)
-        if o.data.id then
-          f:write('\xfe')
-          f:write(o.data.id)
-        else
-          f:write('\xfd')
-          writeResource(o.data)
-        end
+        writeEmbeddedOrExternalResource(o.data)
       end
     elseif r.type == "objectData" then
       ---@cast r ObjectData
@@ -116,6 +117,23 @@ local function saveProject()
         writeNumber(encodedData:getSize())
         f:write(encodedData)
       end
+      writeEmbeddedOrExternalResource(r.script)
+    elseif r.type == "script" then
+      ---@cast r Script
+      writeString(r.code)
+    else
+      error(("can't write this resource type: %q"):format(r.type))
+    end
+  end
+
+  ---@param resource Resource
+  writeEmbeddedOrExternalResource = function(resource)
+    if resource.id then
+      f:write(resourceBytes.external)
+      f:write(resource.id)
+    else
+      f:write(resourceBytes.embedded)
+      writeResource(resource)
     end
   end
 
@@ -167,9 +185,9 @@ local function loadProject(name)
         local y = readNumber()
         local resourceOrValue = file:read(1) --[[@as string]]
         local objectData
-        if resourceOrValue == '\xfe' then
+        if resourceOrValue == resourceBytes.external then
           error("TODO")
-        elseif resourceOrValue == '\xfd' then
+        elseif resourceOrValue == resourceBytes.embedded then
           objectData = readResource("objectData") --[[@as ObjectData]]
         else
           error()
@@ -189,8 +207,10 @@ local function loadProject(name)
         type = "objectData",
         w = w,
         h = h,
-        frames = {}
+        frames = {},
+        script = { type = "script", code = "" }
       }
+
       local numFrames = readNumber()
       for i = 1, numFrames do
         local size = readNumber()
@@ -202,7 +222,24 @@ local function loadProject(name)
         frame.image:setFilter("linear", "nearest")
         objectData.frames[#objectData.frames + 1] = frame
       end
+
+      local scriptResourceOrValue = file:read(1)
+      if scriptResourceOrValue == resourceBytes.external then
+        error("TODO")
+      elseif scriptResourceOrValue == resourceBytes.embedded then
+        objectData.script = readResource("script") --[[@as Script]]
+      else
+        error()
+      end
+
       return objectData
+    elseif type == "script" then
+      ---@type Script
+      local script = { type = "script", code = "" }
+      script.code = readString()
+      return script
+    else
+      error(("can't read this resource type: %q"):format(type))
     end
   end
 

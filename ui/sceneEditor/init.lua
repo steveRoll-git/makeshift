@@ -9,6 +9,7 @@ local hexToColor = require "util.hexToColor"
 local spriteEditor = require "ui.spriteEditor"
 local zoomSlider = require "ui.zoomSlider"
 local propertiesPanel = require "ui.sceneEditor.propertiesPanel"
+local codeEditor = require "ui.codeEditor"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -124,7 +125,8 @@ function sceneView:mouseReleased(button)
         type = "objectData",
         w = w,
         h = h,
-        frames = {}
+        frames = {},
+        script = { type = "script", code = "" },
       }
       ---@type Object
       local newObject = {
@@ -294,6 +296,17 @@ end
 
 function sceneEditor:onClose()
   self:writeToScene()
+end
+
+function sceneEditor:keyPressed(key)
+  if key == "f9" and self.sceneView.selectedObject then
+    AddNewTab({
+      text = "Code Editor",
+      icon = images["icons/code_24.png"],
+      content = codeEditor(self.sceneView.selectedObject.data.script),
+      closable = true
+    })
+  end
 end
 
 function sceneEditor:render(x, y, w, h)

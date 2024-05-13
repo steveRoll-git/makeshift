@@ -74,6 +74,10 @@ end
 ---@param text string
 function textEditor:setText(text)
   self.lines = {}
+  if #text == 0 then
+    table.insert(self.lines, { string = "", text = lg.newText(self.font) })
+    return
+  end
   local current = 1
   for str in text:gmatch("([^\n]+)") do
     table.insert(self.lines, { string = str, text = lg.newText(self.font) })
@@ -122,6 +126,10 @@ end
 
 ---Inserts a newline into where the cursor is.
 function textEditor:newLine()
+  if self.selecting then
+    self:deleteSelection()
+  end
+
   local newString = self:curString():sub(self.cursor.col)
   local line = {
     string = newString,
@@ -415,6 +423,10 @@ function textEditor:mouseMoved()
 end
 
 function textEditor:render(x, y, w, h)
+  if #self.lines == 0 then
+    self:setText("")
+  end
+
   lg.push()
   lg.translate(x + self:actualOffsetX(), y + self:actualOffsetY())
 
