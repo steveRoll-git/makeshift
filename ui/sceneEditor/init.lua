@@ -165,6 +165,7 @@ function sceneView:mouseDoubleClicked(button)
   if button == 1 and self.selectedObject then
     self:openSpriteEditor(self.selectedObject)
     self.spriteEditor:updateTransparencyQuad()
+    self.draggingObject = nil
   end
 end
 
