@@ -3,6 +3,7 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local clamp = require "util.clamp"
+local splitString = require "util.splitString"
 
 ---Returns `true` if `a` is positioned before `b`.
 ---@param a TextPosition
@@ -79,7 +80,7 @@ function textEditor:setText(text)
     return
   end
   local current = 1
-  for str in text:gmatch("([^\n]+)") do
+  for str in splitString(text, "\n") do
     table.insert(self.lines, { string = str, text = lg.newText(self.font) })
     self:updateLine(current)
     current = current + 1
