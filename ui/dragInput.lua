@@ -5,6 +5,9 @@ local zap = require "lib.zap.zap"
 local hexToColor = require "util.hexToColor"
 local textEditor = require "ui.textEditor"
 local viewTools = require "util.viewTools"
+local clamp = require "util.clamp"
+
+local defaultNumberFormat = "%d"
 
 ---@class DragInputTempEditor: Zap.ElementClass
 ---@operator call:DragInputTempEditor
@@ -60,6 +63,10 @@ end
 ---@field targetObject table
 ---@field targetKey any
 ---@field font love.Font
+---@field numberFormat? string
+---@field minValue? number
+---@field maxValue? number
+---@field onChange? function
 ---@operator call:DragInput
 local dragInput = zap.elementClass()
 
@@ -72,7 +79,10 @@ end
 ---Sets the target object's property to `value`.
 ---@param value number
 function dragInput:setValue(value)
-  self.targetObject[self.targetKey] = value
+  self.targetObject[self.targetKey] = clamp(value, self.minValue or -math.huge, self.maxValue or math.huge)
+  if self.onChange then
+    self.onChange()
+  end
 end
 
 function dragInput:mouseClicked(button)
@@ -91,7 +101,7 @@ function dragInput:render(x, y, w, h)
   lg.setColor(1, 1, 1)
   lg.setFont(self.font)
   lg.printf(
-    ("%.1f"):format(self:currentValue()),
+    (self.numberFormat or defaultNumberFormat):format(self:currentValue()),
     x,
     math.floor(y + h / 2 - self.font:getHeight() / 2),
     w,

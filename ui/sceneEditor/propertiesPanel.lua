@@ -21,9 +21,11 @@ function propertiesPanel:init()
   self.xInput = dragInput()
   self.xInput.font = font
   self.xInput.targetKey = "x"
+  self.xInput.numberFormat = "%.1f"
   self.yInput = dragInput()
   self.yInput.font = font
   self.yInput.targetKey = "y"
+  self.yInput.numberFormat = "%.1f"
 end
 
 ---@param obj Object
