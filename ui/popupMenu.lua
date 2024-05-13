@@ -61,6 +61,12 @@ function popupMenu:desiredHeight()
   return h
 end
 
+---Opens this menu as a popup at the cursor's position.
+function popupMenu:popupAtCursor()
+  local mx, my = love.mouse.getPosition()
+  OpenPopup(self, mx, my, self:desiredWidth(), self:desiredHeight())
+end
+
 function popupMenu:render(x, y, w, h)
   lg.setColor(hexToColor(0x1f1f1f))
   lg.rectangle("fill", x, y, w, h, 6)

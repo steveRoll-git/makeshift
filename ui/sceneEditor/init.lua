@@ -115,8 +115,7 @@ function sceneView:mousePressed(button)
         end
       },
     }
-    local mx, my = self:getAbsoluteMouse()
-    OpenPopup(menu, mx, my, menu:desiredWidth(), menu:desiredHeight())
+    menu:popupAtCursor()
   elseif button == 3 then
     self.panning = true
     self.panStart = {
