@@ -4,6 +4,7 @@ local lg = love.graphics
 local zap = require "lib.zap.zap"
 local clamp = require "util.clamp"
 local splitString = require "util.splitString"
+local popupMenu = require "ui.popupMenu"
 
 ---Returns `true` if `a` is positioned before `b`.
 ---@param a TextPosition
@@ -172,6 +173,22 @@ function textEditor:deleteSelection()
   self.selecting = false
 end
 
+---Cuts the selected text into the system clipboard.
+function textEditor:cut()
+  self:copy()
+  self:deleteSelection()
+end
+
+---Copies the selected text into the system clipboard.
+function textEditor:copy()
+  love.system.setClipboardText(self:getSelectionString())
+end
+
+---Inserts text from the system clipboard.
+function textEditor:paste()
+  self:insertText(love.system.getClipboardText())
+end
+
 function textEditor:selectAll()
   self.selecting = true
   self.cursor.line, self.cursor.col = 1, 1
@@ -194,6 +211,23 @@ end
 ---@return string
 function textEditor:getString()
   return self:concatLines(1, #self.lines)
+end
+
+function textEditor:getSelectionString()
+  if not self.selecting then
+    return self:curString()
+  elseif self:selectionFirstEdge().line == self:selectionLastEdge().line then
+    return self.lines[self:selectionFirstEdge().line].string
+        :sub(self:selectionFirstEdge().col, self:selectionLastEdge().col - 1)
+  else
+    local conc = self:concatLines(self:selectionFirstEdge().line + 1, self:selectionLastEdge().line - 1)
+    return
+        self.lines[self:selectionFirstEdge().line].string:sub(self:selectionFirstEdge().col) ..
+        "\n" ..
+        conc ..
+        (self:selectionLastEdge().line > self:selectionFirstEdge().line + 1 and "\n" or "") ..
+        self.lines[self:selectionLastEdge().line].string:sub(1, self:selectionLastEdge().col - 1)
+  end
 end
 
 ---Updates the text displayed on line `i`.
@@ -379,8 +413,16 @@ function textEditor:keyPressed(key)
       self.lines[self.cursor.line].string = self:curString() .. deletedLine.string
       self:updateCurLine()
     end
-  elseif ctrlDown and key == "a" then
-    self:selectAll()
+  elseif ctrlDown then
+    if key == "x" then
+      self:cut()
+    elseif key == "c" then
+      self:copy()
+    elseif key == "v" then
+      self:paste()
+    elseif key == "a" then
+      self:selectAll()
+    end
   end
 
   if cursorMoved then
@@ -412,6 +454,37 @@ function textEditor:mousePressed(button)
       self.selecting = false
     end
     self:flashCursor()
+  end
+  if button == 2 then
+    local menu = popupMenu()
+    menu:setItems {
+      {
+        text = "Cut",
+        action = function()
+          self:cut()
+        end
+      },
+      {
+        text = "Copy",
+        action = function()
+          self:copy()
+        end
+      },
+      {
+        text = "Paste",
+        action = function()
+          self:paste()
+        end
+      },
+      "separator",
+      {
+        text = "Select All",
+        action = function()
+          self:selectAll()
+        end
+      }
+    }
+    menu:popupAtCursor()
   end
 end
 
