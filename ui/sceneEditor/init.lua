@@ -10,6 +10,7 @@ local spriteEditor = require "ui.spriteEditor"
 local zoomSlider = require "ui.zoomSlider"
 local propertiesPanel = require "ui.sceneEditor.propertiesPanel"
 local codeEditor = require "ui.codeEditor"
+local popupMenu = require "ui.popupMenu"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -79,27 +80,43 @@ function sceneView:selectObject(obj)
 end
 
 function sceneView:mousePressed(button)
-  if button == 1 then
-    if self.creatingObject then
-      self.creationX, self.creationY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
-    else
-      self:selectObject(nil)
-      local mx, my = self:getRelativeMouse()
-      mx, my = self.viewTransform:inverseTransformPoint(mx, my)
-      for i = #self.engine.objects.list, 1, -1 do
-        ---@type Object
-        local obj = self.engine.objects.list[i]
-        if mx >= obj.x and my >= obj.y and mx < obj.x + obj.data.w and my < obj.y + obj.data.h then
-          self:selectObject(obj)
+  if self.creatingObject and button == 1 then
+    self.creationX, self.creationY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
+    return
+  end
+  if button == 1 or button == 2 then
+    self:selectObject(nil)
+    local mx, my = self:getRelativeMouse()
+    mx, my = self.viewTransform:inverseTransformPoint(mx, my)
+    for i = #self.engine.objects.list, 1, -1 do
+      ---@type Object
+      local obj = self.engine.objects.list[i]
+      if mx >= obj.x and my >= obj.y and mx < obj.x + obj.data.w and my < obj.y + obj.data.h then
+        self:selectObject(obj)
+        if button == 1 then
           self.draggingObject = {
             object = obj,
             offsetX = obj.x - mx,
             offsetY = obj.y - my,
           }
-          break
         end
+        break
       end
     end
+  end
+  if button == 2 and self.selectedObject then
+    local menu = popupMenu()
+    menu:setItems {
+      {
+        text = "Remove",
+        action = function()
+          self.engine.objects:remove(self.selectedObject)
+          self:selectObject(nil)
+        end
+      },
+    }
+    local mx, my = self:getAbsoluteMouse()
+    OpenPopup(menu, mx, my, menu:desiredWidth(), menu:desiredHeight())
   elseif button == 3 then
     self.panning = true
     self.panStart = {

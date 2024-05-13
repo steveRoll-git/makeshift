@@ -55,6 +55,9 @@ end
 ---@param w number
 ---@param h number
 function OpenPopup(element, x, y, w, h)
+  if popup then
+    ClosePopup()
+  end
   popup = element
   popupX = x
   popupY = y

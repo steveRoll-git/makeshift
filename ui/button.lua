@@ -11,6 +11,8 @@ local zap = require "lib.zap.zap"
 ---@field onClick fun()
 ---@field displayMode "image" | "text" | "textAfterImage"
 ---@field textImageMargin number
+---@field alignText? "left" | "center"
+---@field textPadding? number
 ---@operator call:Button
 local button = zap.elementClass()
 
@@ -76,7 +78,7 @@ function button:render(x, y, w, h)
     lg.setColor(hexToColor(0xcccccc))
     lg.setFont(self.font)
     lg.printf(self.text,
-      math.floor(x + w / 2 - totalW / 2),
+      self.alignText == "left" and x + (self.textPadding or 0) or math.floor(x + w / 2 - totalW / 2),
       math.floor(y + h / 2 - self.font:getHeight() / 2),
       totalW,
       "right")
