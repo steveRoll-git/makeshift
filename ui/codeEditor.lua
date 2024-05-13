@@ -19,6 +19,9 @@ function codeEditor:init(script)
   self.textEditor.font = font
   self.textEditor.multiline = true
   self.textEditor:setText(script.code)
+
+  self.lineNumberColumnWidth = font:getWidth("9999")
+  self.leftColumnWidth = self.lineNumberColumnWidth + font:getWidth("  ")
 end
 
 function codeEditor:write()
@@ -38,7 +41,17 @@ function codeEditor:textInput(text)
 end
 
 function codeEditor:render(x, y, w, h)
-  self.textEditor:render(x, y, w, h)
+  self.textEditor:render(x + self.leftColumnWidth, y, w - self.leftColumnWidth, h)
+  for i = 1, #self.textEditor.lines do
+    lg.setColor(hexToColor(0x6e6e6e))
+    lg.setFont(font)
+    lg.printf(
+      tostring(i),
+      x,
+      y + (i - 1) * font:getHeight() + self.textEditor:actualOffsetY(),
+      self.lineNumberColumnWidth,
+      "right")
+  end
 end
 
 return codeEditor
