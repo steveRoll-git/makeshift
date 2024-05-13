@@ -28,6 +28,9 @@ local fonts = require "fonts"
 local hexToColor = require "util.hexToColor"
 local project = require "project"
 local images = require "images"
+local orderedSet = require "util.orderedSet"
+
+local uiScene = zap.createScene()
 
 ---@class Zap.ElementClass
 ---@field mouseDoubleClicked fun(self: Zap.Element, button: any)
@@ -37,15 +40,9 @@ local images = require "images"
 ---@field textInput fun(self: Zap.Element, text: string)
 ---@field getCursor fun(self: Zap.Element): love.Cursor
 
----@type Zap.Element?
-local popup
-local popupRendered = false
----@type number, number, number, number
-local popupX, popupY, popupW, popupH
-
-function GetPopup()
-  return popup
-end
+local popups = orderedSet.new()
+---@type table<Zap.Element, number[]>
+local popupViews = {}
 
 ---Opens `element` as a popup.<br>
 ---Popups disappear when the mouse clicks anywhere outside of them.
@@ -55,24 +52,33 @@ end
 ---@param w number
 ---@param h number
 function OpenPopup(element, x, y, w, h)
-  if popup then
-    ClosePopup()
-  end
-  popup = element
-  popupX = x
-  popupY = y
-  popupW = w
-  popupH = h
-  popupRendered = false
+  popups:add(element)
+  popupViews[element] = { x, y, w, h }
 end
 
----Closes the currently open popup element.
-function ClosePopup()
+---@param popup Zap.Element
+function ClosePopup(popup)
+  assert(popups:has(popup), "Tried to close a popup that isn't open")
   if popup and popup.class.popupClosed then
     popup.class.popupClosed(popup)
   end
-  popup = nil
-  popupRendered = false
+  popups:remove(popup)
+  popupViews[popup] = nil
+end
+
+function CloseAllPopups()
+  for i = popups:getCount(), 1, -1 do
+    if uiScene:isElementRendered(popups:itemAt(i)) then
+      ClosePopup(popups:itemAt(i))
+    end
+  end
+end
+
+---Returns whether this element is a popup that's currently open.
+---@param popup Zap.Element
+---@return boolean
+function IsPopupOpen(popup)
+  return popups:has(popup)
 end
 
 local libraryPanel = treeView()
@@ -134,14 +140,12 @@ end
 ---Returns the element that currently has keyboard focus.
 ---@return Zap.Element
 local function getFocusedElement()
-  if popup then
-    return popup
+  if popups:getCount() > 0 then
+    return popups:last()
   else
     return mainTabView.activeTab.content
   end
 end
-
-local uiScene = zap.createScene()
 
 local lastPressTime
 local lastPressButton
@@ -170,15 +174,25 @@ end
 function love.mousepressed(x, y, btn)
   uiScene:mousePressed(btn)
   local pressedElement = uiScene:getPressedElement()
+
   if btn == lastPressButton and
       love.timer.getTime() - lastPressTime <= doubleClickTime and
       pressedElement == lastPressedElement and
       pressedElement.class.mouseDoubleClicked then
     pressedElement.class.mouseDoubleClicked(pressedElement, btn)
   end
-  if popup and popupRendered and not popup:isInHierarchy(pressedElement) then
-    ClosePopup()
+
+  if not IsPopupOpen(pressedElement:getRoot()) then
+    CloseAllPopups()
+  else
+    local index = popups:getIndex(pressedElement:getRoot())
+    for i = popups:getCount(), index + 1, -1 do
+      if uiScene:isElementRendered(popups:itemAt(i)) then
+        popups:removeAt(i)
+      end
+    end
   end
+
   lastPressTime = love.timer.getTime()
   lastPressButton = btn
   lastPressedElement = pressedElement
@@ -220,9 +234,8 @@ end
 function love.draw()
   uiScene:begin()
   mainTabView:render(0, 0, lg.getDimensions())
-  if popup then
-    popup:render(popupX, popupY, popupW, popupH)
-    popupRendered = true
+  for _, popup in ipairs(popups.list) do
+    popup:render(unpack(popupViews[popup]))
   end
   uiScene:finish()
 end

@@ -45,12 +45,12 @@ function orderedSet:insertAt(index, item)
   self.lookup[item] = index
 end
 
----Removes the item from the set.
----@param item any
-function orderedSet:remove(item)
-  assert(self.lookup[item], "item is not in the set")
+---Removes the item at `index` from the set.
+---@param index number
+function orderedSet:removeAt(index)
+  assert(index >= 1 and index <= self.count, "index is out of range")
 
-  local index = self.lookup[item]
+  local item = self.list[index]
   for i = index, self.count do
     self.list[i] = self.list[i + 1]
     if i < self.count then
@@ -59,6 +59,13 @@ function orderedSet:remove(item)
   end
   self.lookup[item] = nil
   self.count = self.count - 1
+end
+
+---Removes the item from the set.
+---@param item any
+function orderedSet:remove(item)
+  assert(self.lookup[item], "item is not in the set")
+  self:removeAt(self.lookup[item])
 end
 
 ---Returns the index of the item in the set.
@@ -70,10 +77,30 @@ function orderedSet:getIndex(item)
   return self.lookup[item]
 end
 
+---Returns the item at `index`
+---@param index number
+---@return any
+function orderedSet:itemAt(index)
+  return self.list[index]
+end
+
 ---Returns the last item in the set.
 ---@return any
 function orderedSet:last()
   return self.list[self.count]
+end
+
+---Returns whether `item` is in this set.
+---@param item any
+---@return boolean
+function orderedSet:has(item)
+  return not not self.lookup[item]
+end
+
+---Returns the number of items currently in the set.
+---@return number
+function orderedSet:getCount()
+  return self.count
 end
 
 return orderedSet

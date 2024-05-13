@@ -37,7 +37,7 @@ function popupMenu:setItems(items)
       newButton.textPadding = itemTextPadding
       newButton.onClick = function()
         item.action()
-        ClosePopup()
+        ClosePopup(self)
       end
       table.insert(self.items, newButton)
     elseif item == "separator" then

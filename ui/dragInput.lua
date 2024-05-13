@@ -34,9 +34,9 @@ function tempEditor:keyPressed(key)
   self.textEditor:keyPressed(key)
   if key == "escape" then
     self.cancel = true
-    ClosePopup()
+    ClosePopup(self)
   elseif key == "return" or key == "kpenter" then
-    ClosePopup()
+    ClosePopup(self)
   end
 end
 
