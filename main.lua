@@ -43,6 +43,7 @@ local uiScene = zap.createScene()
 local popups = orderedSet.new()
 ---@type table<Zap.Element, number[]>
 local popupViews = {}
+setmetatable(popupViews, { __mode = 'k' })
 
 ---Opens `element` as a popup.<br>
 ---Popups disappear when the mouse clicks anywhere outside of them.
