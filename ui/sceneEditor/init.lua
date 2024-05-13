@@ -52,7 +52,6 @@ function sceneView:startCreatingObject()
   self.creatingObject = true
   self.creationX = nil
   self.creationY = nil
-  love.mouse.setCursor(love.mouse.getSystemCursor("crosshair"))
 end
 
 ---Opens an embedded sprite editor.
@@ -140,7 +139,6 @@ function sceneView:mouseReleased(button)
       self:selectObject(newObject)
 
       self.creatingObject = false
-      love.mouse.setCursor()
     elseif self.draggingObject then
       self.draggingObject = nil
     end
@@ -198,6 +196,14 @@ function sceneView:wheelMoved(x, y)
     if self.zoom <= 1 then
       self.panX, self.panY = math.floor(self.panX), math.floor(self.panY)
     end
+  end
+end
+
+function sceneView:getCursor()
+  if self.creatingObject then
+    return love.mouse.getSystemCursor("crosshair")
+  else
+    return nil
   end
 end
 
