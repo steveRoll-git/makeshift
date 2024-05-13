@@ -423,6 +423,10 @@ function textEditor:mouseMoved()
   end
 end
 
+function textEditor:getCursor()
+  return love.mouse.getSystemCursor("ibeam")
+end
+
 function textEditor:render(x, y, w, h)
   if #self.lines == 0 then
     self:setText("")

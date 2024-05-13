@@ -33,6 +33,7 @@ local images = require "images"
 ---@field keyReleased fun(self: Zap.Element, key: string)
 ---@field popupClosed fun(self: Zap.Element)
 ---@field textInput fun(self: Zap.Element, text: string)
+---@field getCursor fun(self: Zap.Element): love.Cursor
 
 ---@type Zap.Element?
 local popup
@@ -145,6 +146,18 @@ local doubleClickTime = 0.2
 
 lg.setBackgroundColor(hexToColor(0x181818))
 
+local function updateCursor()
+  local cursorToSet
+  local hovered = uiScene:getHoveredElements()
+  for i = #hovered, 1, -1 do
+    local e = hovered[i]
+    if e.class.getCursor then
+      cursorToSet = e.class.getCursor(e)
+    end
+  end
+  love.mouse.setCursor(cursorToSet)
+end
+
 function love.mousemoved(x, y, dx, dy)
   uiScene:moveMouse(x, y, dx, dy)
 end
@@ -193,6 +206,10 @@ function love.textinput(text)
   if focused.class.textInput then
     focused.class.textInput(focused, text)
   end
+end
+
+function love.update(dt)
+  updateCursor()
 end
 
 function love.draw()
