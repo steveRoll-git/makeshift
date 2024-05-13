@@ -189,7 +189,7 @@ function love.mousepressed(x, y, btn)
     local index = popups:getIndex(pressedElement:getRoot())
     for i = popups:getCount(), index + 1, -1 do
       if uiScene:isElementRendered(popups:itemAt(i)) then
-        popups:removeAt(i)
+        ClosePopup(popups:itemAt(i))
       end
     end
   end
