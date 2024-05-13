@@ -109,7 +109,7 @@ function textEditor:insertText(text)
         if c == "\n" then self:newLine() end
         self:updateCurLine()
         lastLine = ""
-      elseif c ~= "\r" then
+      elseif c ~= "\r" and c ~= "\n" then
         lastLine = lastLine .. c
       end
     end
