@@ -146,7 +146,7 @@ local doubleClickTime = 0.2
 lg.setBackgroundColor(hexToColor(0x181818))
 
 function love.mousemoved(x, y, dx, dy)
-  uiScene:setMousePosition(x, y)
+  uiScene:moveMouse(x, y, dx, dy)
 end
 
 function love.mousepressed(x, y, btn)

@@ -419,7 +419,7 @@ function spriteEditor:mousePressed(button)
     end
   elseif button == 3 then
     self.panning = true
-    local mx, my = self:getAbsoluteMouse()
+    local mx, my = self:getRelativeMouse()
     self.panStart = {
       x = self.panX - mx,
       y = self.panY - my,

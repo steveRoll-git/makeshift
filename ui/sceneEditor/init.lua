@@ -150,13 +150,12 @@ function sceneView:mouseReleased(button)
 end
 
 function sceneView:mouseMoved(x, y)
-  local mx, my = self:getRelativeMouse()
   if self.draggingObject then
-    mx, my = self.viewTransform:inverseTransformPoint(mx, my)
-    self.draggingObject.object.x = mx + self.draggingObject.offsetX
-    self.draggingObject.object.y = my + self.draggingObject.offsetY
+    x, y = self.viewTransform:inverseTransformPoint(x, y)
+    self.draggingObject.object.x = x + self.draggingObject.offsetX
+    self.draggingObject.object.y = y + self.draggingObject.offsetY
   elseif self.panning then
-    local dx, dy = mx - self.panStart.screenX, my - self.panStart.screenY
+    local dx, dy = x - self.panStart.screenX, y - self.panStart.screenY
     self.panX = self.panStart.worldX - dx / self.zoom
     self.panY = self.panStart.worldY - dy / self.zoom
   end

@@ -57,8 +57,9 @@ function tab:mouseReleased()
   end
 end
 
-function tab:mouseMoved(mx, my)
+function tab:mouseMoved(_, _)
   if self.isDragging then
+    local mx, _ = self:getAbsoluteMouse()
     local tabView = self:getParent() --[[@as TabView]]
     self.dragX = mx - self.dragStartX
     local x, _, w, _ = self:getView()
