@@ -60,7 +60,7 @@ function textEditor:actualOffsetX()
     local _, _, w, _ = self:getView()
     return math.floor(w / 2 - self.lines[1].width / 2)
   end
-  return self.offsetX + self.padding
+  return -self.offsetX + self.padding
 end
 
 function textEditor:actualOffsetY()
@@ -68,7 +68,7 @@ function textEditor:actualOffsetY()
     local _, _, _, h = self:getView()
     return math.floor(h / 2 - self:contentHeight() / 2)
   end
-  return self.offsetY + self.padding
+  return -self.offsetY + self.padding
 end
 
 ---Sets the text currently being edited.

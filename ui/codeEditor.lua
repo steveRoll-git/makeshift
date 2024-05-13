@@ -5,6 +5,8 @@ local zap = require "lib.zap.zap"
 local hexToColor = require "util.hexToColor"
 local textEditor = require "ui.textEditor"
 local fonts = require "fonts"
+local scrollbar = require "ui.scrollbar"
+local clamp = require "util.clamp"
 
 local font = fonts("SourceCodePro-Regular.ttf", 16)
 
@@ -20,7 +22,18 @@ function codeEditor:init(script)
   self.textEditor.multiline = true
   self.textEditor:setText(script.code)
 
-  self.lineNumberColumnWidth = font:getWidth("9999")
+  self.scrollbarY = scrollbar()
+  self.scrollbarY.direction = "y"
+  self.scrollbarY.targetTable = self.textEditor
+  self.scrollbarY.targetField = "offsetY"
+  self.scrollbarY.viewSize = function()
+    return select(4, self:getView())
+  end
+  self.scrollbarY.contentSize = function()
+    return self.textEditor:contentHeight() + self.scrollbarY.viewSize() - font:getHeight()
+  end
+
+  self.lineNumberColumnWidth = font:getWidth("99999")
   self.leftColumnWidth = self.lineNumberColumnWidth + font:getWidth("  ")
 end
 
@@ -40,8 +53,15 @@ function codeEditor:textInput(text)
   self.textEditor:textInput(text)
 end
 
+function codeEditor:wheelMoved(x, y)
+  self.textEditor.offsetY = clamp(self.textEditor.offsetY - y * font:getHeight() * 3, 0, self.scrollbarY:maximumScroll())
+end
+
 function codeEditor:render(x, y, w, h)
-  self.textEditor:render(x + self.leftColumnWidth, y, w - self.leftColumnWidth, h)
+  lg.setScissor(x, y, w, h)
+
+  self.textEditor:render(x + self.leftColumnWidth, y, w - self.leftColumnWidth - self.scrollbarY:desiredWidth(), h)
+
   for i = 1, #self.textEditor.lines do
     lg.setColor(hexToColor(0x6e6e6e))
     lg.setFont(font)
@@ -52,6 +72,12 @@ function codeEditor:render(x, y, w, h)
       self.lineNumberColumnWidth,
       "right")
   end
+
+  if self.scrollbarY.contentSize() > self.scrollbarY.viewSize() then
+    self.scrollbarY:render(x + w - self.scrollbarY:desiredWidth(), y, self.scrollbarY:desiredWidth(), h)
+  end
+
+  lg.setScissor()
 end
 
 return codeEditor
