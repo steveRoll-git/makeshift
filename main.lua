@@ -191,11 +191,16 @@ lg.setBackgroundColor(hexToColor(0x181818))
 
 local function updateCursor()
   local cursorToSet
-  local hovered = uiScene:getHoveredElements()
-  for i = #hovered, 1, -1 do
-    local e = hovered[i]
-    if e.class.getCursor then
-      cursorToSet = e.class.getCursor(e)
+  local pressedElement = uiScene:getPressedElement()
+  if pressedElement and pressedElement.class.getCursor then
+    cursorToSet = pressedElement.class.getCursor(pressedElement)
+  else
+    local hovered = uiScene:getHoveredElements()
+    for i = #hovered, 1, -1 do
+      local e = hovered[i]
+      if e.class.getCursor then
+        cursorToSet = e.class.getCursor(e)
+      end
     end
   end
   love.mouse.setCursor(cursorToSet)

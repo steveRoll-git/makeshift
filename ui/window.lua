@@ -8,6 +8,38 @@ local hexToColor = require "util.hexToColor"
 local clamp = require "util.clamp"
 local viewTools = require "util.viewTools"
 
+local resizeHandleSize = 10
+
+---@class WindowResizeHandle: Zap.ElementClass
+---@operator call:WindowResizeHandle
+local resizeHandle = zap.elementClass()
+
+---@param w Window
+function resizeHandle:init(w)
+  self.window = w
+end
+
+function resizeHandle:getCursor()
+  return love.mouse.getSystemCursor("sizenwse")
+end
+
+function resizeHandle:mousePressed(btn)
+  if btn == 1 then
+    local mx, my = self:getAbsoluteMouse()
+    self.offsetX = mx - self.window.x - self.window.width
+    self.offsetY = my - self.window.y - self.window.height
+  end
+end
+
+function resizeHandle:mouseMoved()
+  if self:isPressed(1) then
+    local mx, my = self:getAbsoluteMouse()
+    self.window.width = mx - self.window.x - self.offsetX
+    self.window.height = my - self.window.y - self.offsetY
+    self.window:clampSize()
+  end
+end
+
 ---@class Window: Zap.ElementClass
 ---@field icon love.Image
 ---@field title string
@@ -28,6 +60,8 @@ function window:init()
   self.closeButton.onClick = function()
     CloseWindow(self)
   end
+
+  self.resizeHandle = resizeHandle(self)
 end
 
 function window:desiredWidth()
@@ -45,6 +79,11 @@ end
 function window:clampPosition()
   self.x = clamp(self.x, -self.width / 2, lg.getWidth() - self.width / 2)
   self.y = clamp(self.y, 0, lg.getHeight() - self.height / 2)
+end
+
+function window:clampSize()
+  self.width = math.max(self.width, 200)
+  self.height = math.max(self.height, 200)
 end
 
 function window:mousePressed(btn)
@@ -113,6 +152,8 @@ function window:render(x, y, w, h)
     x, y + h,
     x + w, y + h,
     x + w, y + self:titleBarHeight())
+
+  self.resizeHandle:render(x + w, y + h, resizeHandleSize, resizeHandleSize)
 end
 
 return window
