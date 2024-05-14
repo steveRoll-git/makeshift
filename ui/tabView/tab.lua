@@ -5,6 +5,7 @@ local zap = require "lib.zap.zap"
 local hexToColor = require "util.hexToColor"
 local button = require "ui.button"
 local images = require "images"
+local window = require "ui.window"
 
 local textMargin = 8
 local iconTextMargin = 6
@@ -19,6 +20,7 @@ local iconTextMargin = 6
 ---@field layoutX number
 ---@field draggable boolean
 ---@field closable boolean
+---@field dockable boolean
 ---@field isDragging boolean
 ---@field dragStartX number
 ---@field dragStartY number
@@ -37,6 +39,27 @@ end
 
 function tab:parentTabView()
   return self:getParent() --[[@as TabView]]
+end
+
+---Creates a new floating window with this tab's contents, and removes the tab.
+function tab:undockIntoWindow()
+  local mx, my = self:getAbsoluteMouse()
+  local newWindow = window()
+  newWindow.titleFont = self.font
+  newWindow.title = self.text
+  newWindow.icon = self.icon
+  newWindow.content = self.content
+  newWindow.width = 600
+  newWindow.height = 400
+  newWindow.x = mx - self.dragStartX
+  newWindow.y = my - self.dragStartY
+  newWindow.dragging = true
+  newWindow.dragX = self.dragStartX
+  newWindow.dragY = self.dragStartY
+  newWindow.closable = self.closable
+  AddWindow(newWindow)
+  self:getScene():setPressedElement(newWindow, 1)
+  self:parentTabView():removeTab(self)
 end
 
 function tab:mousePressed(btn)
@@ -61,6 +84,10 @@ function tab:mouseMoved(_, _)
   if self.isDragging then
     local mx, _ = self:getAbsoluteMouse()
     local tabView = self:getParent() --[[@as TabView]]
+    if not tabView:isMouseOverTabBar() and self.dockable then
+      self:undockIntoWindow()
+      return
+    end
     self.dragX = mx - self.dragStartX
     local x, _, w, _ = self:getView()
     -- Code for switching the order of tabs when dragging them

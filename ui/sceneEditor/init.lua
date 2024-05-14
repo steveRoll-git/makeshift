@@ -21,7 +21,8 @@ local function openCodeEditor(object)
     text = "Code Editor",
     icon = images["icons/code_24.png"],
     content = codeEditor(object.data.script),
-    closable = true
+    closable = true,
+    dockable = true,
   })
 end
 

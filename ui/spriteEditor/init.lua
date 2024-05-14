@@ -186,7 +186,8 @@ function spriteEditor:init(sceneView)
           text = "Sprite Editor",
           icon = images["icons/brush_24.png"],
           content = self,
-          closable = true
+          closable = true,
+          dockable = true,
         })
       end,
       visible = function()

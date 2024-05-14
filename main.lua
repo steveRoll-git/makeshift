@@ -101,20 +101,6 @@ function CloseWindow(w)
   windows:remove(w)
 end
 
-do
-  local testWindow = window()
-  testWindow.titleFont = fonts("Inter-Regular.ttf", 14)
-  testWindow.title = "Untitled Scene"
-  testWindow.icon = images["icons/scene_24.png"]
-  testWindow.content = sceneEditor(project.getResources()[next(project.getResources())])
-  testWindow.x = 200
-  testWindow.y = 100
-  testWindow.width = 600
-  testWindow.height = 400
-  testWindow.closable = true
-  AddWindow(testWindow)
-end
-
 local libraryPanel = treeView()
 
 local function resourceItemModels()
@@ -140,7 +126,8 @@ mainTabView:setTabs {
   {
     text = "Library",
     icon = images["icons/library_24.png"],
-    content = libraryPanel
+    content = libraryPanel,
+    dockable = true,
   },
 }
 
@@ -159,6 +146,7 @@ function OpenResourceTab(r)
       icon = images["icons/scene_24.png"],
       content = sceneEditor(r),
       closable = true,
+      dockable = true,
     })
   elseif r.type == "objectData" then
     local e = spriteEditor()
@@ -167,6 +155,7 @@ function OpenResourceTab(r)
       text = r.name,
       content = e,
       closable = true,
+      dockable = true,
     })
   end
 end

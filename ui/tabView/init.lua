@@ -5,7 +5,7 @@ local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
 
----@alias TabModel {text: string, icon: love.Image?, content: Zap.Element, closable: boolean}
+---@alias TabModel {text: string, icon: love.Image?, content: Zap.Element, closable: boolean, dockable?: boolean}
 
 ---@class TabView: Zap.ElementClass
 ---@field tabs Tab[]
@@ -28,6 +28,7 @@ function tabView:addTab(tabModel)
   newTab.font = self.font
   newTab.draggable = true
   newTab.closable = tabModel.closable
+  newTab.dockable = tabModel.dockable
   table.insert(self.tabs, newTab)
   self:layoutTabs()
   self:setActiveTab(newTab)
@@ -73,9 +74,9 @@ function tabView:setActiveTab(tab)
   self.activeTab.active = true
 end
 
----Closes this tab.
+---Removes this tab without calling the `onClose` callback.
 ---@param tab Tab
-function tabView:closeTab(tab)
+function tabView:removeTab(tab)
   table.remove(self.tabs, tab.index)
   self:layoutTabs()
   if self.activeTab == tab then
@@ -85,14 +86,25 @@ function tabView:closeTab(tab)
       self.activeTab = nil
     end
   end
-  if tab.content["onClose"] then
-    ---@diagnostic disable-next-line: undefined-field
-    tab.content:onClose()
+end
+
+---Closes this tab.
+---@param tab Tab
+function tabView:closeTab(tab)
+  self:removeTab(tab)
+  if tab.content.class.onClose then
+    tab.content.class.onClose(tab.content)
   end
 end
 
 function tabView:tabBarHeight()
   return self.font:getHeight() + 16
+end
+
+---Returns whether the mouse is over the TabView's tab area.
+---@return boolean
+function tabView:isMouseOverTabBar()
+  return self:isMouseOver() and select(2, self:getRelativeMouse()) < self:tabBarHeight()
 end
 
 ---@param tab Tab
