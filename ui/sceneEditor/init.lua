@@ -369,7 +369,7 @@ function sceneEditor:render(x, y, w, h)
     self.zoomSlider:render(x + w - sliderW, y + h - sliderH, sliderW, sliderH)
   end
 
-  if self.sceneView.selectedObject then
+  if self.sceneView.selectedObject and not self.sceneView.spriteEditor then
     local pw, ph = 240, 200
     local margin = 4
     self.propertiesPanel:render(x + margin, y + h - ph - margin, pw, ph)
