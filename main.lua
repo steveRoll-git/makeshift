@@ -29,6 +29,7 @@ local hexToColor = require "util.hexToColor"
 local project = require "project"
 local images = require "images"
 local orderedSet = require "util.orderedSet"
+local window = require "ui.window"
 
 require "util.scissorStack"
 
@@ -41,6 +42,7 @@ local uiScene = zap.createScene()
 ---@field popupClosed fun(self: Zap.Element)
 ---@field textInput fun(self: Zap.Element, text: string)
 ---@field getCursor fun(self: Zap.Element): love.Cursor
+---@field onClose fun(self: Zap.Element)
 
 local popups = orderedSet.new()
 ---@type table<Zap.Element, number[]>
@@ -82,6 +84,35 @@ end
 ---@return boolean
 function IsPopupOpen(popup)
   return popups:has(popup)
+end
+
+local windows = orderedSet.new()
+
+---@param w Window
+function AddWindow(w)
+  windows:add(w)
+end
+
+---@param w Window
+function CloseWindow(w)
+  if w.content.class.onClose then
+    w.content.class.onClose(w.content)
+  end
+  windows:remove(w)
+end
+
+do
+  local testWindow = window()
+  testWindow.titleFont = fonts("Inter-Regular.ttf", 14)
+  testWindow.title = "Untitled Scene"
+  testWindow.icon = images["icons/scene_24.png"]
+  testWindow.content = sceneEditor(project.getResources()[next(project.getResources())])
+  testWindow.x = 200
+  testWindow.y = 100
+  testWindow.width = 600
+  testWindow.height = 400
+  testWindow.closable = true
+  AddWindow(testWindow)
 end
 
 local libraryPanel = treeView()
@@ -236,19 +267,39 @@ end
 
 function love.draw()
   uiScene:begin()
+
   mainTabView:render(0, 0, lg.getDimensions())
+
+  for _, w in ipairs(windows.list) do
+    ---@cast w Window
+    w:render(w.x, w.y, w.width, w.height)
+  end
+
   for _, popup in ipairs(popups.list) do
     popup:render(unpack(popupViews[popup]))
   end
+
   uiScene:finish()
 end
 
 function love.quit()
   for _, t in ipairs(mainTabView.tabs) do
-    if t.content["onClose"] then
-      ---@diagnostic disable-next-line: undefined-field
-      t.content:onClose()
+    if t.content.class.onClose then
+      t.content.class.onClose(t.content)
+    end
+  end
+  for _, w in ipairs(windows.list) do
+    ---@cast w Window
+    if w.content.class.onClose then
+      w.content.class.onClose(w.content)
     end
   end
   project.saveProject()
+end
+
+function love.resize()
+  for _, w in ipairs(windows.list) do
+    ---@cast w Window
+    w:clampPosition()
+  end
 end
