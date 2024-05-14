@@ -11,7 +11,6 @@ return function(font, size)
   end
   if not cache[font][size] then
     cache[font][size] = love.graphics.newFont(fontsDirectory .. font, size)
-    print("created", font, size)
   end
   return cache[font][size]
 end
