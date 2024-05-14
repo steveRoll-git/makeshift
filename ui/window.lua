@@ -51,6 +51,7 @@ end
 ---@field height number
 ---@field closable boolean
 ---@field dockable boolean
+---@field focused boolean
 ---@operator call:Window
 local window = zap.elementClass()
 
@@ -136,9 +137,31 @@ function window:mouseMoved(x, y, dx, dy)
   end
 end
 
+function window:keyPressed(key)
+  if self.content.class.keyPressed then
+    self.content.class.keyPressed(self.content, key)
+  end
+end
+
+function window:keyReleased(key)
+  if self.content.class.keyReleased then
+    self.content.class.keyReleased(self.content, key)
+  end
+end
+
+function window:textInput(text)
+  if self.content.class.textInput then
+    self.content.class.textInput(self.content, text)
+  end
+end
+
 function window:render(x, y, w, h)
   local cornerRadius = 6
-  lg.setColor(hexToColor(0x1f1f1f))
+  if self.focused then
+    lg.setColor(hexToColor(0x1f1f1f))
+  else
+    lg.setColor(hexToColor(0x181818))
+  end
   lg.rectangle("fill", x, y, w, self:titleBarHeight() + cornerRadius, cornerRadius)
   lg.setColor(hexToColor(0x2b2b2b))
   lg.setLineStyle("rough")

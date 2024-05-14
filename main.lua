@@ -88,9 +88,28 @@ end
 
 local windows = orderedSet.new()
 
+---@type Window?
+local focusedWindow
+
+---@param w Window?
+function SetFocusedWindow(w)
+  if focusedWindow then
+    focusedWindow.focused = false
+  end
+  focusedWindow = w
+  if w then
+    w.focused = true
+    if windows:getIndex(w) ~= windows:getCount() then
+      windows:remove(w)
+      windows:add(w)
+    end
+  end
+end
+
 ---@param w Window
 function AddWindow(w)
   windows:add(w)
+  SetFocusedWindow(w)
 end
 
 ---Removes a window without calling its onClose callback.
@@ -177,6 +196,8 @@ end
 local function getFocusedElement()
   if popups:getCount() > 0 then
     return popups:last()
+  elseif focusedWindow then
+    return focusedWindow
   else
     return mainTabView.activeTab.content
   end
@@ -231,6 +252,12 @@ function love.mousepressed(x, y, btn)
         ClosePopup(popups:itemAt(i))
       end
     end
+  end
+
+  if pressedElement:getRoot().class == window then
+    SetFocusedWindow(pressedElement:getRoot() --[[@as Window]])
+  else
+    SetFocusedWindow(nil)
   end
 
   lastPressTime = love.timer.getTime()
