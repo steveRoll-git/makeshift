@@ -14,6 +14,17 @@ local popupMenu = require "ui.popupMenu"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
+---Opens a code editor for this object.
+---@param object Object
+local function openCodeEditor(object)
+  AddNewTab({
+    text = "Code Editor",
+    icon = images["icons/code_24.png"],
+    content = codeEditor(object.data.script),
+    closable = true
+  })
+end
+
 ---@class SceneView: Zap.ElementClass
 ---@field editor SceneEditor
 ---@field engine Engine
@@ -107,6 +118,19 @@ function sceneView:mousePressed(button)
   if button == 2 and self.selectedObject then
     local menu = popupMenu()
     menu:setItems {
+      {
+        text = "Draw",
+        action = function()
+          self:openSpriteEditor(self.selectedObject)
+        end
+      },
+      {
+        text = "Code",
+        action = function()
+          openCodeEditor(self.selectedObject)
+        end
+      },
+      "separator",
       {
         text = "Remove",
         action = function()
@@ -322,12 +346,7 @@ end
 
 function sceneEditor:keyPressed(key)
   if key == "f9" and self.sceneView.selectedObject then
-    AddNewTab({
-      text = "Code Editor",
-      icon = images["icons/code_24.png"],
-      content = codeEditor(self.sceneView.selectedObject.data.script),
-      closable = true
-    })
+    openCodeEditor(self.sceneView.selectedObject)
   end
 end
 
