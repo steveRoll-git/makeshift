@@ -58,7 +58,7 @@ function codeEditor:wheelMoved(x, y)
 end
 
 function codeEditor:render(x, y, w, h)
-  lg.setScissor(x, y, w, h)
+  PushScissor(x, y, w, h)
 
   self.textEditor:render(x + self.leftColumnWidth, y, w - self.leftColumnWidth - self.scrollbarY:desiredWidth(), h)
 
@@ -77,7 +77,7 @@ function codeEditor:render(x, y, w, h)
     self.scrollbarY:render(x + w - self.scrollbarY:desiredWidth(), y, self.scrollbarY:desiredWidth(), h)
   end
 
-  lg.setScissor()
+  PopScissor()
 end
 
 return codeEditor

@@ -30,6 +30,8 @@ local project = require "project"
 local images = require "images"
 local orderedSet = require "util.orderedSet"
 
+require "util.scissorStack"
+
 local uiScene = zap.createScene()
 
 ---@class Zap.ElementClass

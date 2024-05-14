@@ -248,7 +248,7 @@ function sceneView:getCursor()
 end
 
 function sceneView:render(x, y, w, h)
-  lg.setScissor(x, y, w, h)
+  PushScissor(x, y, w, h)
   lg.push()
   lg.translate(x, y)
   self:updateViewTransform()
@@ -302,7 +302,7 @@ function sceneView:render(x, y, w, h)
   end
 
   lg.pop()
-  lg.setScissor()
+  PopScissor()
 end
 
 ---@class SceneEditor: Zap.ElementClass

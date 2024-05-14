@@ -94,7 +94,7 @@ end
 function tab:render(x, y, w, h)
   local cornerRadius = 6
 
-  lg.setScissor(x - 1, y, w + 2, h)
+  PushScissor(x - 1, y, w + 2, h)
   if self.active or self:isHovered() then
     lg.setColor(hexToColor(0x1f1f1f))
   else
@@ -109,7 +109,7 @@ function tab:render(x, y, w, h)
     lg.rectangle("line", x, y + 2, w, h + cornerRadius, cornerRadius)
   end
 
-  lg.setScissor()
+  PopScissor()
 
   local textX = x + textMargin
   local textY = y + h / 2 - self.font:getHeight() / 2

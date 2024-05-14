@@ -500,7 +500,7 @@ function spriteEditor:render(x, y, w, h)
     h = h - self.topToolbar:desiredHeight()
   end
 
-  lg.setScissor(x, y, w, h)
+  PushScissor(x, y, w, h)
   lg.push()
   lg.translate(x, y)
 
@@ -552,7 +552,7 @@ function spriteEditor:render(x, y, w, h)
   local sliderW, sliderH = self.zoomSlider:desiredWidth() + 6, self.zoomSlider:desiredHeight() + 3
   self.zoomSlider:render(x + w - sliderW, y + h - sliderH, sliderW, sliderH)
 
-  lg.setScissor()
+  PopScissor()
 end
 
 return spriteEditor
