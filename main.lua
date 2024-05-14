@@ -30,6 +30,7 @@ local project = require "project"
 local images = require "images"
 local orderedSet = require "util.orderedSet"
 local window = require "ui.window"
+local splitView = require "ui.splitView"
 
 require "util.scissorStack"
 
@@ -145,16 +146,24 @@ end
 
 libraryPanel:setItems(resourceItemModels())
 
-local mainTabView = tabView()
-mainTabView.font = fonts("Inter-Regular.ttf", 14)
-mainTabView:setTabs {
+local explorerTabView = tabView()
+explorerTabView.font = fonts("Inter-Regular.ttf", 14)
+explorerTabView:setTabs {
   {
     text = "Library",
     icon = images["icons/library_24.png"],
     content = libraryPanel,
-    dockable = true,
   },
 }
+
+local mainTabView = tabView()
+mainTabView.font = fonts("Inter-Regular.ttf", 14)
+
+local testSplitView = splitView()
+testSplitView.orientation = "vertical"
+testSplitView.side1 = explorerTabView
+testSplitView.side2 = mainTabView
+testSplitView.splitDistance = 200
 
 ---Adds a new tab to the main tabView.
 ---@param tab TabModel
@@ -301,7 +310,7 @@ end
 function love.draw()
   uiScene:begin()
 
-  mainTabView:render(0, 0, lg.getDimensions())
+  testSplitView:render(0, 0, lg.getDimensions())
 
   for _, w in ipairs(windows.list) do
     ---@cast w Window
