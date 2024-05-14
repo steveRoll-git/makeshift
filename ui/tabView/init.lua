@@ -20,6 +20,7 @@ end
 
 ---Adds a new tab.
 ---@param tabModel TabModel
+---@return Tab
 function tabView:addTab(tabModel)
   local newTab = tab()
   newTab.text = tabModel.text
@@ -32,6 +33,7 @@ function tabView:addTab(tabModel)
   table.insert(self.tabs, newTab)
   self:layoutTabs()
   self:setActiveTab(newTab)
+  return newTab
 end
 
 ---Set the tabs shown by this TabContainer.

@@ -57,9 +57,32 @@ function tab:undockIntoWindow()
   newWindow.dragX = self.dragStartX
   newWindow.dragY = self.dragStartY
   newWindow.closable = self.closable
+  newWindow.dockable = true
   AddWindow(newWindow)
   self:getScene():setPressedElement(newWindow, 1)
   self:parentTabView():removeTab(self)
+end
+
+function tab:updateDragX()
+  local mx = self:getAbsoluteMouse()
+  self.dragX = mx - self.dragStartX
+end
+
+function tab:dragReorder()
+  local tabView = self:parentTabView()
+  local x, _, w, _ = self:getView()
+  for i, otherTab in ipairs(tabView.tabs) do
+    if otherTab ~= self then
+      local x2, _, w2, _ = otherTab:getView()
+      local mid2 = x2 + w2 / 2
+      if
+          (otherTab.index > self.index and x + w >= mid2 and x + w < x2 + w2) or
+          (otherTab.index < self.index and x >= x2 and x < mid2) then
+        tabView:setTabIndex(self, i)
+        break
+      end
+    end
+  end
 end
 
 function tab:mousePressed(btn)
@@ -67,8 +90,7 @@ function tab:mousePressed(btn)
     self:parentTabView():setActiveTab(self)
     if self.draggable then
       self.dragStartX, self.dragStartY = self:getRelativeMouse()
-      local mx = self:getAbsoluteMouse()
-      self.dragX = mx - self.dragStartX
+      self:updateDragX()
       self.isDragging = true
     end
   end
@@ -82,27 +104,13 @@ end
 
 function tab:mouseMoved(_, _)
   if self.isDragging then
-    local mx, _ = self:getAbsoluteMouse()
     local tabView = self:getParent() --[[@as TabView]]
     if not tabView:isMouseOverTabBar() and self.dockable then
       self:undockIntoWindow()
       return
     end
-    self.dragX = mx - self.dragStartX
-    local x, _, w, _ = self:getView()
-    -- Code for switching the order of tabs when dragging them
-    for i, otherTab in ipairs(tabView.tabs) do
-      if otherTab ~= self then
-        local x2, _, w2, _ = otherTab:getView()
-        local mid2 = x2 + w2 / 2
-        if
-            (otherTab.index > self.index and x + w >= mid2 and x + w < x2 + w2) or
-            (otherTab.index < self.index and x >= x2 and x < mid2) then
-          tabView:setTabIndex(self, i)
-          break
-        end
-      end
-    end
+    self:updateDragX()
+    self:dragReorder()
   end
 end
 

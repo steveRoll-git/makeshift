@@ -50,6 +50,7 @@ end
 ---@field width number
 ---@field height number
 ---@field closable boolean
+---@field dockable boolean
 ---@operator call:Window
 local window = zap.elementClass()
 
@@ -86,6 +87,25 @@ function window:clampSize()
   self.height = math.max(self.height, 200)
 end
 
+---Removes this window and creates a new tab with its contents.
+---@param tabView TabView
+function window:dockIntoTab(tabView)
+  local newTab = tabView:addTab({
+    text = self.title,
+    icon = self.icon,
+    content = self.content,
+    closable = self.closable,
+    dockable = true,
+  })
+  newTab.isDragging = true
+  newTab.dragStartX = math.min(self.dragX, self.icon:getWidth() + self.titleFont:getWidth(self.title))
+  newTab.dragStartY = self.dragY
+  newTab:setScene(self:getScene())
+  newTab:updateDragX()
+  self:getScene():setPressedElement(newTab, 1)
+  RemoveWindow(self)
+end
+
 function window:mousePressed(btn)
   if btn == 1 then
     self.dragging = true
@@ -104,6 +124,14 @@ function window:mouseMoved(x, y, dx, dy)
     local mx, my = self:getAbsoluteMouse()
     self.x = mx - self.dragX
     self.y = my - self.dragY
+    if self.dockable then
+      for _, tabView in ipairs(GetAllDockableTabViews()) do
+        if tabView:isMouseOverTabBar() then
+          self:dockIntoTab(tabView)
+          return
+        end
+      end
+    end
     self:clampPosition()
   end
 end

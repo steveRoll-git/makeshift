@@ -93,12 +93,18 @@ function AddWindow(w)
   windows:add(w)
 end
 
+---Removes a window without calling its onClose callback.
+---@param w Window
+function RemoveWindow(w)
+  windows:remove(w)
+end
+
 ---@param w Window
 function CloseWindow(w)
   if w.content.class.onClose then
     w.content.class.onClose(w.content)
   end
-  windows:remove(w)
+  RemoveWindow(w)
 end
 
 local libraryPanel = treeView()
@@ -158,6 +164,12 @@ function OpenResourceTab(r)
       dockable = true,
     })
   end
+end
+
+---Returns all the dockable tabviews currently on screen.
+---@return TabView[]
+function GetAllDockableTabViews()
+  return { mainTabView }
 end
 
 ---Returns the element that currently has keyboard focus.
