@@ -67,19 +67,21 @@ function splitView:render(x, y, w, h)
 
   assert(horizontal or vertical, "no orientation set for this splitter!")
 
-  self.side1:render(
-    x,
-    y,
-    horizontal and w or self.splitDistance,
-    vertical and h or self.splitDistance
-  )
+  local x1 = x
+  local y1 = y
+  local w1 = horizontal and w or self.splitDistance
+  local h1 = vertical and h or self.splitDistance
+  PushScissor(x1, y1, w1, h1)
+  self.side1:render(x1, y1, w1, h1)
+  PopScissor()
 
-  self.side2:render(
-    horizontal and x or x + self.splitDistance,
-    vertical and y or y + self.splitDistance,
-    horizontal and w or w - self.splitDistance,
-    vertical and h or h - self.splitDistance
-  )
+  local x2 = horizontal and x or x + self.splitDistance
+  local y2 = vertical and y or y + self.splitDistance
+  local w2 = horizontal and w or w - self.splitDistance
+  local h2 = vertical and h or h - self.splitDistance
+  PushScissor(x2, y2, w2, h2)
+  self.side2:render(x2, y2, w2, h2)
+  PopScissor()
 
   self.splitter:render(
     horizontal and x or x + self.splitDistance - splitterWidth / 2,
