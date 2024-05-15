@@ -201,13 +201,13 @@ function GetAllDockableTabViews()
 end
 
 ---Returns the element that currently has keyboard focus.
----@return Zap.Element
+---@return Zap.Element?
 local function getFocusedElement()
   if popups:getCount() > 0 then
     return popups:last()
   elseif focusedWindow then
     return focusedWindow
-  else
+  elseif mainTabView.activeTab then
     return mainTabView.activeTab.content
   end
 end
@@ -284,21 +284,21 @@ end
 
 function love.keypressed(key)
   local focused = getFocusedElement()
-  if focused.class.keyPressed then
+  if focused and focused.class.keyPressed then
     focused.class.keyPressed(focused, key)
   end
 end
 
 function love.keyreleased(key)
   local focused = getFocusedElement()
-  if focused.class.keyReleased then
+  if focused and focused.class.keyReleased then
     focused.class.keyReleased(focused, key)
   end
 end
 
 function love.textinput(text)
   local focused = getFocusedElement()
-  if focused.class.textInput then
+  if focused and focused.class.textInput then
     focused.class.textInput(focused, text)
   end
 end
