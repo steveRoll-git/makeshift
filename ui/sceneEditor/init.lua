@@ -248,6 +248,11 @@ function sceneView:getCursor()
   end
 end
 
+function sceneView:resized(w, h, prevW, prevH)
+  self.panX = self.panX + (prevW - w) / 2 / self.zoom
+  self.panY = self.panY + (prevH - h) / 2 / self.zoom
+end
+
 function sceneView:render(x, y, w, h)
   PushScissor(x, y, w, h)
   lg.push()
