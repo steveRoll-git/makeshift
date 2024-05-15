@@ -12,6 +12,7 @@ local colorPicker = require "ui.colorPicker"
 local sign = require "util.sign"
 local topToolbar = require "ui.toolbar"
 local zoomSlider = require "ui.zoomSlider"
+local clamp = require "util.clamp"
 
 local initialImageSize = 128
 
@@ -404,6 +405,19 @@ function spriteEditor:openColorPicker()
     pickerHeight)
 end
 
+function spriteEditor:clampPan()
+  local margin = self.zoom * 4
+  local _, _, w, h = self:getView()
+  self.panX = clamp(
+    self.panX,
+    -self:currentImageData():getWidth() * self.zoom + margin,
+    w - margin)
+  self.panY = clamp(
+    self.panY,
+    -self:currentImageData():getHeight() * self.zoom + margin,
+    h - margin)
+end
+
 function spriteEditor:mousePressed(button)
   if button == 1 then
     local ix, iy = self:mouseImageCoords()
@@ -446,6 +460,7 @@ function spriteEditor:mouseMoved(x, y)
   elseif self.panning then
     self.panX = x + self.panStart.x
     self.panY = y + self.panStart.y
+    self:clampPan()
   end
 end
 
@@ -486,10 +501,17 @@ function spriteEditor:wheelMoved(x, y)
 
       self.panX = -(self:currentImageData():getWidth() * self.zoom * placeX) + mx
       self.panY = -(self:currentImageData():getHeight() * self.zoom * placeY) + my
+      self:clampPan()
 
       self:updateTransparencyQuad()
     end
   end
+end
+
+function spriteEditor:resized(w, h, prevW, prevH)
+  self.panX = self.panX - (prevW - w) / 2
+  self.panY = self.panY - (prevH - h) / 2
+  self:clampPan()
 end
 
 function spriteEditor:render(x, y, w, h)
