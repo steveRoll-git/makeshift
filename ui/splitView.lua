@@ -61,6 +61,10 @@ function splitView:clampSplitDistance()
     (self.orientation == "horizontal" and h or w) - minimumSplitSize)
 end
 
+function splitView:resized(w, h, prevW, prevH)
+  self:clampSplitDistance()
+end
+
 function splitView:render(x, y, w, h)
   local horizontal = self.orientation == "horizontal"
   local vertical = self.orientation == "vertical"
