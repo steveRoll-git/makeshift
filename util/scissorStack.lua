@@ -19,6 +19,18 @@ local function rectangleIntersection(x1, y1, w1, h1, x2, y2, w2, h2)
   return x, y, x6 - x, y6 - y
 end
 
+---Only sets the scissor if `w` and `h` are greater than zero.
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+local function trySetScissor(x, y, w, h)
+  if w <= 0 or h <= 0 then
+    return
+  end
+  lg.setScissor(x, y, w, h)
+end
+
 ---@type number[]
 local scissorStack = {}
 
@@ -39,7 +51,7 @@ function PushScissor(x, y, w, h)
   table.insert(scissorStack, y)
   table.insert(scissorStack, w)
   table.insert(scissorStack, h)
-  lg.setScissor(x, y, w, h)
+  trySetScissor(x, y, w, h)
 end
 
 function PopScissor()
@@ -54,7 +66,7 @@ function PopScissor()
   local lastH = scissorStack[#scissorStack]
 
   if lastX then
-    lg.setScissor(lastX, lastY, lastW, lastH)
+    trySetScissor(lastX, lastY, lastW, lastH)
   else
     lg.setScissor()
   end
