@@ -7,6 +7,8 @@ local images = require "images"
 local hexToColor = require "util.hexToColor"
 local clamp = require "util.clamp"
 local viewTools = require "util.viewTools"
+local pushScissor = require "util.scissorStack".pushScissor
+local popScissor = require "util.scissorStack".popScissor
 
 local resizeHandleSize = 10
 
@@ -191,9 +193,9 @@ function window:render(x, y, w, h)
   lg.setColor(hexToColor(0x181818))
   lg.rectangle("fill", x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
 
-  PushScissor(x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
+  pushScissor(x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
   self.content:render(x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
-  PopScissor()
+  popScissor()
 
   lg.setColor(hexToColor(0x2b2b2b))
   lg.setLineStyle("rough")

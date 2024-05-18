@@ -7,6 +7,8 @@ local textEditor = require "ui.textEditor"
 local fonts = require "fonts"
 local scrollbar = require "ui.scrollbar"
 local clamp = require "util.clamp"
+local pushScissor = require "util.scissorStack".pushScissor
+local popScissor = require "util.scissorStack".popScissor
 
 local font = fonts("SourceCodePro-Regular.ttf", 16)
 
@@ -58,7 +60,7 @@ function codeEditor:wheelMoved(x, y)
 end
 
 function codeEditor:render(x, y, w, h)
-  PushScissor(x, y, w, h)
+  pushScissor(x, y, w, h)
 
   self.textEditor:render(x + self.leftColumnWidth, y, w - self.leftColumnWidth - self.scrollbarY:desiredWidth(), h)
 
@@ -77,7 +79,7 @@ function codeEditor:render(x, y, w, h)
     self.scrollbarY:render(x + w - self.scrollbarY:desiredWidth(), y, self.scrollbarY:desiredWidth(), h)
   end
 
-  PopScissor()
+  popScissor()
 end
 
 return codeEditor

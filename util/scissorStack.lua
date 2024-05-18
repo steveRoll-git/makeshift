@@ -39,7 +39,7 @@ local scissorStack = {}
 ---@param y number
 ---@param w number
 ---@param h number
-function PushScissor(x, y, w, h)
+local function pushScissor(x, y, w, h)
   local lastX = scissorStack[#scissorStack - 3]
   local lastY = scissorStack[#scissorStack - 2]
   local lastW = scissorStack[#scissorStack - 1]
@@ -54,7 +54,7 @@ function PushScissor(x, y, w, h)
   trySetScissor(x, y, w, h)
 end
 
-function PopScissor()
+local function popScissor()
   assert(#scissorStack > 0, "attempt to pop a scissor when none were pushed")
   for _ = 1, 4 do
     table.remove(scissorStack)
@@ -71,3 +71,8 @@ function PopScissor()
     lg.setScissor()
   end
 end
+
+return {
+  pushScissor = pushScissor,
+  popScissor = popScissor
+}

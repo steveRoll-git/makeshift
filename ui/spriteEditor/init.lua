@@ -13,6 +13,8 @@ local sign = require "util.sign"
 local topToolbar = require "ui.toolbar"
 local zoomSlider = require "ui.zoomSlider"
 local clamp = require "util.clamp"
+local pushScissor = require "util.scissorStack".pushScissor
+local popScissor = require "util.scissorStack".popScissor
 
 local initialImageSize = 128
 
@@ -523,7 +525,7 @@ function spriteEditor:render(x, y, w, h)
     h = h - self.topToolbar:desiredHeight()
   end
 
-  PushScissor(x, y, w, h)
+  pushScissor(x, y, w, h)
   lg.push()
   lg.translate(x, y)
 
@@ -575,7 +577,7 @@ function spriteEditor:render(x, y, w, h)
   local sliderW, sliderH = self.zoomSlider:desiredWidth() + 6, self.zoomSlider:desiredHeight() + 3
   self.zoomSlider:render(x + w - sliderW, y + h - sliderH, sliderW, sliderH)
 
-  PopScissor()
+  popScissor()
 end
 
 return spriteEditor

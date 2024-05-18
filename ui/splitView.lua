@@ -5,6 +5,8 @@ local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local tabView = require "ui.tabView"
 local clamp = require "util.clamp"
+local pushScissor = require "util.scissorStack".pushScissor
+local popScissor = require "util.scissorStack".popScissor
 
 local splitterWidth = 6
 
@@ -75,17 +77,17 @@ function splitView:render(x, y, w, h)
   local y1 = y
   local w1 = horizontal and w or self.splitDistance
   local h1 = vertical and h or self.splitDistance
-  PushScissor(x1, y1, w1, h1)
+  pushScissor(x1, y1, w1, h1)
   self.side1:render(x1, y1, w1, h1)
-  PopScissor()
+  popScissor()
 
   local x2 = horizontal and x or x + self.splitDistance
   local y2 = vertical and y or y + self.splitDistance
   local w2 = horizontal and w or w - self.splitDistance
   local h2 = vertical and h or h - self.splitDistance
-  PushScissor(x2, y2, w2, h2)
+  pushScissor(x2, y2, w2, h2)
   self.side2:render(x2, y2, w2, h2)
-  PopScissor()
+  popScissor()
 
   self.splitter:render(
     horizontal and x or x + self.splitDistance - splitterWidth / 2,

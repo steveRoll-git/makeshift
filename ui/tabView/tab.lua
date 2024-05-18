@@ -6,6 +6,8 @@ local hexToColor = require "util.hexToColor"
 local button = require "ui.button"
 local images = require "images"
 local window = require "ui.window"
+local pushScissor = require "util.scissorStack".pushScissor
+local popScissor = require "util.scissorStack".popScissor
 
 local textMargin = 8
 local iconTextMargin = 6
@@ -129,7 +131,7 @@ end
 function tab:render(x, y, w, h)
   local cornerRadius = 6
 
-  PushScissor(x - 1, y, w + 2, h)
+  pushScissor(x - 1, y, w + 2, h)
   if self.active or self:isHovered() then
     lg.setColor(hexToColor(0x1f1f1f))
   else
@@ -144,7 +146,7 @@ function tab:render(x, y, w, h)
     lg.rectangle("line", x, y + 2, w, h + cornerRadius, cornerRadius)
   end
 
-  PopScissor()
+  popScissor()
 
   local textX = x + textMargin
   local textY = y + h / 2 - self.font:getHeight() / 2

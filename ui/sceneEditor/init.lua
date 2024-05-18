@@ -11,6 +11,8 @@ local zoomSlider = require "ui.zoomSlider"
 local propertiesPanel = require "ui.sceneEditor.propertiesPanel"
 local codeEditor = require "ui.codeEditor"
 local popupMenu = require "ui.popupMenu"
+local pushScissor = require "util.scissorStack".pushScissor
+local popScissor = require "util.scissorStack".popScissor
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -254,7 +256,7 @@ function sceneView:resized(w, h, prevW, prevH)
 end
 
 function sceneView:render(x, y, w, h)
-  PushScissor(x, y, w, h)
+  pushScissor(x, y, w, h)
   lg.push()
   lg.translate(x, y)
   self:updateViewTransform()
@@ -308,7 +310,7 @@ function sceneView:render(x, y, w, h)
   end
 
   lg.pop()
-  PopScissor()
+  popScissor()
 end
 
 ---@class SceneEditor: Zap.ElementClass
