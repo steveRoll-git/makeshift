@@ -11,6 +11,7 @@ local projectFileExtension = ".makeshift"
 local binaryTagTypes = {
   scene = 1,
   objectData = 2,
+  script = 3,
 }
 ---@type table<number, ResourceType>
 local binaryTagLookup = {}
@@ -104,6 +105,11 @@ local function saveProject()
 
   ---@param r Resource
   local function writeResource(r)
+    -- Write the resource's id, name and type.
+    f:write(r.id)
+    writeString(r.name or "")
+    f:write(string.char(binaryTagTypes[r.type]))
+    
     if r.type == "scene" then
       ---@cast r Scene
       writeNumber(#r.objects)
@@ -152,21 +158,18 @@ local function saveProject()
   writeNumber(totalResources)
 
   for _, r in pairs(currentProject.resources) do
-    f:write(r.id)
-    writeString(r.name)
-    f:write(string.char(binaryTagTypes[r.type]))
     writeResource(r)
   end
 
   f:close()
 end
 
-local function loadProject(name)
+local function loadProject(projectName)
   ---@type Project
   ---@diagnostic disable-next-line: missing-fields
   local project = {}
 
-  local file = love.filesystem.newFile(projectsDirectory .. name .. projectFileExtension)
+  local file = love.filesystem.newFile(projectsDirectory .. projectName .. projectFileExtension)
   file:open("r")
 
   local function readNumber()
@@ -179,11 +182,22 @@ local function loadProject(name)
     return (file:read(size) --[[@as string]])
   end
 
-  ---@param type ResourceType
-  local function readResource(type)
+  ---@param expectedType? ResourceType
+  local function readResource(expectedType)
+    local id = file:read(UIDLength) --[[@as string]]
+    local name = readString()
+    local type = binaryTagLookup[file:read(1) --[[@as string]]:byte()]
+    if expectedType and type ~= expectedType then
+      error(("Expected a resource of type %q, but got %q"):format(expectedType, type))
+    end
+
+    ---@type Resource
+    local resource = { id = id, name = name, type = type }
+
     if type == "scene" then
-      ---@type Scene
-      local scene = { type = "scene", objects = {} }
+      ---@cast resource Scene
+
+      resource.objects = {}
       local numObjects = readNumber()
       for i = 1, numObjects do
         local x = readNumber()
@@ -197,24 +211,18 @@ local function loadProject(name)
         else
           error()
         end
-        scene.objects[#scene.objects + 1] = {
+        resource.objects[#resource.objects + 1] = {
           x = x,
           y = y,
           data = objectData
         }
       end
-      return scene
     elseif type == "objectData" then
-      local w = readNumber()
-      local h = readNumber()
-      ---@type ObjectData
-      local objectData = {
-        type = "objectData",
-        w = w,
-        h = h,
-        frames = {},
-        script = { type = "script", code = "" }
-      }
+      ---@cast resource ObjectData
+
+      resource.w = readNumber()
+      resource.h = readNumber()
+      resource.frames = {}
 
       local numFrames = readNumber()
       for i = 1, numFrames do
@@ -225,27 +233,26 @@ local function loadProject(name)
           image = love.graphics.newImage(data)
         }
         frame.image:setFilter("linear", "nearest")
-        objectData.frames[#objectData.frames + 1] = frame
+        resource.frames[#resource.frames + 1] = frame
       end
 
       local scriptResourceOrValue = file:read(1)
       if scriptResourceOrValue == resourceBytes.external then
         error("TODO")
       elseif scriptResourceOrValue == resourceBytes.embedded then
-        objectData.script = readResource("script") --[[@as Script]]
+        resource.script = readResource("script") --[[@as Script]]
       else
         error()
       end
-
-      return objectData
     elseif type == "script" then
-      ---@type Script
-      local script = { type = "script", code = "" }
-      script.code = readString()
-      return script
+      ---@cast resource Script
+
+      resource.code = readString()
     else
       error(("can't read this resource type: %q"):format(type))
     end
+
+    return resource
   end
 
   local magic = file:read(#projectFileMagic)
@@ -258,13 +265,8 @@ local function loadProject(name)
 
   local numResources = readNumber()
   for i = 1, numResources do
-    local id = file:read(UIDLength) --[[@as string]]
-    local resourceName = readString()
-    local resType = binaryTagLookup[file:read(1) --[[@as string]]:byte()]
-    local resource = readResource(resType)
-    resource.id = id
-    resource.name = resourceName
-    project.resources[id] = resource
+    local resource = readResource()
+    project.resources[resource.id] = resource
   end
 
   return project
