@@ -237,22 +237,10 @@ local function updateCursor()
   love.mouse.setCursor(cursorToSet)
 end
 
-function love.mousemoved(x, y, dx, dy)
-  uiScene:moveMouse(x, y, dx, dy)
-end
-
-function love.mousepressed(x, y, btn)
-  uiScene:mousePressed(btn)
-  local pressedElement = uiScene:getPressedElement()
-
-  if btn == lastPressButton and
-      love.timer.getTime() - lastPressTime <= doubleClickTime and
-      pressedElement == lastPressedElement and
-      pressedElement.class.mouseDoubleClicked then
-    pressedElement.class.mouseDoubleClicked(pressedElement, btn)
-  end
-
-  if not IsPopupOpen(pressedElement:getRoot()) then
+---Called just before the element's `mousePressed` event in order to close popups if needed
+---@param pressedElement Zap.Element?
+local function beforeMousePress(pressedElement)
+  if not pressedElement or not IsPopupOpen(pressedElement:getRoot()) then
     CloseAllPopups()
   else
     local index = popups:getIndex(pressedElement:getRoot())
@@ -261,6 +249,22 @@ function love.mousepressed(x, y, btn)
         ClosePopup(popups:itemAt(i))
       end
     end
+  end
+end
+
+function love.mousemoved(x, y, dx, dy)
+  uiScene:moveMouse(x, y, dx, dy)
+end
+
+function love.mousepressed(x, y, btn)
+  uiScene:mousePressed(btn, beforeMousePress)
+  local pressedElement = uiScene:getPressedElement()
+
+  if btn == lastPressButton and
+      love.timer.getTime() - lastPressTime <= doubleClickTime and
+      pressedElement == lastPressedElement and
+      pressedElement.class.mouseDoubleClicked then
+    pressedElement.class.mouseDoubleClicked(pressedElement, btn)
   end
 
   if pressedElement:getRoot().class == window then
