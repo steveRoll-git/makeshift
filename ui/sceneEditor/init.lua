@@ -19,6 +19,9 @@ local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 
 ---Opens a code editor for this object.
 ---@param object Object
 local function openCodeEditor(object)
+  if FocusResourceEditor(object.data.script.id) then
+    return
+  end
   AddNewTab({
     text = "Code Editor",
     icon = images["icons/code_24.png"],
@@ -72,6 +75,9 @@ end
 ---Opens an embedded sprite editor.
 ---@param object Object
 function sceneView:openSpriteEditor(object)
+  if FocusResourceEditor(object.data.id) then
+    return
+  end
   self.spriteEditor = spriteEditor(self)
   self.spriteEditor.editingObjectData = object.data
   self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(object.x, object.y)
@@ -312,7 +318,7 @@ function sceneView:render(x, y, w, h)
   popScissor()
 end
 
----@class SceneEditor: Zap.ElementClass
+---@class SceneEditor: ResourceEditor
 ---@operator call:SceneEditor
 local sceneEditor = zap.elementClass()
 
@@ -338,6 +344,10 @@ function sceneEditor:init(scene)
   self.zoomSlider.targetTable = self.sceneView
 
   self.propertiesPanel = propertiesPanel()
+end
+
+function sceneEditor:resourceId()
+  return self.originalScene.id
 end
 
 function sceneEditor:writeToScene()

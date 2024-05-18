@@ -12,7 +12,7 @@ local popScissor = require "util.scissorStack".popScissor
 
 local font = fonts("SourceCodePro-Regular.ttf", 16)
 
----@class CodeEditor: Zap.ElementClass
+---@class CodeEditor: ResourceEditor
 ---@operator call:CodeEditor
 local codeEditor = zap.elementClass()
 
@@ -37,6 +37,10 @@ function codeEditor:init(script)
 
   self.lineNumberColumnWidth = font:getWidth("99999")
   self.leftColumnWidth = self.lineNumberColumnWidth + font:getWidth("  ")
+end
+
+function codeEditor:resourceId()
+  return self.script.id
 end
 
 function codeEditor:write()

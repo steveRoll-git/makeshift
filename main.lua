@@ -45,6 +45,10 @@ local uiScene = zap.createScene()
 ---@field getCursor fun(self: Zap.Element): love.Cursor
 ---@field onClose fun(self: Zap.Element)
 
+---An Element that edits a certain resource.
+---@class ResourceEditor: Zap.ElementClass
+---@field resourceId fun(self: Zap.Element): string
+
 local popups = orderedSet.new()
 ---@type table<Zap.Element, number[]>
 local popupViews = {}
@@ -174,6 +178,9 @@ end
 ---Opens a new tab to edit this resource.
 ---@param r Resource
 function OpenResourceTab(r)
+  if FocusResourceEditor(r.id) then
+    return
+  end
   if r.type == "scene" then
     AddNewTab({
       text = r.name,
@@ -192,6 +199,37 @@ function OpenResourceTab(r)
       dockable = true,
     })
   end
+end
+
+---Returns whether `element` is an editor of the resource with this ID.
+---@param element Zap.Element
+---@param id string
+---@return boolean
+local function isResourceEditor(element, id)
+  local class = element.class --[[@as ResourceEditor]]
+  return class.resourceId and class.resourceId(element) == id
+end
+
+---Searches for a tab or window that is editing the resource with this ID, and focuses it if it's found.
+---@param id string
+---@return boolean found Whether the tab or window that is editing this resource was found and focused.
+function FocusResourceEditor(id)
+  for _, tView in ipairs(GetAllDockableTabViews()) do
+    for _, tab in ipairs(tView.tabs) do
+      if isResourceEditor(tab.content, id) then
+        tView:setActiveTab(tab)
+        return true
+      end
+    end
+  end
+  for _, w in ipairs(windows.list) do
+    ---@cast w Window
+    if isResourceEditor(w.content, id) then
+      SetFocusedWindow(w)
+      return true
+    end
+  end
+  return false
 end
 
 ---Returns all the dockable tabviews currently on screen.

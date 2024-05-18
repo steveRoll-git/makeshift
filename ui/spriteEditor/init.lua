@@ -114,7 +114,7 @@ end
 
 ---@alias ToolType "pencil" | "eraser" | "fill"
 
----@class SpriteEditor: Zap.ElementClass
+---@class SpriteEditor: ResourceEditor
 ---@field editingObjectData ObjectData
 ---@field currentFrameIndex number
 ---@field panX number
@@ -219,6 +219,10 @@ function spriteEditor:init(sceneView)
     lg.draw(self.brushPreview, ix - math.floor(self.toolSize / 2), iy - math.floor(self.toolSize / 2))
     lg.setShader()
   end
+end
+
+function spriteEditor:resourceId()
+  return self.editingObjectData.id
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
