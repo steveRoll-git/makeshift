@@ -162,14 +162,13 @@ function sceneView:mouseReleased(button)
       local w = math.floor(math.abs(mx - self.creationX))
       local h = math.floor(math.abs(my - self.creationY))
 
-      ---@type ObjectData
-      local newData = {
-        type = "objectData",
-        w = w,
-        h = h,
-        frames = {},
-        script = { type = "script", code = "" },
-      }
+      local newData = MakeResource("objectData") --[[@as ObjectData]]
+      newData.w = w
+      newData.h = h
+      newData.frames = {}
+      newData.script = MakeResource("script") --[[@as Script]]
+      newData.script.code = ""
+
       ---@type Object
       local newObject = {
         x = x,

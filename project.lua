@@ -1,4 +1,4 @@
-local guid = require "util.guid"
+local uid = require "util.uid"
 local binConvert = require "util.binConvert"
 local numberToBytes = binConvert.numberToBytes
 local bytesToNumber = binConvert.bytesToNumber
@@ -36,6 +36,16 @@ local projectFileMagic = "makeshiftproject"
 ---@field name string
 ---@field resources table<string, Resource>
 
+---Creates a new resource of the specified type.
+---@param type ResourceType
+---@return Resource
+function MakeResource(type)
+  return {
+    id = uid(),
+    type = type
+  }
+end
+
 ---@type Project
 local currentProject = {
   name = "Untitled Project",
@@ -61,14 +71,9 @@ local function addScene()
     end
   end
 
-  local id = guid()
-  ---@type Scene
-  local newScene = {
-    id = id,
-    name = untitledSceneName .. (lastUntitledNumber > 0 and (" " .. lastUntitledNumber) or ""),
-    type = "scene",
-    objects = {}
-  }
+  local newScene = MakeResource("scene") --[[@as Scene]]
+  newScene.name = untitledSceneName .. (lastUntitledNumber > 0 and (" " .. lastUntitledNumber) or "")
+  newScene.objects = {}
   addResource(newScene)
   return newScene
 end
@@ -128,7 +133,7 @@ local function saveProject()
 
   ---@param resource Resource
   writeEmbeddedOrExternalResource = function(resource)
-    if resource.id then
+    if currentProject.resources[resource.id] then
       f:write(resourceBytes.external)
       f:write(resource.id)
     else
@@ -253,7 +258,7 @@ local function loadProject(name)
 
   local numResources = readNumber()
   for i = 1, numResources do
-    local id = file:read(36) --[[@as string]]
+    local id = file:read(UIDLength) --[[@as string]]
     local resourceName = readString()
     local resType = binaryTagLookup[file:read(1) --[[@as string]]:byte()]
     local resource = readResource(resType)
