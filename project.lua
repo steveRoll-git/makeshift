@@ -35,6 +35,8 @@ local projectFileMagic = "makeshiftproject"
 
 ---@class Project
 ---@field name string
+---@field windowWidth number
+---@field windowHeight number
 ---@field resources table<string, Resource>
 
 ---Creates a new resource of the specified type.
@@ -50,7 +52,9 @@ end
 ---@type Project
 local currentProject = {
   name = "Untitled Project",
-  resources = {}
+  resources = {},
+  windowWidth = 800,
+  windowHeight = 600,
 }
 
 ---Adds a resource to the project.
@@ -152,6 +156,9 @@ local function saveProject()
   --TODO write editor version info here
 
   writeString(currentProject.name)
+
+  writeNumber(currentProject.windowWidth)
+  writeNumber(currentProject.windowHeight)
 
   local totalResources = 0
   for _, _ in pairs(currentProject.resources) do totalResources = totalResources + 1 end
@@ -261,6 +268,8 @@ local function loadProject(projectName)
   end
 
   project.name = readString()
+  project.windowWidth = readNumber()
+  project.windowHeight = readNumber()
   project.resources = {}
 
   local numResources = readNumber()
