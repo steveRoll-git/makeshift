@@ -52,6 +52,7 @@ end
 ---@field width number
 ---@field height number
 ---@field closable boolean
+---@field resizable boolean
 ---@field dockable boolean
 ---@field focused boolean
 ---@operator call:Window
@@ -206,7 +207,9 @@ function window:render(x, y, w, h)
     x + w, y + h,
     x + w, y + self:titleBarHeight())
 
-  self.resizeHandle:render(x + w, y + h, resizeHandleSize, resizeHandleSize)
+  if self.resizable then
+    self.resizeHandle:render(x + w, y + h, resizeHandleSize, resizeHandleSize)
+  end
 end
 
 return window

@@ -59,6 +59,7 @@ function tab:undockIntoWindow()
   newWindow.dragX = self.dragStartX
   newWindow.dragY = self.dragStartY
   newWindow.closable = self.closable
+  newWindow.resizable = true
   newWindow.dockable = true
   AddWindow(newWindow)
   self:getScene():setPressedElement(newWindow, 1)
