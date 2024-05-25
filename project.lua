@@ -187,20 +187,20 @@ local function loadProject(projectName)
   file:open("r")
 
   local function readNumber()
-    local contents = file:read(4) --[[@as string]]
+    local contents = file:read(4)
     return bytesToNumber(contents)
   end
 
   local function readString()
     local size = readNumber()
-    return (file:read(size) --[[@as string]])
+    return file:read(size)
   end
 
   ---@param expectedType? ResourceType
   local function readResource(expectedType)
-    local id = file:read(UIDLength) --[[@as string]]
+    local id = file:read(UIDLength)
     local name = readString()
-    local type = binaryTagLookup[file:read(1) --[[@as string]]:byte()]
+    local type = binaryTagLookup[file:read(1):byte()]
     if expectedType and type ~= expectedType then
       error(("Expected a resource of type %q, but got %q"):format(expectedType, type))
     end
@@ -216,7 +216,7 @@ local function loadProject(projectName)
       for i = 1, numObjects do
         local x = readNumber()
         local y = readNumber()
-        local resourceOrValue = file:read(1) --[[@as string]]
+        local resourceOrValue = file:read(1)
         local objectData
         if resourceOrValue == resourceBytes.external then
           error("TODO")
