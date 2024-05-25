@@ -82,6 +82,9 @@ function sceneView:openSpriteEditor(object)
   self.spriteEditor.editingObjectData = object.data
   self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(object.x, object.y)
   self.spriteEditor.zoom = self.zoom
+  if #object.data.frames > 0 then
+    self.spriteEditor:updateTransparencyQuad()
+  end
 end
 
 function sceneView:exitSpriteEditor()
@@ -210,7 +213,6 @@ end
 function sceneView:mouseDoubleClicked(button)
   if button == 1 and self.selectedObject then
     self:openSpriteEditor(self.selectedObject)
-    self.spriteEditor:updateTransparencyQuad()
     self.draggingObject = nil
   end
 end
