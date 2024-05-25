@@ -33,13 +33,6 @@ local projectFileMagic = "makeshiftproject"
 ---@field name string
 ---@field type ResourceType
 
----@class Project
----@field name string
----@field windowWidth number
----@field windowHeight number
----@field initialSceneId string
----@field resources table<string, Resource>
-
 ---Creates a new resource of the specified type.
 ---@param type ResourceType
 ---@return Resource
@@ -50,26 +43,30 @@ function MakeResource(type)
   }
 end
 
----@type Project
-local currentProject = {
-  name = "Untitled Project",
-  resources = {},
-  windowWidth = 800,
-  windowHeight = 600,
-  initialSceneId = "",
-}
+---@class Project
+---@field name string
+---@field windowWidth number
+---@field windowHeight number
+---@field initialSceneId string
+---@field resources table<string, Resource>
+local project = {}
+project.__index = project
+
+function project.new(init)
+  return setmetatable(init or {}, project)
+end
 
 ---Adds a resource to the project.
 ---@param resource Resource
-local function addResource(resource)
-  currentProject.resources[resource.id] = resource
+function project:addResource(resource)
+  self.resources[resource.id] = resource
 end
 
----Adds a new scene to the project.
-local function addScene()
+---Adds a new scene to the project and returns it.
+function project:addScene()
   -- If there are already scenes named "Untitled Scene", append an incrementing number to the name.
   local lastUntitledNumber = 0
-  for _, s in pairs(currentProject.resources) do
+  for _, s in pairs(self.resources) do
     local number = s.name:match(untitledSceneName .. " ?(%d*)")
     if #number > 0 then
       lastUntitledNumber = math.max(lastUntitledNumber, tonumber(number) + 1)
@@ -81,23 +78,19 @@ local function addScene()
   local newScene = MakeResource("scene") --[[@as Scene]]
   newScene.name = untitledSceneName .. (lastUntitledNumber > 0 and (" " .. lastUntitledNumber) or "")
   newScene.objects = {}
-  addResource(newScene)
+  self:addResource(newScene)
 
-  if not currentProject.initialSceneId or #currentProject.initialSceneId == 0 then
-    currentProject.initialSceneId = newScene.id
+  if not self.initialSceneId or #self.initialSceneId == 0 then
+    self.initialSceneId = newScene.id
   end
 
   return newScene
 end
 
-local function getResources()
-  return currentProject.resources
-end
-
-local function saveProject()
+function project:saveToFile()
   love.filesystem.createDirectory(projectsDirectory)
 
-  local f = love.filesystem.newFile(projectsDirectory .. currentProject.name .. projectFileExtension)
+  local f = love.filesystem.newFile(projectsDirectory .. self.name .. projectFileExtension)
   f:open("w")
 
   ---Writes the string's length, then the string itself.
@@ -150,7 +143,7 @@ local function saveProject()
 
   ---@param resource Resource
   writeEmbeddedOrExternalResource = function(resource)
-    if currentProject.resources[resource.id] then
+    if self.resources[resource.id] then
       f:write(resourceBytes.external)
       f:write(resource.id)
     else
@@ -162,27 +155,23 @@ local function saveProject()
   f:write(projectFileMagic)
   --TODO write editor version info here
 
-  writeString(currentProject.name)
-  writeNumber(currentProject.windowWidth)
-  writeNumber(currentProject.windowHeight)
-  writeString(currentProject.initialSceneId)
+  writeString(self.name)
+  writeNumber(self.windowWidth)
+  writeNumber(self.windowHeight)
+  writeString(self.initialSceneId)
 
   local totalResources = 0
-  for _, _ in pairs(currentProject.resources) do totalResources = totalResources + 1 end
+  for _, _ in pairs(self.resources) do totalResources = totalResources + 1 end
   writeNumber(totalResources)
 
-  for _, r in pairs(currentProject.resources) do
+  for _, r in pairs(self.resources) do
     writeResource(r)
   end
 
   f:close()
 end
 
-local function loadProject(projectName)
-  ---@type Project
-  ---@diagnostic disable-next-line: missing-fields
-  local project = {}
-
+function project:loadFromFile(projectName)
   local file = love.filesystem.newFile(projectsDirectory .. projectName .. projectFileExtension)
   file:open("r")
 
@@ -274,31 +263,32 @@ local function loadProject(projectName)
     error()
   end
 
-  project.name = readString()
-  project.windowWidth = readNumber()
-  project.windowHeight = readNumber()
-  project.initialSceneId = readString()
-  project.resources = {}
+  self.name = readString()
+  self.windowWidth = readNumber()
+  self.windowHeight = readNumber()
+  self.initialSceneId = readString()
+  self.resources = {}
 
   local numResources = readNumber()
   for i = 1, numResources do
     local resource = readResource()
-    project.resources[resource.id] = resource
+    self.resources[resource.id] = resource
   end
 
-  return project
+  return self
 end
 
 if love.filesystem.getInfo(projectsDirectory .. "Untitled Project" .. projectFileExtension) then
-  currentProject = loadProject("Untitled Project")
+  project.currentProject = project.new():loadFromFile("Untitled Project")
 else
-  addScene()
+  project.currentProject = project.new {
+    name = "Untitled Project",
+    resources = {},
+    windowWidth = 800,
+    windowHeight = 600,
+    initialSceneId = "",
+  }
+  project.currentProject:addScene()
 end
 
-return {
-  currentProject = currentProject,
-  addScene = addScene,
-  getResources = getResources,
-  saveProject = saveProject,
-  loadProject = loadProject,
-}
+return project

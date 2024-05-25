@@ -136,7 +136,7 @@ local libraryPanel = treeView()
 local function resourceItemModels()
   ---@type TreeItemModel[]
   local items = {}
-  for _, resource in pairs(project.getResources()) do
+  for _, resource in pairs(project.currentProject.resources) do
     table.insert(items, {
       text = resource.name,
       icon = resource.type == "scene" and images["icons/scene_24.png"],
@@ -406,7 +406,7 @@ end
 
 function love.quit()
   saveAllOpenResourceEditors()
-  project.saveProject()
+  project.currentProject:saveToFile()
 end
 
 function love.resize()
