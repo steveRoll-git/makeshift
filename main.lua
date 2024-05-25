@@ -274,7 +274,7 @@ local function runPlaytest()
   playtestWindow.icon = images["icons/play_24.png"]
   playtestWindow:setContentSize(
     project.currentProject.windowWidth,
-    project.currentProject.windowHeight + playtestWindow:titleBarHeight()
+    project.currentProject.windowHeight
   )
   playtestWindow.x = math.floor(lg.getWidth() / 2 - playtestWindow.width / 2)
   playtestWindow.y = math.floor(lg.getHeight() / 2 - playtestWindow.height / 2)

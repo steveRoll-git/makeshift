@@ -86,7 +86,7 @@ end
 ---@param height number
 function window:setContentSize(width, height)
   self.width = width
-  self.height = height - self:titleBarHeight()
+  self.height = height + self:titleBarHeight()
 end
 
 function window:clampPosition()
