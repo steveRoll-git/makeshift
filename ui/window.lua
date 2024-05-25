@@ -81,6 +81,14 @@ function window:titleBarHeight()
   return self.titleFont:getHeight() + 16
 end
 
+---Sets the size of the window so that the size of the content will match the provided width and height.
+---@param width number
+---@param height number
+function window:setContentSize(width, height)
+  self.width = width
+  self.height = height - self:titleBarHeight()
+end
+
 function window:clampPosition()
   self.x = clamp(self.x, -self.width / 2, lg.getWidth() - self.width / 2)
   self.y = clamp(self.y, 0, lg.getHeight() - self.height / 2)

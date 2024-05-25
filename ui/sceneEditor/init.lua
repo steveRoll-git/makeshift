@@ -357,7 +357,7 @@ function sceneEditor:writeToScene()
   end
 end
 
-function sceneEditor:onClose()
+function sceneEditor:saveResource()
   self:writeToScene()
 end
 

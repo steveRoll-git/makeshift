@@ -37,6 +37,7 @@ local projectFileMagic = "makeshiftproject"
 ---@field name string
 ---@field windowWidth number
 ---@field windowHeight number
+---@field initialSceneId string
 ---@field resources table<string, Resource>
 
 ---Creates a new resource of the specified type.
@@ -55,6 +56,7 @@ local currentProject = {
   resources = {},
   windowWidth = 800,
   windowHeight = 600,
+  initialSceneId = "",
 }
 
 ---Adds a resource to the project.
@@ -80,6 +82,11 @@ local function addScene()
   newScene.name = untitledSceneName .. (lastUntitledNumber > 0 and (" " .. lastUntitledNumber) or "")
   newScene.objects = {}
   addResource(newScene)
+
+  if not currentProject.initialSceneId or #currentProject.initialSceneId == 0 then
+    currentProject.initialSceneId = newScene.id
+  end
+
   return newScene
 end
 
@@ -113,7 +120,7 @@ local function saveProject()
     f:write(r.id)
     writeString(r.name or "")
     f:write(string.char(binaryTagTypes[r.type]))
-    
+
     if r.type == "scene" then
       ---@cast r Scene
       writeNumber(#r.objects)
@@ -156,9 +163,9 @@ local function saveProject()
   --TODO write editor version info here
 
   writeString(currentProject.name)
-
   writeNumber(currentProject.windowWidth)
   writeNumber(currentProject.windowHeight)
+  writeString(currentProject.initialSceneId)
 
   local totalResources = 0
   for _, _ in pairs(currentProject.resources) do totalResources = totalResources + 1 end
@@ -270,6 +277,7 @@ local function loadProject(projectName)
   project.name = readString()
   project.windowWidth = readNumber()
   project.windowHeight = readNumber()
+  project.initialSceneId = readString()
   project.resources = {}
 
   local numResources = readNumber()
@@ -288,6 +296,7 @@ else
 end
 
 return {
+  currentProject = currentProject,
   addScene = addScene,
   getResources = getResources,
   saveProject = saveProject,

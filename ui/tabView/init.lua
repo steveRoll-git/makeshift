@@ -76,7 +76,7 @@ function tabView:setActiveTab(tab)
   self.activeTab.active = true
 end
 
----Removes this tab without calling the `onClose` callback.
+---Removes this tab without calling the `saveResource` callback.
 ---@param tab Tab
 function tabView:removeTab(tab)
   table.remove(self.tabs, tab.index)
@@ -94,8 +94,8 @@ end
 ---@param tab Tab
 function tabView:closeTab(tab)
   self:removeTab(tab)
-  if tab.content.class.onClose then
-    tab.content.class.onClose(tab.content)
+  if tab.content.class.saveResource then
+    tab.content.class.saveResource(tab.content)
   end
 end
 

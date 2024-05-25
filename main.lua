@@ -23,7 +23,6 @@ local treeView = require "ui.treeView"
 local sceneEditor = require "ui.sceneEditor"
 local tabView = require "ui.tabView"
 local spriteEditor = require "ui.spriteEditor"
-local textEditor = require "ui.textEditor"
 local fonts = require "fonts"
 local hexToColor = require "util.hexToColor"
 local project = require "project"
@@ -31,6 +30,7 @@ local images = require "images"
 local orderedSet = require "util.orderedSet"
 local window = require "ui.window"
 local splitView = require "ui.splitView"
+local playtest = require "ui.playtest"
 
 require "util.scissorStack"
 
@@ -43,7 +43,7 @@ local uiScene = zap.createScene()
 ---@field popupClosed fun(self: Zap.Element)
 ---@field textInput fun(self: Zap.Element, text: string)
 ---@field getCursor fun(self: Zap.Element): love.Cursor
----@field onClose fun(self: Zap.Element)
+---@field saveResource fun(self: Zap.Element)
 
 ---An Element that edits a certain resource.
 ---@class ResourceEditor: Zap.ElementClass
@@ -117,7 +117,7 @@ function AddWindow(w)
   SetFocusedWindow(w)
 end
 
----Removes a window without calling its onClose callback.
+---Removes a window without calling its `saveResource` callback.
 ---@param w Window
 function RemoveWindow(w)
   windows:remove(w)
@@ -125,8 +125,8 @@ end
 
 ---@param w Window
 function CloseWindow(w)
-  if w.content.class.onClose then
-    w.content.class.onClose(w.content)
+  if w.content.class.saveResource then
+    w.content.class.saveResource(w.content)
   end
   RemoveWindow(w)
 end
@@ -250,6 +250,40 @@ local function getFocusedElement()
   end
 end
 
+---Calls the `saveResource` method for all currently open editors.
+local function saveAllOpenResourceEditors()
+  for _, t in ipairs(mainTabView.tabs) do
+    if t.content.class.saveResource then
+      t.content.class.saveResource(t.content)
+    end
+  end
+  for _, w in ipairs(windows.list) do
+    ---@cast w Window
+    if w.content.class.saveResource then
+      w.content.class.saveResource(w.content)
+    end
+  end
+end
+
+local function runPlaytest()
+  saveAllOpenResourceEditors()
+
+  local playtestWindow = window()
+  playtestWindow.titleFont = fonts("Inter-Regular.ttf", 14)
+  playtestWindow.title = "Playtest"
+  playtestWindow.icon = images["icons/play_24.png"]
+  playtestWindow:setContentSize(
+    project.currentProject.windowWidth,
+    project.currentProject.windowHeight + playtestWindow:titleBarHeight()
+  )
+  playtestWindow.x = math.floor(lg.getWidth() / 2 - playtestWindow.width / 2)
+  playtestWindow.y = math.floor(lg.getHeight() / 2 - playtestWindow.height / 2)
+  playtestWindow.closable = true
+  playtestWindow.content = playtest(project.currentProject.resources[project.currentProject.initialSceneId])
+
+  AddWindow(playtestWindow)
+end
+
 local lastPressTime
 local lastPressButton
 local lastPressedElement
@@ -325,9 +359,13 @@ function love.wheelmoved(x, y)
 end
 
 function love.keypressed(key)
-  local focused = getFocusedElement()
-  if focused and focused.class.keyPressed then
-    focused.class.keyPressed(focused, key)
+  if key == "f5" then
+    runPlaytest()
+  else
+    local focused = getFocusedElement()
+    if focused and focused.class.keyPressed then
+      focused.class.keyPressed(focused, key)
+    end
   end
 end
 
@@ -367,17 +405,7 @@ function love.draw()
 end
 
 function love.quit()
-  for _, t in ipairs(mainTabView.tabs) do
-    if t.content.class.onClose then
-      t.content.class.onClose(t.content)
-    end
-  end
-  for _, w in ipairs(windows.list) do
-    ---@cast w Window
-    if w.content.class.onClose then
-      w.content.class.onClose(w.content)
-    end
-  end
+  saveAllOpenResourceEditors()
   project.saveProject()
 end
 

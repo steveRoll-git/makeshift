@@ -47,7 +47,7 @@ function codeEditor:write()
   self.script.code = self.textEditor:getString()
 end
 
-function codeEditor:onClose()
+function codeEditor:saveResource()
   self:write()
 end
 
