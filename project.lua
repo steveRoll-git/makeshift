@@ -230,7 +230,7 @@ function project:loadFromFile(projectName)
       local numFrames = readNumber()
       for i = 1, numFrames do
         local size = readNumber()
-        local data = love.image.newImageData(love.filesystem.newFileData(file:read(size)))
+        local data = love.image.newImageData(file:read("data", size))
         local frame = {
           imageData = data,
           image = love.graphics.newImage(data)
