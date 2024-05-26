@@ -5,6 +5,7 @@ local lg = love.graphics
 
 ---@class Script: Resource
 ---@field code string
+---@field compiledCode {code: string, func: function, sourceMap: table}?
 
 ---@class ObjectData: Resource
 ---@field w number

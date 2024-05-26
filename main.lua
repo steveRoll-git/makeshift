@@ -268,6 +268,8 @@ end
 local function runPlaytest()
   saveAllOpenResourceEditors()
 
+  project.currentProject:compileScripts()
+
   local playtestWindow = window()
   playtestWindow.titleFont = fonts("Inter-Regular.ttf", 14)
   playtestWindow.title = "Playtest"

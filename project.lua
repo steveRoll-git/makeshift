@@ -1,5 +1,7 @@
 local uid = require "util.uid"
 local binConvert = require "util.binConvert"
+local parser = require "lang.parser"
+local outputLua = require "lang.outputLua"
 local numberToBytes = binConvert.numberToBytes
 local bytesToNumber = binConvert.bytesToNumber
 
@@ -85,6 +87,35 @@ function project:addScene()
   end
 
   return newScene
+end
+
+---For every object in all scenes, compile its script and store it.
+function project:compileScripts()
+  for _, r in pairs(self.resources) do
+    if r.type == "scene" then
+      ---@cast r Scene
+      for _, obj in ipairs(r.objects) do
+        local script = obj.data.script
+        if #script.code > 0 then
+          local p = parser.new(script.code)
+          local success, ast = pcall(parser.parseObjectCode, p)
+          if not success then
+            return --TODO show errors in code editor
+          end
+          local luaCode, sourceMap = outputLua(ast)
+          local func, loadstringError = loadstring(luaCode)
+          if not func then
+            error(loadstringError)
+          end
+          script.compiledCode = {
+            code = luaCode,
+            func = func,
+            sourceMap = sourceMap
+          }
+        end
+      end
+    end
+  end
 end
 
 function project:saveToFile()
