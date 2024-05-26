@@ -271,7 +271,7 @@ local function runPlaytest()
   local playtestWindow = window()
   playtestWindow.titleFont = fonts("Inter-Regular.ttf", 14)
   playtestWindow.title = "Playtest"
-  playtestWindow.icon = images["icons/play_24.png"]
+  playtestWindow.icon = images["icons/game_24.png"]
   playtestWindow:setContentSize(
     project.currentProject.windowWidth,
     project.currentProject.windowHeight
