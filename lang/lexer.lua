@@ -22,6 +22,14 @@ local groupPunctuation = lookupify {
 ---@field line number
 ---@field column number
 
+---@class SyntaxError
+---@field error true
+---@field fromLine number
+---@field fromColumn number
+---@field toLine number
+---@field toColumn number
+---@field message string
+
 ---@class Lexer
 local lexer = {}
 lexer.__index = lexer
@@ -45,6 +53,8 @@ function lexer:init(code, sourceName)
   self.prevColumn = 1
   self.prevLine = 1
   self.reachedEnd = #code == 0
+  ---@type SyntaxError[]
+  self.errorStack = {}
 end
 
 ---Returns the next string of the given length.
@@ -121,7 +131,7 @@ function lexer:nextToken()
     while self:curChar() ~= '"' do
       self:advanceChar()
       if self:curChar() == "\n" or self.reachedEnd then
-        self:syntaxError("unfinished string")
+        return self:syntaxError("unfinished string")
       end
     end
     self:advanceChar()
@@ -174,25 +184,40 @@ function lexer:nextToken()
     }
   end
 
-  ---@diagnostic disable-next-line: missing-return
-  self:syntaxError(("unexpected character: %q"):format(self:curChar()))
+  return self:syntaxError(("unexpected character: %q"):format(self:curChar()))
 end
 
----Throws a syntax error.
+---Returns a token to be returned on errors.
+---@return Token
+function lexer:errorToken()
+  return {
+    kind = "error",
+    value = "",
+    line = self.prevLine,
+    column = self.prevColumn,
+  }
+end
+
+---Creates a syntax error table and pushes it onto the error stack, and returns an error token.
 ---@param message string
+---@return Token
 function lexer:syntaxError(message)
   local toLine, toColumn = self.line, self.column
   if toLine ~= self.prevLine then
     toLine = self.prevLine
     toColumn = self.lastLineEnd
   end
-  error {
+  ---@type SyntaxError
+  local err = {
+    error = true,
     fromLine = self.prevLine,
     fromColumn = self.prevColumn,
     toLine = toLine,
     toColumn = toColumn,
     message = message
   }
+  table.insert(self.errorStack, err)
+  return self:errorToken()
 end
 
 return lexer

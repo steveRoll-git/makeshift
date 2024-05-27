@@ -268,7 +268,11 @@ end
 local function runPlaytest()
   saveAllOpenResourceEditors()
 
-  project.currentProject:compileScripts()
+  local success, errors = project.currentProject:compileScripts()
+  if not success then
+    --TODO show errors in code editor
+    return
+  end
 
   local playtestWindow = window()
   playtestWindow.titleFont = fonts("Inter-Regular.ttf", 14)

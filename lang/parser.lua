@@ -35,12 +35,14 @@ end
 
 ---@class Parser
 ---@field lexer Lexer
+---@field errorStack SyntaxError[]
 local parser = {}
 parser.__index = parser
 
 function parser.new(code)
   local self = setmetatable({}, parser)
   self.lexer = lexer.new(code)
+  self.errorStack = self.lexer.errorStack
   self:nextToken()
   return self
 end
@@ -49,8 +51,8 @@ function parser:nextToken()
   self.token = self.lexer:nextToken()
 end
 
--- If the current token is of the same `kind` (and `value` if provided) -
--- consumes it and returns it. otherwise does nothing.
+---If the current token is of the same `kind` (and `value` if provided) -
+---consumes it and returns it. Otherwise does nothing.
 ---@param kind TokenKind
 ---@param value? string
 ---@return Token?
@@ -64,20 +66,21 @@ function parser:accept(kind, value)
   end
 end
 
----Reads and returns the next token, or throws an error if it's not of the given kind (or value if provided.)
+---Reads and returns the next token, or nil if it's not of the given kind (or value if provided.)
 ---@param kind TokenKind
 ---@param value? string
----@return Token
+---@return Token?
 function parser:expect(kind, value)
   local result = self:accept(kind, value)
   if not result then
     local noun = value and value or articleNoun(kind)
-    self:syntaxError(("Expected %s but got %s"):format(noun, self.token.value or articleNoun(self.token.kind)))
+    self.lexer:syntaxError(("Expected %s but got %s"):format(noun, self.token.value or articleNoun(self.token.kind)))
+    return
   end
-  return result --[[@as Token]]
+  return result
 end
 
--- parses the primary pieces used in an expression.
+---Parses the primary pieces used in an expression.
 function parser:parsePrimary()
   if self.token.kind == "punctuation" and unaryOperators[self.token.value] then
     local operator = self.token
@@ -119,7 +122,7 @@ function parser:parsePrimary()
   return self:parseIndexOrCall()
 end
 
--- parses an infix expression using the shunting yard algorithm.
+---Parses an infix expression using the shunting yard algorithm.
 function parser:parseInfixExpression()
   local output = {}
   local operatorStack = {}
@@ -161,16 +164,22 @@ function parser:parseIndexOrCall(object)
   if not object then
     if self:accept("punctuation", "(") then
       object = self:parseInfixExpression()
-      self:expect("punctuation", ")")
+      if not self:expect("punctuation", ")") then
+        return self:errorTree()
+      end
     else
       if self:accept("keyword", "this") then
         object = {
           kind = "thisValue"
         }
       else
+        local value = self:expect("identifier")
+        if not value then
+          return self:errorTree()
+        end
         object = {
           kind = "identifier",
-          value = self:expect("identifier").value
+          value = value.value
         }
       end
     end
@@ -179,6 +188,9 @@ function parser:parseIndexOrCall(object)
   local dot = self:accept("punctuation", ".")
   if dot then
     local index = self:expect("identifier")
+    if not index then
+      return self:errorTree()
+    end
     return self:parseIndexOrCall {
       kind = "objectIndex",
       object = object,
@@ -193,7 +205,9 @@ function parser:parseIndexOrCall(object)
   local lSquare = self:accept("punctuation", "[")
   if lSquare then
     local index = self:parseInfixExpression()
-    self:expect("punctuation", "]")
+    if not self:expect("punctuation", "]") then
+      return self:errorTree()
+    end
     return self:parseIndexOrCall {
       kind = "objectIndex",
       object = object,
@@ -212,7 +226,9 @@ function parser:parseIndexOrCall(object)
         param = self:accept("punctuation", ",") and self:parseInfixExpression()
       end
     end
-    self:expect("punctuation", ")")
+    if not self:expect("punctuation", ")") then
+      return self:errorTree()
+    end
     return self:parseIndexOrCall {
       kind = "functionCall",
       object = object,
@@ -226,7 +242,11 @@ end
 
 function parser:parseStatement()
   if self:accept("keyword", "var") then
-    local name = self:expect("identifier").value
+    local ident = self:expect("identifier")
+    if not ident then
+      return self:errorTree()
+    end
+    local name = ident.value
     local value
     if self:accept("punctuation", "=") then
       value = self:parseInfixExpression()
@@ -291,7 +311,9 @@ function parser:parseStatement()
     compoundOperator = self.token.value
     self:nextToken()
   else
-    self:expect("punctuation", "=")
+    if not self:expect("punctuation", "=") then
+      return self:errorTree()
+    end
   end
   local value = self:parseInfixExpression()
   return {
@@ -304,9 +326,11 @@ function parser:parseStatement()
 end
 
 function parser:parseBlock()
-  self:expect("punctuation", "{")
+  if not self:expect("punctuation", "{") then
+    return self:errorTree()
+  end
   local statements = {}
-  while not self:accept("punctuation", "}") do
+  while not self:accept("punctuation", "}") and #self.errorStack == 0 do
     table.insert(statements, self:parseStatement())
   end
   return {
@@ -319,25 +343,39 @@ function parser:parseObjectCode()
   local events = {}
   while true do
     if self:accept("keyword", "on") then
-      local event = self:expect("identifier").value
+      local ident = self:expect("identifier")
+      if not ident then
+        return self:errorTree()
+      end
+      local eventName = ident.value
       local params = {}
       if self:accept("punctuation", "(") then
         local param = self:accept("identifier")
         while param do
           table.insert(params, param.value)
-          param = self:accept("punctuation", ",") and self:expect("identifier")
+          if self:accept("punctuation", ",") then
+            local ident = self:expect("identifier")
+            if not ident then
+              return self:errorTree()
+            end
+            param = ident
+          else
+            param = nil
+          end
         end
-        self:expect("punctuation", ")")
+        if not self:expect("punctuation", ")") then
+          return self:errorTree()
+        end
       end
       local body = self:parseBlock()
       table.insert(events, {
         kind = "eventHandler",
-        eventName = event,
+        eventName = eventName,
         params = params,
         body = body
       })
     elseif self.token.kind ~= "EOF" then
-      self:syntaxError(("did not expect %s here"):format(self.token.value))
+      return self:syntaxError(("did not expect %s here"):format(self.token.value))
     end
     if self.lexer.reachedEnd then
       break
@@ -349,10 +387,19 @@ function parser:parseObjectCode()
   }
 end
 
----Throws a syntax error.
+---Returns a tree to be returned on errors.
+---@return table
+function parser:errorTree()
+  return {
+    kind = "error"
+  }
+end
+
+---Pushes a syntax error onto the error stack, and returns an error tree.
 ---@param message string
 function parser:syntaxError(message)
   self.lexer:syntaxError(message)
+  return self:errorTree()
 end
 
 return parser

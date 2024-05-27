@@ -90,7 +90,11 @@ function project:addScene()
 end
 
 ---For every object in all scenes, compile its script and store it.
+---@return boolean success Whether compilation of all object scripts succeeded.
+---@return SyntaxError[] errors A list of errors encountered during compilation.
 function project:compileScripts()
+  ---@type SyntaxError[]
+  local errors = {}
   for _, r in pairs(self.resources) do
     if r.type == "scene" then
       ---@cast r Scene
@@ -98,9 +102,10 @@ function project:compileScripts()
         local script = obj.data.script
         if #script.code > 0 then
           local p = parser.new(script.code)
-          local success, ast = pcall(parser.parseObjectCode, p)
-          if not success then
-            return --TODO show errors in code editor
+          local ast = p:parseObjectCode()
+          if #p.errorStack > 0 then
+            table.insert(errors, p.errorStack[1])
+            goto nextObject
           end
           local luaCode, sourceMap = outputLua(ast)
           local func, loadstringError = loadstring(luaCode)
@@ -115,7 +120,9 @@ function project:compileScripts()
         end
       end
     end
+    ::nextObject::
   end
+  return #errors <= 0, errors
 end
 
 function project:saveToFile()
