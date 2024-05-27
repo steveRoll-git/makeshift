@@ -402,6 +402,10 @@ end
 
 function love.update(dt)
   updateCursor()
+
+  if runningPlaytest then
+    runningPlaytest:update(dt)
+  end
 end
 
 function love.draw()

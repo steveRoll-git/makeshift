@@ -10,7 +10,11 @@ local playtest = zap.elementClass()
 
 ---@param scene Scene
 function playtest:init(scene)
-  self.engine = engine.createEngine(scene)
+  self.engine = engine.createEngine(scene, true)
+end
+
+function playtest:update(dt)
+  self.engine:update(dt)
 end
 
 function playtest:render(x, y, w, h)
