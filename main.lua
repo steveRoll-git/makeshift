@@ -34,6 +34,9 @@ local playtest = require "ui.playtest"
 
 require "util.scissorStack"
 
+---@type PlaytestElement?
+local runningPlaytest
+
 local uiScene = zap.createScene()
 
 ---@class Zap.ElementClass
@@ -129,6 +132,9 @@ function CloseWindow(w)
     w.content.class.saveResource(w.content)
   end
   RemoveWindow(w)
+  if w.content == runningPlaytest then
+    runningPlaytest = nil
+  end
 end
 
 local libraryPanel = treeView()
@@ -268,6 +274,10 @@ end
 local function runPlaytest()
   saveAllOpenResourceEditors()
 
+  if runningPlaytest then
+    return
+  end
+
   local success, errors = project.currentProject:compileScripts()
   if not success then
     --TODO show errors in code editor
@@ -285,7 +295,8 @@ local function runPlaytest()
   playtestWindow.x = math.floor(lg.getWidth() / 2 - playtestWindow.width / 2)
   playtestWindow.y = math.floor(lg.getHeight() / 2 - playtestWindow.height / 2)
   playtestWindow.closable = true
-  playtestWindow.content = playtest(project.currentProject.resources[project.currentProject.initialSceneId])
+  runningPlaytest = playtest(project.currentProject.resources[project.currentProject.initialSceneId])
+  playtestWindow.content = runningPlaytest
 
   AddWindow(playtestWindow)
 end
