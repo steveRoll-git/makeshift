@@ -68,7 +68,7 @@ function engine:init(scene, active)
         local object, event, p1, p2, p3, p4 = coroutine.yield("eventEnd")
         local f = object.events[event]
         if f then
-          self:objectPcall(f, object, p1, p2, p3, p4)
+          f(object, p1, p2, p3, p4)
         end
       end
     end)
@@ -134,18 +134,6 @@ function engine:createEnvironment()
   }
 end
 
----Calls a function on an object, and goes into an error state if it errored.
----@param func function
----@param obj RuntimeObject
----@param ... any
-function engine:objectPcall(func, obj, ...)
-  local success, result = pcall(func, obj.scriptInstance, ...)
-  if not success then
-    self.running = false
-    self:handleError(result)
-  end
-end
-
 -- Runs the event runner either until it finishes the current event, or
 -- it runs a loop for more than a specified amount.
 --
@@ -158,8 +146,6 @@ end
 ---@param p4 any
 ---@overload fun()
 function engine:tryContinueRunner(object, event, p1, p2, p3, p4)
-  self.runningObject = object or self.runningObject
-
   local stillInLoop = true
 
   -- whether the initial call to `resume` was already done for this event
@@ -180,13 +166,14 @@ function engine:tryContinueRunner(object, event, p1, p2, p3, p4)
         self.loopStuckLine = tonumber(loopLine)
       elseif result == "eventEnd" then
         stillInLoop = false
-        self.runningObject = nil
         break
       else
         error("unknown coroutine result? " .. result)
       end
     else
-      error(result)
+      self.running = false
+      self:handleError(result)
+      break
     end
   end
 
@@ -208,6 +195,10 @@ end
 ---@param p3 any
 ---@param p4 any
 function engine:callObjectEvent(object, event, p1, p2, p3, p4)
+  if not self.running then
+    return
+  end
+
   if not object.events or not object.events[event] then
     return
   end
