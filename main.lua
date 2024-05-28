@@ -31,6 +31,7 @@ local orderedSet = require "util.orderedSet"
 local window = require "ui.window"
 local splitView = require "ui.splitView"
 local playtest = require "ui.playtest"
+local codeEditor = require "ui.codeEditor"
 
 require "util.scissorStack"
 
@@ -201,6 +202,14 @@ function OpenResourceTab(r)
     AddNewTab({
       text = r.name,
       content = e,
+      closable = true,
+      dockable = true,
+    })
+  elseif r.type == "script" then
+    AddNewTab({
+      text = "Code Editor",
+      icon = images["icons/code_24.png"],
+      content = codeEditor(r),
       closable = true,
       dockable = true,
     })

@@ -9,7 +9,6 @@ local hexToColor = require "util.hexToColor"
 local spriteEditor = require "ui.spriteEditor"
 local zoomSlider = require "ui.zoomSlider"
 local propertiesPanel = require "ui.sceneEditor.propertiesPanel"
-local codeEditor = require "ui.codeEditor"
 local popupMenu = require "ui.popupMenu"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
@@ -19,16 +18,7 @@ local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 
 ---Opens a code editor for this object.
 ---@param object Object
 local function openCodeEditor(object)
-  if FocusResourceEditor(object.data.script.id) then
-    return
-  end
-  AddNewTab({
-    text = "Code Editor",
-    icon = images["icons/code_24.png"],
-    content = codeEditor(object.data.script),
-    closable = true,
-    dockable = true,
-  })
+  OpenResourceTab(object.data.script)
 end
 
 ---@class SceneView: Zap.ElementClass
