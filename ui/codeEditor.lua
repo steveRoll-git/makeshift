@@ -66,6 +66,16 @@ end
 function codeEditor:render(x, y, w, h)
   pushScissor(x, y, w, h)
 
+  if RunningPlaytest and RunningPlaytest.engine.errorSource == self.script.id then
+    lg.setColor(0.6, 0, 0, 0.5)
+    lg.rectangle(
+      "fill",
+      x,
+      y + (RunningPlaytest.engine.errorLine - 1) * font:getHeight() + self.textEditor:actualOffsetY(),
+      w - self.scrollbarY:desiredWidth(),
+      font:getHeight())
+  end
+
   self.textEditor:render(x + self.leftColumnWidth, y, w - self.leftColumnWidth - self.scrollbarY:desiredWidth(), h)
 
   for i = 1, #self.textEditor.lines do

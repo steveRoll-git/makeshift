@@ -36,7 +36,7 @@ local codeEditor = require "ui.codeEditor"
 require "util.scissorStack"
 
 ---@type PlaytestElement?
-local runningPlaytest
+RunningPlaytest = nil
 
 local uiScene = zap.createScene()
 
@@ -133,8 +133,8 @@ function CloseWindow(w)
     w.content.class.saveResource(w.content)
   end
   RemoveWindow(w)
-  if w.content == runningPlaytest then
-    runningPlaytest = nil
+  if w.content == RunningPlaytest then
+    RunningPlaytest = nil
   end
 end
 
@@ -188,32 +188,30 @@ function OpenResourceTab(r)
   if FocusResourceEditor(r.id) then
     return
   end
+  local text
+  local icon
+  local content
   if r.type == "scene" then
-    AddNewTab({
-      text = r.name,
-      icon = images["icons/scene_24.png"],
-      content = sceneEditor(r),
-      closable = true,
-      dockable = true,
-    })
+    text = r.name
+    icon = images["icons/scene_24.png"]
+    content = sceneEditor(r)
   elseif r.type == "objectData" then
-    local e = spriteEditor()
-    e.editingObjectData = r --[[@as ObjectData]]
-    AddNewTab({
-      text = r.name,
-      content = e,
-      closable = true,
-      dockable = true,
-    })
+    text = r.name
+    icon = images["icons/brush_24.png"]
+    content = spriteEditor()
+    content.editingObjectData = r --[[@as ObjectData]]
   elseif r.type == "script" then
-    AddNewTab({
-      text = "Code Editor",
-      icon = images["icons/code_24.png"],
-      content = codeEditor(r),
-      closable = true,
-      dockable = true,
-    })
+    text = "Code Editor"
+    icon = images["icons/code_24.png"]
+    content = codeEditor(r)
   end
+  AddNewTab {
+    text = text,
+    icon = icon,
+    content = content,
+    closable = true,
+    dockable = true,
+  }
 end
 
 ---Returns whether `element` is an editor of the resource with this ID.
@@ -283,7 +281,7 @@ end
 local function runPlaytest()
   saveAllOpenResourceEditors()
 
-  if runningPlaytest then
+  if RunningPlaytest then
     return
   end
 
@@ -304,8 +302,8 @@ local function runPlaytest()
   playtestWindow.x = math.floor(lg.getWidth() / 2 - playtestWindow.width / 2)
   playtestWindow.y = math.floor(lg.getHeight() / 2 - playtestWindow.height / 2)
   playtestWindow.closable = true
-  runningPlaytest = playtest(project.currentProject.resources[project.currentProject.initialSceneId])
-  playtestWindow.content = runningPlaytest
+  RunningPlaytest = playtest(project.currentProject.resources[project.currentProject.initialSceneId])
+  playtestWindow.content = RunningPlaytest
 
   AddWindow(playtestWindow)
 end
@@ -412,8 +410,8 @@ end
 function love.update(dt)
   updateCursor()
 
-  if runningPlaytest then
-    runningPlaytest:update(dt)
+  if RunningPlaytest then
+    RunningPlaytest:update(dt)
   end
 end
 

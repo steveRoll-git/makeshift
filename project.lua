@@ -1,4 +1,5 @@
 local uid = require "util.uid"
+local uidToHex = require "util.uidToHex"
 local binConvert = require "util.binConvert"
 local parser = require "lang.parser"
 local outputLua = require "lang.outputLua"
@@ -148,7 +149,7 @@ function project:compileScripts()
             goto nextObject
           end
           local luaCode, sourceMap = outputLua(ast)
-          local func, loadstringError = loadstring(luaCode)
+          local func, loadstringError = loadstring(luaCode, uidToHex(script.id))
           if not func then
             error(loadstringError)
           end

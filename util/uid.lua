@@ -9,5 +9,5 @@ local function randomChar()
 end
 
 return function()
-  return string.gsub(template, '.', randomChar)
+  return (string.gsub(template, '.', randomChar))
 end

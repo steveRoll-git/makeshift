@@ -4,6 +4,8 @@ local lg = love.graphics
 local orderedSet = require "util.orderedSet"
 local deepCopy = require "util.deepCopy"
 local strongType = require "lang.strongType"
+local hexToUID = require "util.hexToUid"
+local project = require "project"
 
 ---@class Script: Resource
 ---@field code string
@@ -73,6 +75,7 @@ function engine:init(scene, active)
     -- runs in a loop and doesn't exit from it.
     self.codeRunner = coroutine.create(function(...)
       while true do
+        ---@type RuntimeObject, string, any, any, any, any
         local object, event, p1, p2, p3, p4 = coroutine.yield("eventEnd")
         local f = object.events[event]
         if f then
@@ -82,6 +85,29 @@ function engine:init(scene, active)
     end)
     coroutine.resume(self.codeRunner)
   end
+end
+
+---Opens the resource editor for the resource where the error happened, based on the message.
+---@param fullMessage string
+function engine:handleError(fullMessage)
+  local source, line, message = fullMessage:match('%[string "(.*)"%]:(%d*): (.*)')
+  self.errorSource = hexToUID(source)
+  local script = project.currentProject:getResourceById(self.errorSource)
+  if not script then
+    return
+  end
+  ---@cast script Script
+  local actualLine
+  local sourceMap = script.compiledCode.sourceMap
+  for i = tonumber(line), 1, -1 do
+    if sourceMap[i] then
+      actualLine = sourceMap[i]
+      break
+    end
+  end
+  self.errorMessage = message
+  self.errorLine = actualLine
+  OpenResourceTab(script)
 end
 
 function engine:createEnvironment()
@@ -105,23 +131,7 @@ function engine:objectPcall(func, obj, ...)
   local success, result = pcall(func, obj.scriptInstance, ...)
   if not success then
     self.running = false
-    local source, line, message = result:match('%[string "(.*)"%]:(%d*): (.*)')
-    local actualLine
-    local sourceMap = obj.data.script.compiledCode.sourceMap
-    for i = tonumber(line), 1, -1 do
-      if sourceMap[i] then
-        actualLine = sourceMap[i]
-        break
-      end
-    end
-    -- TODO show object name here
-    self.error = ([[
-[unnamed object]
-Line %d:
-%s
-]]):format(actualLine, message)
-    self.errorSource = source
-    self.errorLine = actualLine
+    self:handleError(result)
   end
 end
 
@@ -180,6 +190,12 @@ end
 
 -- starts executing an object's method. it may finish running in the same call,
 -- but it may also enter a stuck loop from here.
+---@param object RuntimeObject
+---@param event string
+---@param p1 any
+---@param p2 any
+---@param p3 any
+---@param p4 any
 function engine:callObjectEvent(object, event, p1, p2, p3, p4)
   if not object.events or not object.events[event] then
     return
