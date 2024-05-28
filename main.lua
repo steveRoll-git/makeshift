@@ -46,6 +46,7 @@ local uiScene = zap.createScene()
 ---@field keyReleased fun(self: Zap.Element, key: string)
 ---@field popupClosed fun(self: Zap.Element)
 ---@field textInput fun(self: Zap.Element, text: string)
+---@field playtestStarted fun(self: Zap.Element)
 ---@field getCursor fun(self: Zap.Element): love.Cursor
 ---@field saveResource fun(self: Zap.Element)
 
@@ -182,11 +183,13 @@ function AddNewTab(tab)
   mainTabView:addTab(tab)
 end
 
----Opens a new tab to edit this resource.
+---Opens a new tab to edit this resource, and returns the editor element.
 ---@param r Resource
+---@return Zap.Element
 function OpenResourceTab(r)
-  if FocusResourceEditor(r.id) then
-    return
+  local focused = FocusResourceEditor(r.id)
+  if focused then
+    return focused
   end
   local text
   local icon
@@ -212,6 +215,7 @@ function OpenResourceTab(r)
     closable = true,
     dockable = true,
   }
+  return content
 end
 
 ---Returns whether `element` is an editor of the resource with this ID.
@@ -223,15 +227,15 @@ local function isResourceEditor(element, id)
   return class.resourceId and class.resourceId(element) == id
 end
 
----Searches for a tab or window that is editing the resource with this ID, and focuses it if it's found.
+---Searches for a tab or window that is editing the resource with this ID, focuses it if it's found and returns it.
 ---@param id string
----@return boolean found Whether the tab or window that is editing this resource was found and focused.
+---@return Zap.Element? found The element that is editing this resource.
 function FocusResourceEditor(id)
   for _, tView in ipairs(GetAllDockableTabViews()) do
     for _, tab in ipairs(tView.tabs) do
       if isResourceEditor(tab.content, id) then
         tView:setActiveTab(tab)
-        return true
+        return tab.content
       end
     end
   end
@@ -239,10 +243,9 @@ function FocusResourceEditor(id)
     ---@cast w Window
     if isResourceEditor(w.content, id) then
       SetFocusedWindow(w)
-      return true
+      return w.content
     end
   end
-  return false
 end
 
 ---Returns all the dockable tabviews currently on screen.
@@ -263,19 +266,26 @@ local function getFocusedElement()
   end
 end
 
----Calls the `saveResource` method for all currently open editors.
-local function saveAllOpenResourceEditors()
+---Emits an event for all currently open editors.
+---@param event string
+---@param ... any
+local function emitEventForAllEditors(event, ...)
   for _, t in ipairs(mainTabView.tabs) do
-    if t.content.class.saveResource then
-      t.content.class.saveResource(t.content)
+    if t.content.class[event] then
+      t.content.class[event](t.content)
     end
   end
   for _, w in ipairs(windows.list) do
     ---@cast w Window
-    if w.content.class.saveResource then
-      w.content.class.saveResource(w.content)
+    if w.content.class[event] then
+      w.content.class[event](w.content)
     end
   end
+end
+
+---Calls the `saveResource` method for all currently open editors.
+local function saveAllOpenResourceEditors()
+  emitEventForAllEditors("saveResource")
 end
 
 local function runPlaytest()
@@ -306,6 +316,7 @@ local function runPlaytest()
   playtestWindow.content = RunningPlaytest
 
   AddWindow(playtestWindow)
+  emitEventForAllEditors("playtestStarted")
 end
 
 local lastPressTime

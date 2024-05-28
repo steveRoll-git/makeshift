@@ -107,7 +107,8 @@ function engine:handleError(fullMessage)
   end
   self.errorMessage = message
   self.errorLine = actualLine
-  OpenResourceTab(script)
+  local editor = OpenResourceTab(script) --[[@as CodeEditor]]
+  editor:showError()
 end
 
 function engine:createEnvironment()

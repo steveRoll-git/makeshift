@@ -9,6 +9,7 @@ local scrollbar = require "ui.scrollbar"
 local clamp = require "util.clamp"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
+local errorBubble = require "ui.errorBubble"
 
 local font = fonts("SourceCodePro-Regular.ttf", 16)
 
@@ -51,6 +52,20 @@ function codeEditor:saveResource()
   self:write()
 end
 
+function codeEditor:showError()
+  self.errorBubble = errorBubble(RunningPlaytest.engine.errorMessage)
+  self.errorBubble.tailY = font:getHeight() / 2 + errorBubble.padding
+  self.textEditor:jumpToLine(RunningPlaytest.engine.errorLine)
+end
+
+function codeEditor:errorY()
+  return (RunningPlaytest.engine.errorLine - 1) * font:getHeight() + self.textEditor:actualOffsetY()
+end
+
+function codeEditor:playtestStarted()
+  self.errorBubble = nil
+end
+
 function codeEditor:keyPressed(key)
   self.textEditor:keyPressed(key)
 end
@@ -67,12 +82,12 @@ function codeEditor:render(x, y, w, h)
   pushScissor(x, y, w, h)
 
   if RunningPlaytest and RunningPlaytest.engine.errorSource == self.script.id then
-    lg.setColor(0.6, 0, 0, 0.5)
+    lg.setColor(0.5, 0, 0, 0.5)
     lg.rectangle(
       "fill",
-      x,
-      y + (RunningPlaytest.engine.errorLine - 1) * font:getHeight() + self.textEditor:actualOffsetY(),
-      w - self.scrollbarY:desiredWidth(),
+      x + self.leftColumnWidth,
+      y + self:errorY(),
+      w - self.scrollbarY:desiredWidth() - self.leftColumnWidth,
       font:getHeight())
   end
 
@@ -87,6 +102,15 @@ function codeEditor:render(x, y, w, h)
       y + (i - 1) * font:getHeight() + self.textEditor:actualOffsetY(),
       self.lineNumberColumnWidth,
       "right")
+  end
+
+  if RunningPlaytest and self.errorBubble then
+    self.errorBubble:render(
+      x + self.leftColumnWidth + self.textEditor.lines[RunningPlaytest.engine.errorLine].width + font:getWidth("  "),
+      y + self:errorY() - errorBubble.padding,
+      self.errorBubble:desiredWidth(),
+      self.errorBubble:desiredHeight()
+    )
   end
 
   if self.scrollbarY.contentSize() > self.scrollbarY.viewSize() then

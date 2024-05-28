@@ -312,6 +312,13 @@ function textEditor:flashCursor()
   self.cursorFlashTime = love.timer.getTime() * self.cursorFlashSpeed
 end
 
+---Moves the cursor to the specified line.
+---@param line number
+function textEditor:jumpToLine(line)
+  self.selecting = false
+  self.cursor.line = line
+end
+
 function textEditor:keyPressed(key)
   local ctrlDown = love.keyboard.isDown("lctrl", "rctrl")
   local prevLine, prevCol = self.cursor.line, self.cursor.col
