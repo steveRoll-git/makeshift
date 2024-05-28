@@ -52,23 +52,12 @@ engine.__index = engine
 ---@param scene Scene?
 ---@param active boolean?
 function engine:init(scene, active)
-  self.objects = orderedSet.new()
-  if scene then
-    for _, obj in ipairs(scene.objects) do
-      local newObj = deepCopy(obj)
-      if active and obj.data.script.compiledCode then
-        ---@cast newObj RuntimeObject
-        newObj.events = obj.data.script.compiledCode.func()
-        newObj.scriptInstance = objectType:instance(newObj)
-      end
-      self:addObject(newObj)
-    end
-  end
-
   if active then
     self.running = true
 
     self.pendingEvents = {}
+
+    self.scriptEnvironment = self:createEnvironment()
 
     -- This coroutine is responsible for running user code, which yields in loops.
     -- This is needed in order to give back control to makeshift in case user code
@@ -84,6 +73,20 @@ function engine:init(scene, active)
       end
     end)
     coroutine.resume(self.codeRunner)
+  end
+
+  self.objects = orderedSet.new()
+  if scene then
+    for _, obj in ipairs(scene.objects) do
+      local newObj = deepCopy(obj)
+      if active and obj.data.script.compiledCode then
+        ---@cast newObj RuntimeObject
+        setfenv(obj.data.script.compiledCode.func, self.scriptEnvironment)
+        newObj.events = obj.data.script.compiledCode.func()
+        newObj.scriptInstance = objectType:instance(newObj)
+      end
+      self:addObject(newObj)
+    end
   end
 end
 
