@@ -64,6 +64,46 @@ function project:addResource(resource)
   self.resources[resource.id] = resource
 end
 
+---Looks for an embedded resource with `id` inside the given `resource`.
+---@param id string
+---@param resource Resource
+---@return Resource?
+function project:searchForResource(id, resource)
+  if id == resource.id then
+    return resource
+  end
+  if resource.type == "scene" then
+    ---@cast resource Scene
+    for _, o in ipairs(resource.objects) do
+      local found = self:searchForResource(id, o.data)
+      if found then
+        return found
+      end
+    end
+  elseif resource.type == "objectData" then
+    ---@cast resource ObjectData
+    if resource.script.id == id then
+      return resource.script
+    end
+  end
+end
+
+---Finds and returns the resource with this id.
+---@param id string
+---@return Resource?
+function project:getResourceById(id)
+  if self.resources[id] then
+    return self.resources[id]
+  end
+  --TODO probably cache this process
+  for _, resource in pairs(self.resources) do
+    local found = self:searchForResource(id, resource)
+    if found then
+      return found
+    end
+  end
+end
+
 ---Adds a new scene to the project and returns it.
 function project:addScene()
   -- If there are already scenes named "Untitled Scene", append an incrementing number to the name.
