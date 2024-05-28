@@ -1,0 +1,65 @@
+local love = love
+local lg = love.graphics
+
+local zap = require "lib.zap.zap"
+local images = require "images"
+local lerp = require "util.lerp"
+local fonts = require "fonts"
+
+local icons = {
+  error = images["icons/error_stopped_32.png"]
+}
+
+local messages = {
+  error = [[
+The game has stopped due to an error.
+Click to go to code.]]
+}
+
+local iconSize = 32
+local padding = 6
+local textPadding = 4
+local font = fonts("Inter-Regular.ttf", 14)
+
+local textWidth = font:getWidth(messages.error)
+
+---@class StopIndicator: Zap.ElementClass
+---@field stopReason "error" | "wait"
+---@operator call:StopIndicator
+local stopIndicator = zap.elementClass()
+
+---@param playtest PlaytestElement
+function stopIndicator:init(playtest)
+  self.playtest = playtest
+end
+
+function stopIndicator:mouseClicked(btn)
+  if btn == 1 then
+    if self.stopReason == "error" then
+      self.playtest.engine:openErroredCodeEditor()
+    end
+  end
+end
+
+function stopIndicator:desiredWidth()
+  return iconSize + padding * 2 + (self:isHovered() and textPadding + textWidth or 0)
+end
+
+function stopIndicator:desiredHeight()
+  return iconSize + padding * 2
+end
+
+function stopIndicator:render(x, y, w, h)
+  lg.setColor(0, 0, 0, 0.6)
+  lg.rectangle("fill", x, y, w, h, 3)
+  lg.setColor(1, 1, 1, lerp(0.7, 1, (math.sin(love.timer.getTime() * 4) + 1) / 2))
+  lg.draw(icons[self.stopReason], x + padding, y + padding)
+
+  if self:isHovered() then
+    lg.setColor(1, 1, 1)
+    lg.setFont(font)
+    lg.print(messages[self.stopReason], x + padding + iconSize + textPadding, y + h / 2 - font:getHeight())
+  end
+end
+
+return stopIndicator

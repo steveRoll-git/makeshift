@@ -87,7 +87,8 @@ function engine:init(scene, active)
   end
 end
 
----Opens the resource editor for the resource where the error happened, based on the message.
+---Decodes the error message string to figure out which script and on which line the error occured,
+---and opens the code editor for that script.
 ---@param fullMessage string
 function engine:handleError(fullMessage)
   local source, line, message = fullMessage:match('%[string "(.*)"%]:(%d*): (.*)')
@@ -97,6 +98,7 @@ function engine:handleError(fullMessage)
     return
   end
   ---@cast script Script
+  self.errorScript = script
   local actualLine
   local sourceMap = script.compiledCode.sourceMap
   for i = tonumber(line), 1, -1 do
@@ -107,7 +109,12 @@ function engine:handleError(fullMessage)
   end
   self.errorMessage = message
   self.errorLine = actualLine
-  local editor = OpenResourceTab(script) --[[@as CodeEditor]]
+  self:openErroredCodeEditor()
+end
+
+---Opens the resource editor for the script where the current error happened.
+function engine:openErroredCodeEditor()
+  local editor = OpenResourceTab(self.errorScript) --[[@as CodeEditor]]
   editor:showError()
 end
 

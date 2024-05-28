@@ -55,6 +55,7 @@ end
 function codeEditor:showError()
   self.errorBubble = errorBubble(RunningPlaytest.engine.errorMessage)
   self.errorBubble.tailY = font:getHeight() / 2 + errorBubble.padding
+  self.errorBubble:setContained(true)
   self.textEditor:jumpToLine(RunningPlaytest.engine.errorLine)
 end
 

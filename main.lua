@@ -215,6 +215,7 @@ function OpenResourceTab(r)
     closable = true,
     dockable = true,
   }
+  SetFocusedWindow(nil)
   return content
 end
 
@@ -234,6 +235,7 @@ function FocusResourceEditor(id)
   for _, tView in ipairs(GetAllDockableTabViews()) do
     for _, tab in ipairs(tView.tabs) do
       if isResourceEditor(tab.content, id) then
+        SetFocusedWindow(nil)
         tView:setActiveTab(tab)
         return tab.content
       end
