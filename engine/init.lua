@@ -139,9 +139,10 @@ function engine:parseLoopStuckCode()
       maxStuckLoopCount = v
     end
   end
-  local id, line = maxStuckLoop:match("loop (%w+) (%d+)")
+  local id, startLine, endLine = maxStuckLoop:match("loop (%w+) (%d+) (%d+)")
   self.loopStuckScript = project.currentProject:getResourceById(hexToUID(id)) --[[@as Script]]
-  self.loopStuckLine = tonumber(line)
+  self.loopStuckStartLine = tonumber(startLine)
+  self.loopStuckEndLine = tonumber(endLine)
 end
 
 function engine:createEnvironment()
@@ -208,7 +209,7 @@ function engine:tryContinueRunner(object, event, p1, p2, p3, p4)
       self.loopCounts[next(self.loopCounts)] = nil
     end
     self.loopStuckScript = nil
-    self.loopStuckLine = nil
+    self.loopStuckStartLine = nil
   end
 end
 

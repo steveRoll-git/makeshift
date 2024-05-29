@@ -13,6 +13,19 @@ local errorBubble = require "ui.errorBubble"
 
 local font = fonts("SourceCodePro-Regular.ttf", 16)
 
+local gradientTop = lg.newMesh({
+  { 0, 0, 0, 0, 1, 1, 1, 1 },
+  { 1, 0, 0, 0, 1, 1, 1, 1 },
+  { 1, 1, 0, 0, 1, 1, 1, 0 },
+  { 0, 1, 0, 0, 1, 1, 1, 0 },
+})
+local gradientBottom = lg.newMesh({
+  { 0, 0, 0, 0, 1, 1, 1, 0 },
+  { 1, 0, 0, 0, 1, 1, 1, 0 },
+  { 1, 1, 0, 0, 1, 1, 1, 1 },
+  { 0, 1, 0, 0, 1, 1, 1, 1 },
+})
+
 ---@class CodeEditor: ResourceEditor
 ---@operator call:CodeEditor
 local codeEditor = zap.elementClass()
@@ -59,8 +72,11 @@ function codeEditor:showError()
   self.textEditor:jumpToLine(RunningPlaytest.engine.errorLine)
 end
 
-function codeEditor:errorY()
-  return (RunningPlaytest.engine.errorLine - 1) * font:getHeight() + self.textEditor:actualOffsetY()
+---Converts a line number to its pixel Y position.
+---@param line number
+---@return number
+function codeEditor:lineToY(line)
+  return (line - 1) * font:getHeight() + self.textEditor:actualOffsetY()
 end
 
 function codeEditor:playtestStarted()
@@ -82,14 +98,49 @@ end
 function codeEditor:render(x, y, w, h)
   pushScissor(x, y, w, h)
 
-  if RunningPlaytest and RunningPlaytest.engine.errorSource == self.script.id then
+  if RunningPlaytest and RunningPlaytest.engine.errorScript == self.script then
     lg.setColor(0.5, 0, 0, 0.5)
     lg.rectangle(
       "fill",
       x + self.leftColumnWidth,
-      y + self:errorY(),
+      y + self:lineToY(RunningPlaytest.engine.errorLine),
       w - self.scrollbarY:desiredWidth() - self.leftColumnWidth,
       font:getHeight())
+  end
+
+  if RunningPlaytest and RunningPlaytest.engine.loopStuckScript == self.script then
+    local startLine = RunningPlaytest.engine.loopStuckStartLine --[[@as number]]
+    local endLine = RunningPlaytest.engine.loopStuckEndLine --[[@as number]]
+    local startY = y + self:lineToY(startLine)
+    local endY = y + self:lineToY(endLine + 1)
+    lg.setColor(1, 1, 1, 0.25)
+    lg.draw(
+      gradientTop,
+      x + self.leftColumnWidth,
+      startY,
+      0,
+      w - self.leftColumnWidth,
+      font:getHeight() / 2)
+    lg.draw(
+      gradientTop,
+      x + self.leftColumnWidth,
+      endY,
+      0,
+      w - self.leftColumnWidth,
+      -font:getHeight() / 2)
+
+    pushScissor(x + self.leftColumnWidth, startY, w - self.leftColumnWidth, endY - startY)
+    local streakY =
+        startY + ((love.timer.getTime() * 4) % (endLine - startLine + 3)) * font:getHeight()
+    lg.setColor(1, 1, 1, 0.1)
+    lg.draw(
+      gradientTop,
+      x + self.leftColumnWidth,
+      streakY,
+      0,
+      w - self.leftColumnWidth,
+      -font:getHeight())
+    popScissor()
   end
 
   self.textEditor:render(x + self.leftColumnWidth, y, w - self.leftColumnWidth - self.scrollbarY:desiredWidth(), h)
@@ -108,7 +159,7 @@ function codeEditor:render(x, y, w, h)
   if RunningPlaytest and self.errorBubble then
     self.errorBubble:render(
       x + self.leftColumnWidth + self.textEditor.lines[RunningPlaytest.engine.errorLine].width + font:getWidth("  "),
-      y + self:errorY() - errorBubble.padding,
+      y + self:lineToY(RunningPlaytest.engine.errorLine) - errorBubble.padding,
       self.errorBubble:desiredWidth(),
       self.errorBubble:desiredHeight()
     )

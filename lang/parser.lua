@@ -70,6 +70,7 @@ end
 ---@param kind TokenKind
 ---@param value? string
 ---@return Token?
+---@nodiscard
 function parser:expect(kind, value)
   local result = self:accept(kind, value)
   if not result then
@@ -287,15 +288,15 @@ function parser:parseStatement()
     }
   end
 
-  local tWhile = self:accept("keyword", "while")
-  if tWhile then
+  if self:accept("keyword", "while") then
     local condition = self:parseInfixExpression()
     local body = self:parseBlock()
     return {
       kind = "whileLoop",
       condition = condition,
       body = body,
-      line = tWhile.line,
+      startLine = body.startLine,
+      endLine = body.endLine,
     }
   end
 
@@ -326,16 +327,25 @@ function parser:parseStatement()
 end
 
 function parser:parseBlock()
-  if not self:expect("punctuation", "{") then
+  local lCurly = self:expect("punctuation", "{")
+  if not lCurly then
     return self:errorTree()
   end
   local statements = {}
-  while not self:accept("punctuation", "}") and #self.errorStack == 0 do
+  local endLine
+  while #self.errorStack == 0 do
+    local rCurly = self:accept("punctuation", "}")
+    if rCurly then
+      endLine = rCurly.line
+      break
+    end
     table.insert(statements, self:parseStatement())
   end
   return {
     kind = "block",
-    statements = statements
+    statements = statements,
+    startLine = lCurly.line,
+    endLine = endLine,
   }
 end
 

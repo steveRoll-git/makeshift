@@ -41,7 +41,7 @@ function stopIndicator:mouseClicked(btn)
       self.playtest.engine:openErroredCodeEditor()
     elseif self.stopReason == "wait" then
       local editor = OpenResourceTab(self.playtest.engine.loopStuckScript) --[[@as CodeEditor]]
-      editor.textEditor:jumpToLine(self.playtest.engine.loopStuckLine)
+      editor.textEditor:jumpToLine(self.playtest.engine.loopStuckStartLine)
     end
   end
 end

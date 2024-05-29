@@ -128,7 +128,12 @@ function output.whileLoop(tree, script)
   insertAll(result, translate(tree.condition, script))
   table.insert(result, { string = "do" })
   insertAll(result, translate(tree.body, script))
-  table.insert(result, { string = (" _yield('loop %s %d') end"):format(uidToHex(script.id), tree.line) })
+  table.insert(result, {
+    string = (" _yield('loop %s %d %d') end"):format(
+      uidToHex(script.id),
+      tree.startLine,
+      tree.endLine)
+  })
 
   return result
 end
