@@ -7,21 +7,23 @@ local lerp = require "util.lerp"
 local fonts = require "fonts"
 
 local icons = {
-  error = images["icons/error_stopped_32.png"]
+  error = images["icons/error_stopped_32.png"],
+  wait = images["icons/hourglass_32.png"],
 }
 
 local messages = {
   error = [[
 The game has stopped due to an error.
-Click to go to code.]]
+Click to go to code.]],
+  wait = [[
+Some code is taking a long time to complete.
+Click to go to code.]],
 }
 
 local iconSize = 32
 local padding = 6
 local textPadding = 4
 local font = fonts("Inter-Regular.ttf", 14)
-
-local textWidth = font:getWidth(messages.error)
 
 ---@class StopIndicator: Zap.ElementClass
 ---@field stopReason "error" | "wait"
@@ -37,12 +39,15 @@ function stopIndicator:mouseClicked(btn)
   if btn == 1 then
     if self.stopReason == "error" then
       self.playtest.engine:openErroredCodeEditor()
+    elseif self.stopReason == "wait" then
+      local editor = OpenResourceTab(self.playtest.engine.loopStuckScript) --[[@as CodeEditor]]
+      editor.textEditor:jumpToLine(self.playtest.engine.loopStuckLine)
     end
   end
 end
 
 function stopIndicator:desiredWidth()
-  return iconSize + padding * 2 + (self:isHovered() and textPadding + textWidth or 0)
+  return iconSize + padding * 2 + (self:isHovered() and textPadding + font:getWidth(messages[self.stopReason]) or 0)
 end
 
 function stopIndicator:desiredHeight()

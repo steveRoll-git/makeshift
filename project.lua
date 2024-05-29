@@ -148,7 +148,7 @@ function project:compileScripts()
             table.insert(errors, p.errorStack[1])
             goto nextObject
           end
-          local luaCode, sourceMap = outputLua(ast)
+          local luaCode, sourceMap = outputLua(ast, script)
           local func, loadstringError = loadstring(luaCode, uidToHex(script.id))
           if not func then
             error(loadstringError)

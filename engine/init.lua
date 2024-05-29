@@ -41,6 +41,9 @@ local objectType = strongType.new("object", {
 -- the maximum amount of times to `yield` inside a loop before moving on.
 local maxLoopYields = 1000
 
+-- How many seconds to wait while `stuckInLoop` before showing it to the user.
+local loopStuckWaitDuration = 3
+
 -- An instance of a running Makeshift engine.<br>
 -- Used in the editor and the runtime.
 ---@class Engine
@@ -55,9 +58,14 @@ function engine:init(scene, active)
   if active then
     self.running = true
 
+    --Stores events that were emitted while the game stalled, to be executed once the game gets running again.
     self.pendingEvents = {}
 
     self.scriptEnvironment = self:createEnvironment()
+
+    --Counts the number of times a specific loop iterated in a single update.
+    ---@type table<string, number>
+    self.loopCounts = {}
 
     -- This coroutine is responsible for running user code, which yields in loops.
     -- This is needed in order to give back control to makeshift in case user code
@@ -121,6 +129,21 @@ function engine:openErroredCodeEditor()
   editor:showError()
 end
 
+---Figures out the Script and line which the code is currently suck on.
+function engine:parseLoopStuckCode()
+  local maxStuckLoop
+  local maxStuckLoopCount
+  for k, v in pairs(self.loopCounts) do
+    if not maxStuckLoopCount or v > maxStuckLoopCount then
+      maxStuckLoop = k
+      maxStuckLoopCount = v
+    end
+  end
+  local id, line = maxStuckLoop:match("loop (%w+) (%d+)")
+  self.loopStuckScript = project.currentProject:getResourceById(hexToUID(id)) --[[@as Script]]
+  self.loopStuckLine = tonumber(line)
+end
+
 function engine:createEnvironment()
   return {
     _yield = coroutine.yield,
@@ -151,8 +174,7 @@ function engine:tryContinueRunner(object, event, p1, p2, p3, p4)
   -- whether the initial call to `resume` was already done for this event
   local ranInitial = not object
 
-  -- TODO make this code differentiate nested loops
-  for i = 1, maxLoopYields do
+  for _ = 1, maxLoopYields do
     local success, result
     if not ranInitial then
       ranInitial = true
@@ -161,9 +183,8 @@ function engine:tryContinueRunner(object, event, p1, p2, p3, p4)
       success, result = coroutine.resume(self.codeRunner)
     end
     if success then
-      local loopLine = result:match("loop (%d+)")
-      if loopLine then
-        self.loopStuckLine = tonumber(loopLine)
+      if result:find("loop") then
+        self.loopCounts[result] = (self.loopCounts[result] or 0) + 1
       elseif result == "eventEnd" then
         stillInLoop = false
         break
@@ -183,6 +204,11 @@ function engine:tryContinueRunner(object, event, p1, p2, p3, p4)
   else
     self.loopStuckTime = nil
     self.stuckInLoop = false
+    while next(self.loopCounts) do
+      self.loopCounts[next(self.loopCounts)] = nil
+    end
+    self.loopStuckScript = nil
+    self.loopStuckLine = nil
   end
 end
 
@@ -226,15 +252,21 @@ function engine:update(dt)
   if self.stuckInLoop then
     self:tryContinueRunner()
   end
+
   while not self.stuckInLoop and #self.pendingEvents > 0 do
     self:callObjectEvent(unpack(table.remove(self.pendingEvents, 1)))
   end
+
   if not self.stuckInLoop then
     -- finally, if we're not stuck in a loop anymore, run the update event for all objects.
     for _, object in ipairs(self.objects.list) do
       -- TODO decide whether to include deltatime or not
       self:callObjectEvent(object, "update")
     end
+  end
+
+  if self.stuckInLoop and not self.loopStuckScript and love.timer.getTime() > self.loopStuckTime + loopStuckWaitDuration then
+    self:parseLoopStuckCode()
   end
 end
 

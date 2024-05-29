@@ -1,4 +1,7 @@
 local insertAll = require "util.insertAll"
+local uidToHex = require "util.uidToHex"
+
+---@alias LuaCodeOutput {string: string, line: number?, appendNewline: boolean?}[]
 
 local translateBinaryOperators = {
   ["!="] = "~=",
@@ -10,38 +13,43 @@ local translateUnaryOperators = {
   ["!"] = "not",
 }
 
+---@type table<string, fun(t: table, s: Script): LuaCodeOutput>
 local output = {}
 
-local function translate(tree)
-  return output[tree.kind](tree)
+---Returns the lua code for the given tree.
+---@param tree table
+---@param script Script
+---@return LuaCodeOutput
+local function translate(tree, script)
+  return output[tree.kind](tree, script)
 end
 
-function output.stringLiteral(tree)
+function output.stringLiteral(tree, script)
   return { { string = ("%q"):format(tree.value), line = tree.line } }
 end
 
-function output.number(tree)
+function output.number(tree, script)
   return { { string = tree.value, line = tree.line } }
 end
 
-function output.boolean(tree)
+function output.boolean(tree, script)
   return { { string = tree.value, line = tree.line } }
 end
 
-function output.identifier(tree)
+function output.identifier(tree, script)
   return { { string = tree.value, line = tree.line } }
 end
 
-function output.thisValue(tree)
+function output.thisValue(tree, script)
   return { { string = "self" } }
 end
 
-function output.objectIndex(tree)
+function output.objectIndex(tree, script)
   local result = {}
 
-  insertAll(result, translate(tree.object))
+  insertAll(result, translate(tree.object, script))
 
-  local index = translate(tree.index)
+  local index = translate(tree.index, script)
   index[1].string = "[" .. index[1].string
   insertAll(result, index)
   table.insert(result, { string = "]", line = tree.line })
@@ -49,14 +57,14 @@ function output.objectIndex(tree)
   return result
 end
 
-function output.functionCall(tree)
+function output.functionCall(tree, script)
   local result = {}
 
-  insertAll(result, translate(tree.object))
+  insertAll(result, translate(tree.object, script))
   result[#result].appendNewline = false
   table.insert(result, { string = "(", line = tree.line })
   for i, p in ipairs(tree.params) do
-    insertAll(result, translate(p))
+    insertAll(result, translate(p, script))
     if i < #tree.params then
       table.insert(result, { string = "," })
     end
@@ -66,18 +74,18 @@ function output.functionCall(tree)
   return result
 end
 
-function output.assignment(tree)
+function output.assignment(tree, script)
   local result = {}
 
-  insertAll(result, translate(tree.object))
+  insertAll(result, translate(tree.object, script))
   table.insert(result, { string = "=" })
-  insertAll(result, translate(tree.value))
+  insertAll(result, translate(tree.value, script))
 
   return result
 end
 
-function output.compoundAssignment(tree)
-  return output.assignment {
+function output.compoundAssignment(tree, script)
+  return output.assignment({
     object = tree.object,
     value = {
       kind = "binaryOperator",
@@ -86,63 +94,63 @@ function output.compoundAssignment(tree)
       rhs = tree.value,
       line = tree.line,
     }
-  }
+  }, script)
 end
 
-function output.ifStatement(tree)
+function output.ifStatement(tree, script)
   local result = {}
 
   table.insert(result, { string = "if" })
-  insertAll(result, translate(tree.condition))
+  insertAll(result, translate(tree.condition, script))
   table.insert(result, { string = "then" })
-  insertAll(result, translate(tree.body))
+  insertAll(result, translate(tree.body, script))
 
   for _, e in ipairs(tree.elseIfs) do
     table.insert(result, { string = "elseif" })
-    insertAll(result, translate(e.condition))
+    insertAll(result, translate(e.condition, script))
     table.insert(result, { string = "then" })
-    insertAll(result, translate(e.body))
+    insertAll(result, translate(e.body, script))
   end
 
   if tree.elseBody then
     table.insert(result, { string = "else" })
-    insertAll(result, translate(tree.elseBody))
+    insertAll(result, translate(tree.elseBody, script))
   end
 
   table.insert(result, { string = "end" })
   return result
 end
 
-function output.whileLoop(tree)
+function output.whileLoop(tree, script)
   local result = {}
 
   table.insert(result, { string = "while" })
-  insertAll(result, translate(tree.condition))
+  insertAll(result, translate(tree.condition, script))
   table.insert(result, { string = "do" })
-  insertAll(result, translate(tree.body))
-  table.insert(result, { string = (" _yield('loop %d') end"):format(tree.line) })
+  insertAll(result, translate(tree.body, script))
+  table.insert(result, { string = (" _yield('loop %s %d') end"):format(uidToHex(script.id), tree.line) })
 
   return result
 end
 
-function output.unaryOperator(tree)
+function output.unaryOperator(tree, script)
   local result = {}
   table.insert(result, { string = translateUnaryOperators[tree.operator] or tree.operator, line = tree.line })
-  insertAll(result, translate(tree.value))
+  insertAll(result, translate(tree.value, script))
   return result
 end
 
-function output.binaryOperator(tree)
+function output.binaryOperator(tree, script)
   local result = {}
 
-  local lhs = translate(tree.lhs)
+  local lhs = translate(tree.lhs, script)
   lhs[1].string = "(" .. lhs[1].string
   lhs[#lhs].string = lhs[#lhs].string .. ")"
   insertAll(result, lhs)
 
   table.insert(result, { string = translateBinaryOperators[tree.operator] or tree.operator, line = tree.line })
 
-  local rhs = translate(tree.rhs)
+  local rhs = translate(tree.rhs, script)
   rhs[1].string = "(" .. rhs[1].string
   rhs[#rhs].string = rhs[#rhs].string .. ")"
   insertAll(result, rhs)
@@ -150,36 +158,40 @@ function output.binaryOperator(tree)
   return result
 end
 
-function output.block(tree)
+function output.block(tree, script)
   local result = {}
   for _, s in ipairs(tree.statements) do
-    insertAll(result, translate(s))
+    insertAll(result, translate(s, script))
   end
   return result
 end
 
-function output.eventHandler(tree)
+function output.eventHandler(tree, script)
   local result = {}
   table.insert(result, { string = ("function theObject:%s(%s)"):format(tree.eventName, table.concat(tree.params, ", ")) })
-  insertAll(result, translate(tree.body))
+  insertAll(result, translate(tree.body, script))
   table.insert(result, { string = ("end") })
   return result
 end
 
-function output.objectCode(tree)
+function output.objectCode(tree, script)
   local result = {}
   table.insert(result, { string = ("local theObject = {}") })
   for _, e in ipairs(tree.eventHandlers) do
-    insertAll(result, translate(e))
+    insertAll(result, translate(e, script))
   end
   table.insert(result, { string = ("return theObject") })
   return result
 end
 
 -- returns the resulting lua code, and a source map.
-local function finalOutput(tree)
+---@param tree table
+---@param script Script
+---@return string code
+---@return table<number, number> sourceMap
+local function finalOutput(tree, script)
   local resultString = ""
-  local elements = translate(tree)
+  local elements = translate(tree, script)
   local sourceMap = {}
   local currentLine = 1
 

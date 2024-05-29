@@ -25,8 +25,14 @@ function playtest:render(x, y, w, h)
   self.engine:draw()
   lg.pop()
 
+  local stopReason
   if self.engine.errorMessage then
-    self.stopIndicator.stopReason = "error"
+    stopReason = "error"
+  elseif self.engine.loopStuckScript then
+    stopReason = "wait"
+  end
+  if stopReason then
+    self.stopIndicator.stopReason = stopReason
     self.stopIndicator:render(x + 12, y + 12, self.stopIndicator:desiredWidth(), self.stopIndicator:desiredHeight())
   end
 end
