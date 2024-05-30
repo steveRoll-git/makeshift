@@ -183,8 +183,11 @@ function engine:tryContinueRunner(object, event, p1, p2, p3, p4)
     else
       success, result = coroutine.resume(self.codeRunner)
     end
+    ---@cast result string
     if success then
-      if result:find("loop") then
+      if result:find("endloop") then
+        self.loopCounts[result:match("loop.+")] = nil
+      elseif result:find("loop") then
         self.loopCounts[result] = (self.loopCounts[result] or 0) + 1
       elseif result == "eventEnd" then
         stillInLoop = false
