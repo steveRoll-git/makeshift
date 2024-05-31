@@ -9,6 +9,8 @@ end
 ---@class StrongTypeField
 ---@field type string
 
+---@class StrongTypeInstance
+
 ---@class StrongType
 ---@field name string
 ---@field fields {[string]: StrongTypeField}
@@ -56,6 +58,9 @@ function strongType:init(name, fields)
   end
 end
 
+---Creates a new instance of this StrongType.
+---@param init table
+---@return StrongTypeInstance
 function strongType:instance(init)
   local actual = init or {}
   return setmetatable({}, {

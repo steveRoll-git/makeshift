@@ -23,8 +23,8 @@ local project = require "project"
 ---@field data ObjectData
 
 ---@class RuntimeObject: Object
----@field events table<string, function>
----@field scriptInstance table
+---@field events table<string, fun(instance: StrongTypeInstance, ...: any)>
+---@field scriptInstance StrongTypeInstance
 
 ---@class SpriteFrame
 ---@field imageData love.ImageData
@@ -76,7 +76,7 @@ function engine:init(scene, active)
         local object, event, p1, p2, p3, p4 = coroutine.yield("eventEnd")
         local f = object.events[event]
         if f then
-          f(object, p1, p2, p3, p4)
+          f(object.scriptInstance, p1, p2, p3, p4)
         end
       end
     end)
