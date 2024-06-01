@@ -12,6 +12,7 @@ local propertiesPanel = require "ui.sceneEditor.propertiesPanel"
 local popupMenu = require "ui.popupMenu"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
+local project = require "project"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -35,6 +36,7 @@ function sceneView:init(editor)
   self.engine = editor.engine
   self.gridSize = 100
   self.panX, self.panY = 0, 0
+  self.initialPanDone = false
   self.zoom = 1
   self.viewTransform = love.math.newTransform()
 end
@@ -253,6 +255,12 @@ function sceneView:resized(w, h, prevW, prevH)
 end
 
 function sceneView:render(x, y, w, h)
+  if not self.initialPanDone then
+    self.initialPanDone = true
+    self.panX = -math.floor(w / 2 - project.currentProject.windowWidth / 2)
+    self.panY = -math.floor(h / 2 - project.currentProject.windowHeight / 2)
+  end
+
   pushScissor(x, y, w, h)
   lg.push()
   lg.translate(x, y)
@@ -282,6 +290,10 @@ function sceneView:render(x, y, w, h)
       lg.line(x1, lineY, x2, lineY)
     end
   end
+
+  lg.setColor(0.2, 0.6, 1, 0.2)
+  lg.setLineWidth(2)
+  lg.rectangle("line", 0, 0, project.currentProject.windowWidth, project.currentProject.windowHeight)
 
   self.engine:draw()
 
