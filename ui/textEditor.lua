@@ -32,6 +32,7 @@ end
 ---@field cursorFlashTime number The last time value at which the cursor started flashing.
 ---@field cursorWidth number The line width of the cursor.
 ---@field multiline boolean Whether this editor allows inserting newlines in text.
+---@field preserveIndents boolean Whether to preserve indents when pressing enter.
 ---@field selecting boolean Whether a selection is currently active.
 ---@field selectionStart TextPosition The position where the selection starts.
 ---@field centerHorizontally boolean Whether to center the text horizontally inside the view. Currently works only on one line.
@@ -132,17 +133,24 @@ function textEditor:newLine()
     self:deleteSelection()
   end
 
-  local newString = self:curString():sub(self.cursor.col)
+  local orig = self:curString()
+  local newString = orig:sub(self.cursor.col)
+  local newCursorColumn = 1
   local line = {
     string = newString,
-    text = lg.newText(self.font, newString)
+    text = lg.newText(self.font)
   }
+  if self.preserveIndents then
+    local indent = orig:match("^(%s*)")
+    line.string = indent .. line.string
+    newCursorColumn = #indent + 1
+  end
   table.insert(self.lines, self.cursor.line + 1, line)
   self.lines[self.cursor.line].string = self:curString():sub(1, self.cursor.col - 1)
   self.cursor.line = self.cursor.line + 1
   self:updateLine(self.cursor.line - 1)
   self:updateCurLine()
-  self.cursor.col = 1
+  self.cursor.col = newCursorColumn
   self.cursor.lastCol = self.cursor.col
 end
 
