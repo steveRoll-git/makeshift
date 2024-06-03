@@ -393,7 +393,7 @@ function love.mousereleased(x, y, btn)
 end
 
 function love.wheelmoved(x, y)
-  uiScene:wheelMoved(x, y)
+  uiScene:raiseMouseEvent("wheelMoved", x, y)
 end
 
 function love.keypressed(key)
