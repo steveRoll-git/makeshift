@@ -33,6 +33,7 @@ end
 ---@field cursorWidth number The line width of the cursor.
 ---@field multiline boolean Whether this editor allows inserting newlines in text.
 ---@field preserveIndents boolean Whether to preserve indents when pressing enter.
+---@field indentSize number? The number of spaces to insert when indenting.
 ---@field selecting boolean Whether a selection is currently active.
 ---@field selectionStart TextPosition The position where the selection starts.
 ---@field centerHorizontally boolean Whether to center the text horizontally inside the view. Currently works only on one line.
@@ -179,6 +180,23 @@ function textEditor:deleteSelection()
     self.cursor.col, self.cursor.line = firstEdge.col, firstEdge.line
   end
   self.selecting = false
+end
+
+---Changes the indentation on line `i` - add indentation if `direction` is 1, or unindent if it's -1.
+---@param i number
+---@param direction 1 | -1
+function textEditor:changeLineIndent(i, direction)
+  local line = self.lines[i]
+  local indent, rest = line.string:match("^(%s*)(.*)")
+  local newIndent = (" "):rep((math.floor(#indent / self.indentSize) + direction) * self.indentSize)
+  line.string = newIndent .. rest
+  self:updateLine(i)
+  if self.cursor.line == i then
+    self.cursor.col = self.cursor.col - (#indent - #newIndent)
+  end
+  if self.selectionStart.line == i then
+    self.selectionStart.col = self.selectionStart.col - (#indent - #newIndent)
+  end
 end
 
 ---Cuts the selected text into the system clipboard.
@@ -329,6 +347,7 @@ end
 
 function textEditor:keyPressed(key)
   local ctrlDown = love.keyboard.isDown("lctrl", "rctrl")
+  local shiftDown = love.keyboard.isDown("lshift", "rshift")
   local prevLine, prevCol = self.cursor.line, self.cursor.col
   local cursorMoved = false
 
@@ -428,6 +447,20 @@ function textEditor:keyPressed(key)
       self.lines[self.cursor.line].string = self:curString() .. deletedLine.string
       self:updateCurLine()
     end
+  elseif key == "tab" and self.indentSize then
+    local fromLine = self.selecting and self:selectionFirstEdge().line or self.cursor.line
+    local toLine = self.selecting and self:selectionLastEdge().line or self.cursor.line
+    if shiftDown then
+      for i = fromLine, toLine do
+        self:changeLineIndent(i, -1)
+      end
+    elseif self.selecting then
+      for i = fromLine, toLine do
+        self:changeLineIndent(i, 1)
+      end
+    else
+      self:insertText((" "):rep(self.indentSize - (self.cursor.col - 1) % self.indentSize))
+    end
   elseif ctrlDown then
     if key == "x" then
       self:cut()
@@ -441,7 +474,7 @@ function textEditor:keyPressed(key)
   end
 
   if cursorMoved then
-    if love.keyboard.isDown("lshift", "rshift") then
+    if shiftDown then
       if not self.selecting then
         self.selecting = true
         self.selectionStart.line = prevLine

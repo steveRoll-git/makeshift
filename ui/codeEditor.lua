@@ -37,6 +37,7 @@ function codeEditor:init(script)
   self.textEditor.font = font
   self.textEditor.multiline = true
   self.textEditor.preserveIndents = true
+  self.textEditor.indentSize = 2
   self.textEditor:setText(script.code)
 
   self.scrollbarY = scrollbar()
