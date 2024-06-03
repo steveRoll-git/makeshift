@@ -142,7 +142,7 @@ function project:compileScripts()
       for _, obj in ipairs(r.objects) do
         local script = obj.data.script
         if #script.code > 0 then
-          local p = parser.new(script.code)
+          local p = parser.new(script.code, script)
           local ast = p:parseObjectCode()
           if #p.errorStack > 0 then
             table.insert(errors, p.errorStack[1])

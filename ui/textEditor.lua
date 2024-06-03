@@ -39,6 +39,7 @@ end
 ---@field preserveIndents boolean Whether to preserve indents when pressing enter.
 ---@field indentSize number? The number of spaces to insert when indenting.
 ---@field syntaxHighlighting {colors: table<string, number[]>, styles: SyntaxStylesTable}? Syntax highlighting to color text with.
+---@field onTextChanged function?
 ---@field selecting boolean Whether a selection is currently active.
 ---@field selectionStart TextPosition The position where the selection starts.
 ---@field centerHorizontally boolean Whether to center the text horizontally inside the view. Currently works only on one line.
@@ -93,6 +94,7 @@ function textEditor:setText(text)
     self:updateLine(current)
     current = current + 1
   end
+  self._textChanged = true
 end
 
 ---Inserts `text` into where the cursor is.
@@ -130,7 +132,7 @@ function textEditor:insertText(text)
     self.cursor.lastCol = self.cursor.col
   end
 
-  self:flashCursor()
+  self._textChanged = true
 end
 
 ---Inserts a newline into where the cursor is.
@@ -158,6 +160,8 @@ function textEditor:newLine()
   self:updateCurLine()
   self.cursor.col = newCursorColumn
   self.cursor.lastCol = self.cursor.col
+
+  self._textChanged = true
 end
 
 ---Delete the currently selected text.
@@ -185,6 +189,7 @@ function textEditor:deleteSelection()
     self.cursor.col, self.cursor.line = firstEdge.col, firstEdge.line
   end
   self.selecting = false
+  self._textChanged = true
 end
 
 ---Changes the indentation on line `i` - add indentation if `direction` is 1, or unindent if it's -1.
@@ -202,6 +207,7 @@ function textEditor:changeLineIndent(i, direction)
   if self.selectionStart.line == i then
     self.selectionStart.col = self.selectionStart.col - (#indent - #newIndent)
   end
+  self._textChanged = true
 end
 
 ---Cuts the selected text into the system clipboard.
@@ -390,7 +396,16 @@ function textEditor:jumpToLine(line)
   self.cursor.line = line
 end
 
+---Calls the `onTextChanged` function if it exists.
+function textEditor:callTextChanged()
+  if self.onTextChanged then
+    self.onTextChanged()
+  end
+end
+
 function textEditor:keyPressed(key)
+  self._textChanged = false
+
   local ctrlDown = love.keyboard.isDown("lctrl", "rctrl")
   local shiftDown = love.keyboard.isDown("lshift", "rshift")
   local prevLine, prevCol = self.cursor.line, self.cursor.col
@@ -470,6 +485,7 @@ function textEditor:keyPressed(key)
           self:curString():sub(self.cursor.col)
       self:updateCurLine()
       self.cursor.col = self.cursor.col - 1
+      self._textChanged = true
     elseif self.cursor.line > 1 then
       local deletedLine = table.remove(self.lines, self.cursor.line)
       deletedLine.text:release()
@@ -477,6 +493,7 @@ function textEditor:keyPressed(key)
       self.cursor.col = #self:curString() + 1
       self.lines[self.cursor.line].string = self:curString() .. deletedLine.string
       self:updateCurLine()
+      self._textChanged = true
     end
   elseif key == "delete" then
     if self.selecting then
@@ -486,11 +503,13 @@ function textEditor:keyPressed(key)
           self:curString():sub(1, self.cursor.col - 1) ..
           self:curString():sub(self.cursor.col + 1)
       self:updateCurLine()
+      self._textChanged = true
     elseif self.cursor.line < #self.lines then
       local deletedLine = table.remove(self.lines, self.cursor.line + 1)
       deletedLine.text:release()
       self.lines[self.cursor.line].string = self:curString() .. deletedLine.string
       self:updateCurLine()
+      self._textChanged = true
     end
   elseif key == "tab" and self.indentSize then
     local fromLine = self.selecting and self:selectionFirstEdge().line or self.cursor.line
@@ -531,10 +550,14 @@ function textEditor:keyPressed(key)
   end
 
   self:flashCursor()
+  if self._textChanged then
+    self:callTextChanged()
+  end
 end
 
 function textEditor:textInput(text)
   self:insertText(text)
+  self:callTextChanged()
 end
 
 function textEditor:mousePressed(button)
@@ -555,6 +578,7 @@ function textEditor:mousePressed(button)
         text = "Cut",
         action = function()
           self:cut()
+          self:callTextChanged()
         end
       },
       {
@@ -567,6 +591,7 @@ function textEditor:mousePressed(button)
         text = "Paste",
         action = function()
           self:paste()
+          self:callTextChanged()
         end
       },
       "separator",

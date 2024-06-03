@@ -15,6 +15,7 @@ local groupPunctuation = lookupify {
 ---| "string"
 ---| "keyword"
 ---| "identifier"
+---| "singleComment"
 
 ---@class Token
 ---@field kind TokenKind
@@ -24,6 +25,7 @@ local groupPunctuation = lookupify {
 
 ---@class SyntaxError
 ---@field error true
+---@field source Script
 ---@field fromLine number
 ---@field fromColumn number
 ---@field toLine number
@@ -35,18 +37,18 @@ local lexer = {}
 lexer.__index = lexer
 
 ---@param code string
----@param sourceName? string
-function lexer.new(code, sourceName)
+---@param sourceScript? Script
+function lexer.new(code, sourceScript)
   local self = setmetatable({}, lexer)
-  self:init(code, sourceName)
+  self:init(code, sourceScript)
   return self
 end
 
 ---@param code string
----@param sourceName? string
-function lexer:init(code, sourceName)
+---@param sourceScript? Script
+function lexer:init(code, sourceScript)
   self.code = code
-  self.sourceName = sourceName
+  self.sourceScript = sourceScript
   self.index = 1
   self.column = 1
   self.line = 1
@@ -210,6 +212,7 @@ function lexer:syntaxError(message)
   ---@type SyntaxError
   local err = {
     error = true,
+    source = self.sourceScript,
     fromLine = self.prevLine,
     fromColumn = self.prevColumn,
     toLine = toLine,

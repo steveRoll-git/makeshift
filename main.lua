@@ -299,7 +299,8 @@ local function runPlaytest()
 
   local success, errors = project.currentProject:compileScripts()
   if not success then
-    --TODO show errors in code editor
+    local editor = OpenResourceTab(errors[1].source) --[[@as CodeEditor]]
+    editor:checkSyntax()
     return
   end
 

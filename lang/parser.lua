@@ -39,16 +39,21 @@ end
 local parser = {}
 parser.__index = parser
 
-function parser.new(code)
+---@param code string
+---@param sourceScript Script
+---@return Parser
+function parser.new(code, sourceScript)
   local self = setmetatable({}, parser)
-  self.lexer = lexer.new(code)
+  self.lexer = lexer.new(code, sourceScript)
   self.errorStack = self.lexer.errorStack
   self:nextToken()
   return self
 end
 
 function parser:nextToken()
-  self.token = self.lexer:nextToken()
+  repeat
+    self.token = self.lexer:nextToken()
+  until self.token.kind ~= "singleComment"
 end
 
 ---If the current token is of the same `kind` (and `value` if provided) -

@@ -10,6 +10,8 @@ local clamp = require "util.clamp"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
 local errorBubble = require "ui.errorBubble"
+local parser = require "lang.parser"
+local syntaxErrorBar = require "ui.syntaxErrorBar"
 
 local font = fonts("SourceCodePro-Regular.ttf", 16)
 
@@ -19,6 +21,9 @@ local gradientTop = lg.newMesh({
   { 1, 1, 0, 0, 1, 1, 1, 0 },
   { 0, 1, 0, 0, 1, 1, 1, 0 },
 })
+
+-- How many seconds to wait after typing before checking syntax.
+local syntaxCheckDelay = 0.5
 
 ---@class CodeEditor: ResourceEditor
 ---@operator call:CodeEditor
@@ -37,6 +42,11 @@ function codeEditor:init(script)
     styles = require "syntaxLanguages.makeshiftLang"
   }
   self.textEditor:setText(script.code)
+  self.lastTypeTime = love.timer.getTime()
+  self.textEditor.onTextChanged = function()
+    self.checkedSyntax = false
+    self.lastTypeTime = love.timer.getTime()
+  end
 
   self.scrollbarY = scrollbar()
   self.scrollbarY.direction = "y"
@@ -72,6 +82,26 @@ function codeEditor:showError()
   self.textEditor:jumpToLine(RunningPlaytest.engine.errorLine)
 end
 
+function codeEditor:clearSyntaxError()
+  self.syntaxError = nil
+  self.syntaxErrorBar = nil
+end
+
+function codeEditor:checkSyntax()
+  self:clearSyntaxError()
+
+  self:saveResource()
+  local p = parser.new(self.script.code, self.script)
+  local ast = p:parseObjectCode()
+  if #p.errorStack > 0 then
+    self.syntaxError = p.errorStack[1]
+    self.syntaxErrorBar = syntaxErrorBar()
+    self.syntaxErrorBar.error = self.syntaxError
+  end
+
+  self.checkedSyntax = true
+end
+
 ---Converts a line number to its pixel Y position.
 ---@param line number
 ---@return number
@@ -81,6 +111,7 @@ end
 
 function codeEditor:playtestStarted()
   self.errorBubble = nil
+  self:checkSyntax()
 end
 
 function codeEditor:keyPressed(key)
@@ -96,6 +127,13 @@ function codeEditor:wheelMoved(x, y)
 end
 
 function codeEditor:render(x, y, w, h)
+  if not self.checkedSyntax and love.timer.getTime() >= self.lastTypeTime + syntaxCheckDelay then
+    self:checkSyntax()
+  end
+
+  lg.setColor(hexToColor(0x1f1f1f))
+  lg.rectangle("fill", x, y, w, h)
+
   pushScissor(x, y, w, h)
 
   if RunningPlaytest and RunningPlaytest.engine.errorScript == self.script then
@@ -143,6 +181,10 @@ function codeEditor:render(x, y, w, h)
     popScissor()
   end
 
+  if self.syntaxError then
+    h = h - self.syntaxErrorBar:desiredHeight()
+  end
+
   self.textEditor:render(x + self.leftColumnWidth, y, w - self.leftColumnWidth - self.scrollbarY:desiredWidth(), h)
 
   for i = 1, #self.textEditor.lines do
@@ -163,6 +205,10 @@ function codeEditor:render(x, y, w, h)
       self.errorBubble:desiredWidth(),
       self.errorBubble:desiredHeight()
     )
+  end
+
+  if self.syntaxError then
+    self.syntaxErrorBar:render(x, y + h, w, self.syntaxErrorBar:desiredHeight())
   end
 
   if self.scrollbarY.contentSize() > self.scrollbarY.viewSize() then
