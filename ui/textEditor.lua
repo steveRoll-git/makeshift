@@ -345,18 +345,19 @@ function textEditor:contentHeight()
 end
 
 ---Takes a text position (line and column) and returns a pixel position based on the current font.
----@param pos TextPosition
+---@param line number
+---@param column number
 ---@return number x, number y
-function textEditor:textToScreenPos(pos)
+function textEditor:textToScreenPos(line, column)
   return
-      self.font:getWidth(self.lines[pos.line].string:sub(1, pos.col - 1)) + 1,
-      (pos.line - 1) * self.font:getHeight()
+      self.font:getWidth(self.lines[line].string:sub(1, column - 1)) + 1 + self:actualOffsetX(),
+      (line - 1) * self.font:getHeight() + self:actualOffsetY()
 end
 
 ---Returns the screen position of the cursor.
 ---@return number x, number y
 function textEditor:screenCursorPosition()
-  return self:textToScreenPos(self.cursor)
+  return self:textToScreenPos(self.cursor.line, self.cursor.col)
 end
 
 ---Takes a screen position and returns the closest text position to it.
@@ -648,15 +649,17 @@ function textEditor:render(x, y, w, h)
     lg.draw(line.text, 0, lineY)
   end
 
+  lg.pop()
+
   if math.floor(love.timer.getTime() * self.cursorFlashSpeed - self.cursorFlashTime) % 2 == 0 then
     lg.setColor(1, 1, 1)
     lg.setLineStyle("rough")
     lg.setLineWidth(self.cursorWidth)
     local dx, dy = self:screenCursorPosition()
+    dx = dx + x
+    dy = dy + y
     lg.line(dx, dy, dx, dy + self.font:getHeight())
   end
-
-  lg.pop()
 end
 
 return textEditor

@@ -12,6 +12,7 @@ local popScissor = require "util.scissorStack".popScissor
 local errorBubble = require "ui.errorBubble"
 local parser = require "lang.parser"
 local syntaxErrorBar = require "ui.syntaxErrorBar"
+local images = require "images"
 
 local font = fonts("SourceCodePro-Regular.ttf", 16)
 
@@ -21,6 +22,9 @@ local gradientTop = lg.newMesh({
   { 1, 1, 0, 0, 1, 1, 1, 0 },
   { 0, 1, 0, 0, 1, 1, 1, 0 },
 })
+
+local squiggleImage = images["squiggleUnderline.png"]
+squiggleImage:setWrap("repeat", "clamp")
 
 -- How many seconds to wait after typing before checking syntax.
 local syntaxCheckDelay = 0.5
@@ -107,6 +111,27 @@ end
 ---@return number
 function codeEditor:lineToY(line)
   return (line - 1) * font:getHeight() + self.textEditor:actualOffsetY()
+end
+
+local squiggleQuad = lg.newQuad(0, 0, 0, 0, 0, 0)
+
+---@param fromLine number
+---@param fromCol number
+---@param toLine number
+---@param toCol number
+function codeEditor:drawSquiggle(fromLine, fromCol, toLine, toCol)
+  local x1, y1 = self.textEditor:textToScreenPos(fromLine, fromCol)
+  local x2, y2 = self.textEditor:textToScreenPos(toLine, toCol)
+  y1 = y1 + self.textEditor.font:getBaseline()
+  y2 = y2 + self.textEditor.font:getBaseline()
+  squiggleQuad:setViewport(
+    0,
+    0,
+    math.max(x2 - x1, self.textEditor.font:getWidth(" ")),
+    squiggleImage:getHeight(),
+    squiggleImage:getDimensions()
+  )
+  lg.draw(squiggleImage, squiggleQuad, x1, y1)
 end
 
 function codeEditor:playtestStarted()
@@ -209,6 +234,17 @@ function codeEditor:render(x, y, w, h)
 
   if self.syntaxError then
     self.syntaxErrorBar:render(x, y + h, w, self.syntaxErrorBar:desiredHeight())
+
+    lg.setColor(0.8, 0, 0)
+    lg.push()
+    lg.translate(x + self.leftColumnWidth, y)
+    self:drawSquiggle(
+      self.syntaxError.fromLine,
+      self.syntaxError.fromColumn,
+      self.syntaxError.toLine,
+      self.syntaxError.toColumn
+    )
+    lg.pop()
   end
 
   if self.scrollbarY.contentSize() > self.scrollbarY.viewSize() then
