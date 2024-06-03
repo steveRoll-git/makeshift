@@ -276,9 +276,7 @@ end
 ---@return number y
 function spriteEditor:mouseImageCoords()
   local mx, my = self:getRelativeMouse()
-  if not self.embedded then
-    my = my - self.topToolbar:desiredHeight()
-  end
+  my = my - self.topToolbar:desiredHeight()
   local ix, iy = self.viewTransform:inverseTransformPoint(mx, my)
   return math.floor(ix), math.floor(iy)
 end
@@ -523,11 +521,9 @@ end
 function spriteEditor:render(x, y, w, h)
   self:updateViewTransform()
 
-  if not self.embedded then
-    self.topToolbar:render(x, y, w, topToolbar:desiredHeight())
-    y = y + self.topToolbar:desiredHeight()
-    h = h - self.topToolbar:desiredHeight()
-  end
+  self.topToolbar:render(x, y, w, topToolbar:desiredHeight())
+  y = y + self.topToolbar:desiredHeight()
+  h = h - self.topToolbar:desiredHeight()
 
   pushScissor(x, y, w, h)
   lg.push()

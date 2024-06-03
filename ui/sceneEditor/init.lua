@@ -372,18 +372,15 @@ function sceneEditor:keyPressed(key)
 end
 
 function sceneEditor:render(x, y, w, h)
-  local toolbar = self.toolbar
-  if self.sceneView.spriteEditor then
-    toolbar = self.sceneView.spriteEditor.topToolbar
-  end
-  local toolbarH = toolbar:desiredHeight()
+  local toolbarH = self.toolbar:desiredHeight()
 
   self.sceneView:render(x, y + toolbarH, w, h - toolbarH)
-  if self.sceneView.spriteEditor then
-    self.sceneView.spriteEditor:render(x, y + toolbarH, w, h - toolbarH)
-  end
 
-  toolbar:render(x, y, w, toolbarH)
+  if self.sceneView.spriteEditor then
+    self.sceneView.spriteEditor:render(x, y, w, h)
+  else
+    self.toolbar:render(x, y, w, toolbarH)
+  end
 
   if not self.sceneView.spriteEditor then
     local sliderW, sliderH = self.zoomSlider:desiredWidth() + 6, self.zoomSlider:desiredHeight() + 3
