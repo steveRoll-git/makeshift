@@ -21,7 +21,7 @@ end
 ---@alias TextPosition {line: number, col: number}
 
 ---@class SyntaxStylesTable
----@field patternStyles [string, string][] A list of {word, style} tuples.
+---@field patternStyles {[1]: string, [2]: string, word: boolean?}[] A list of {pattern, style} tuples.
 ---@field multilineStyles [string, string, string][] A list of {startString, endString, style} tuples, for styles that can start and end on different lines.
 
 ---The base for all text editing related elements.
@@ -269,13 +269,18 @@ function textEditor:updateLine(i)
     l.text:clear()
     local coloredText = {}
     local addedIndex = 0
-    while addedIndex < #l.string do
+    while addedIndex < #l.string + 1 do
       local matchIndex
       local matchString
       local matchStyle
+      -- for every pattern style, we find the one closest to `addedIndex`.
       for _, pair in ipairs(self.syntaxHighlighting.styles.patternStyles) do
         local startIndex, endIndex = l.string:find(pair[1], addedIndex)
-        if startIndex and (not matchIndex or startIndex < matchIndex) then
+        if startIndex and
+            (not matchIndex or startIndex < matchIndex) and
+            (not pair.word or -- if the `word` flag is true, we check that the capture isn't sorrounded by alphanumeric characters.
+              not l.string:sub(startIndex - 1, startIndex - 1):match("%w") and
+              not l.string:sub(endIndex + 1, endIndex + 1):match("%w")) then
           matchIndex = startIndex
           matchString = l.string:sub(startIndex, endIndex)
           matchStyle = pair[2]

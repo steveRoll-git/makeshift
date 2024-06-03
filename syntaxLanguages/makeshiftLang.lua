@@ -1,21 +1,21 @@
 ---@type SyntaxStylesTable
 local style = {
   patternStyles = {
-    { "//.*$",    "comment" },
+    { "//.*$",     "comment" },
 
-    { '".*"',     "string" },
+    { '".*"',      "string" },
 
-    { "%d%.?%d*", "number" },
+    { "%d+%.?%d*", "number",   word = true },
 
-    { "while",    "keyword" },
-    { "if",       "keyword" },
-    { "else",     "keyword" },
-    { "elseif",   "keyword" },
-    { "on",       "keyword" },
+    { "while",     "keyword",  word = true },
+    { "if",        "keyword",  word = true },
+    { "else",      "keyword",  word = true },
+    { "elseif",    "keyword",  word = true },
+    { "on",        "keyword",  word = true },
 
-    { "true",     "constant" },
-    { "false",    "constant" },
-    { "this",     "constant" },
+    { "true",      "constant", word = true },
+    { "false",     "constant", word = true },
+    { "this",      "constant", word = true },
   },
   multilineStyles = {}
 }
