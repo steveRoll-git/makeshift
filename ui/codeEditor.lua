@@ -19,12 +19,6 @@ local gradientTop = lg.newMesh({
   { 1, 1, 0, 0, 1, 1, 1, 0 },
   { 0, 1, 0, 0, 1, 1, 1, 0 },
 })
-local gradientBottom = lg.newMesh({
-  { 0, 0, 0, 0, 1, 1, 1, 0 },
-  { 1, 0, 0, 0, 1, 1, 1, 0 },
-  { 1, 1, 0, 0, 1, 1, 1, 1 },
-  { 0, 1, 0, 0, 1, 1, 1, 1 },
-})
 
 ---@class CodeEditor: ResourceEditor
 ---@operator call:CodeEditor
@@ -38,6 +32,10 @@ function codeEditor:init(script)
   self.textEditor.multiline = true
   self.textEditor.preserveIndents = true
   self.textEditor.indentSize = 2
+  self.textEditor.syntaxHighlighting = {
+    colors = require "syntaxThemes.dark",
+    styles = require "syntaxLanguages.makeshiftLang"
+  }
   self.textEditor:setText(script.code)
 
   self.scrollbarY = scrollbar()

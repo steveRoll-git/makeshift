@@ -20,6 +20,10 @@ end
 
 ---@alias TextPosition {line: number, col: number}
 
+---@class SyntaxStylesTable
+---@field patternStyles [string, string][] A list of {word, style} tuples.
+---@field multilineStyles [string, string, string][] A list of {startString, endString, style} tuples, for styles that can start and end on different lines.
+
 ---The base for all text editing related elements.
 ---@class TextEditor: Zap.ElementClass
 ---@field font love.Font The font to use when displaying the text.
@@ -34,6 +38,7 @@ end
 ---@field multiline boolean Whether this editor allows inserting newlines in text.
 ---@field preserveIndents boolean Whether to preserve indents when pressing enter.
 ---@field indentSize number? The number of spaces to insert when indenting.
+---@field syntaxHighlighting {colors: table<string, number[]>, styles: SyntaxStylesTable}? Syntax highlighting to color text with.
 ---@field selecting boolean Whether a selection is currently active.
 ---@field selectionStart TextPosition The position where the selection starts.
 ---@field centerHorizontally boolean Whether to center the text horizontally inside the view. Currently works only on one line.
@@ -260,8 +265,43 @@ end
 ---@param i number
 function textEditor:updateLine(i)
   local l = self.lines[i]
-  l.text:set(l.string)
-  l.width = l.text:getWidth()
+  if self.syntaxHighlighting then
+    l.text:clear()
+    local coloredText = {}
+    local addedIndex = 0
+    while addedIndex < #l.string do
+      local matchIndex
+      local matchString
+      local matchStyle
+      for _, pair in ipairs(self.syntaxHighlighting.styles.patternStyles) do
+        local startIndex, endIndex = l.string:find(pair[1], addedIndex)
+        if startIndex and (not matchIndex or startIndex < matchIndex) then
+          matchIndex = startIndex
+          matchString = l.string:sub(startIndex, endIndex)
+          matchStyle = pair[2]
+        end
+      end
+      if not matchIndex then
+        table.insert(coloredText, self.syntaxHighlighting.colors.default)
+        table.insert(coloredText, l.string:sub(addedIndex))
+        break
+      end
+      if matchIndex > addedIndex then
+        table.insert(coloredText, self.syntaxHighlighting.colors.default)
+        table.insert(coloredText, l.string:sub(addedIndex, matchIndex - 1))
+        addedIndex = matchIndex
+      end
+      if matchIndex == addedIndex then
+        table.insert(coloredText, self.syntaxHighlighting.colors[matchStyle])
+        table.insert(coloredText, matchString)
+        addedIndex = addedIndex + #matchString
+      end
+    end
+    l.text:add(coloredText)
+  else
+    l.text:set(l.string)
+  end
+  l.width = self.font:getWidth(l.string)
 end
 
 ---Updates the line the cursor is currently on.
