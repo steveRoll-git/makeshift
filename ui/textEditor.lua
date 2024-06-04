@@ -18,7 +18,12 @@ local function comparePositions(a, b)
   end
 end
 
----@alias TextPosition {line: number, col: number}
+---@class TextPosition
+---@field line number
+---@field col number
+
+---@class TextCursor: TextPosition
+---@field lastCol number The last column the cursor was moved to, for more consistency when moving up or down.
 
 ---@class SyntaxStylesTable
 ---@field patternStyles {[1]: string, [2]: string, word: boolean?}[] A list of {pattern, style} tuples.
@@ -28,7 +33,7 @@ end
 ---@class TextEditor: Zap.ElementClass
 ---@field font love.Font The font to use when displaying the text.
 ---@field lines {string: string, text: love.Text, width: number}[] A list of all the lines in the textEditor. Do not modify this externally.
----@field cursor TextPosition The current position of the cursor in the text.
+---@field cursor TextCursor The current position of the cursor in the text.
 ---@field padding number The amount of padding to add in pixels.
 ---@field offsetX number Offset along the X axis, for both drawing and mouse handling.
 ---@field offsetY number Offset along the Y axis, for both drawing and mouse handling.
@@ -445,10 +450,7 @@ function textEditor:keyPressed(key)
       end
     else
       self.cursor.line = self.cursor.line - 1
-      self.cursor.col = self.cursor.lastCol
-      if self.cursor.col > #self:curString() + 1 then
-        self.cursor.col = #self:curString() + 1
-      end
+      self.cursor.col = clamp(self.cursor.lastCol, 1, #self:curString() + 1)
     end
     cursorMoved = true
   elseif key == "down" then
@@ -457,10 +459,7 @@ function textEditor:keyPressed(key)
       self.cursor.lastCol = self.cursor.col
     else
       self.cursor.line = self.cursor.line + 1
-      self.cursor.col = self.cursor.lastCol
-      if self.cursor.col > #self:curString() + 1 then
-        self.cursor.col = #self:curString() + 1
-      end
+      self.cursor.col = clamp(self.cursor.lastCol, 1, #self:curString() + 1)
     end
     cursorMoved = true
   elseif key == "home" then
@@ -497,6 +496,7 @@ function textEditor:keyPressed(key)
       self:updateCurLine()
       self._textChanged = true
     end
+    self.cursor.lastCol = self.cursor.col
   elseif key == "delete" then
     if self.selecting then
       self:deleteSelection()
@@ -565,6 +565,7 @@ end
 function textEditor:mousePressed(button)
   if button == 1 then
     self.cursor.line, self.cursor.col = self:screenToTextPos(self:getRelativeMouse())
+    self.cursor.lastCol = self.cursor.col
     if love.keyboard.isDown("lshift", "rshift") then
       self.selecting = true
     else
