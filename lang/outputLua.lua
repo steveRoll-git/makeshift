@@ -139,6 +139,18 @@ function output.whileLoop(tree, script)
   return result
 end
 
+function output.localVariableDeclaration(tree, script)
+  local result = {}
+
+  table.insert(result, { string = ("local %s"):format(tree.name) })
+  if tree.value then
+    table.insert(result, { string = "=" })
+    insertAll(result, translate(tree.value, script))
+  end
+
+  return result
+end
+
 function output.unaryOperator(tree, script)
   local result = {}
   table.insert(result, { string = translateUnaryOperators[tree.operator] or tree.operator, line = tree.line })

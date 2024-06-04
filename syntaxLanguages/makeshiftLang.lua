@@ -7,6 +7,7 @@ local style = {
 
     { "%d+%.?%d*", "number",   word = true },
 
+    { "var",       "keyword",  word = true },
     { "while",     "keyword",  word = true },
     { "if",        "keyword",  word = true },
     { "else",      "keyword",  word = true },
