@@ -136,7 +136,8 @@ function textEditor:insertText(text)
 end
 
 ---Inserts a newline into where the cursor is.
-function textEditor:newLine()
+---@param preserveIndents boolean?
+function textEditor:newLine(preserveIndents)
   if self.selecting then
     self:deleteSelection()
   end
@@ -148,7 +149,7 @@ function textEditor:newLine()
     string = newString,
     text = lg.newText(self.font)
   }
-  if self.preserveIndents then
+  if self.preserveIndents and preserveIndents then
     local indent = orig:match("^(%s*)")
     line.string = indent .. line.string
     newCursorColumn = #indent + 1
@@ -476,7 +477,7 @@ function textEditor:keyPressed(key)
     self.cursor.lastCol = self.cursor.col
     cursorMoved = true
   elseif (key == "return" or key == "kpenter") and self.multiline then
-    self:newLine()
+    self:newLine(true)
   elseif key == "backspace" then
     if self.selecting then
       self:deleteSelection()
