@@ -367,7 +367,7 @@ function love.mousemoved(x, y, dx, dy)
 end
 
 function love.mousepressed(x, y, btn)
-  uiScene:mousePressed(btn, beforeMousePress)
+  uiScene:pressMouse(btn, beforeMousePress)
   local pressedElement = uiScene:getPressedElement()
 
   if btn == lastPressButton and
@@ -389,7 +389,7 @@ function love.mousepressed(x, y, btn)
 end
 
 function love.mousereleased(x, y, btn)
-  uiScene:mouseReleased(btn)
+  uiScene:releaseMouse(btn)
 end
 
 function love.wheelmoved(x, y)
