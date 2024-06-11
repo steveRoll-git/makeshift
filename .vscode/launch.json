@@ -9,9 +9,10 @@
                 "command": "love"
             },
             "args": [
-                "./src",
+                ".",
                 "debug"
             ],
+            "cwd": "${workspaceFolder}/src",
         },
         {
             "type": "lua-local",
@@ -21,8 +22,9 @@
                 "command": "love"
             },
             "args": [
-                "./src",
+                ".",
             ],
+            "cwd": "${workspaceFolder}/src",
         },
     ]
 }
