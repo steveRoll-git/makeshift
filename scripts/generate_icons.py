@@ -20,7 +20,7 @@ def generate_icons():
 
     os.makedirs(os.path.dirname(OUTPUT_ICON_FILE), exist_ok=True)
 
-    icon("add_box", 24)
+    icon("object_add", 24)
     icon("arrow_back", 24)
     icon("brush", 24)
     icon("bucket", 48)
