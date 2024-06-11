@@ -1,7 +1,6 @@
 local love = love
 local lg = love.graphics
 
-local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local tab = require "ui.tabView.tab"
 
@@ -127,7 +126,7 @@ function tabView:render(x, y, w, h)
   if self.activeTab then
     self:renderTab(self.activeTab, x, y)
     self.activeTab.content:render(x, y + self:tabBarHeight(), w, h - self:tabBarHeight())
-    lg.setColor(hexToColor(0x2b2b2b))
+    lg.setColor(CurrentTheme.outline)
     lg.setLineStyle("rough")
     lg.setLineWidth(1)
     local ax, _, aw, _ = self.activeTab:getView()

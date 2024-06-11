@@ -28,18 +28,18 @@ end
 
 function treeViewItem:render(x, y, w, h)
   if self:isHovered() then
-    lg.setColor(1, 1, 1, 0.1)
+    lg.setColor(CurrentTheme.elementHovered)
     lg.rectangle("fill", x, y, w, h)
   end
   local textX = x + 3
   if self.icon then
-    lg.setColor(1, 1, 1)
+    lg.setColor(CurrentTheme.foregroundActive)
     lg.draw(self.icon, x, y + h / 2 - self.icon:getHeight() / 2)
     textX = textX + self.icon:getWidth()
   end
   local font = self.font or lg.getFont()
   lg.setFont(font)
-  lg.setColor(1, 1, 1)
+  lg.setColor(CurrentTheme.foregroundActive)
   lg.print(self.text, textX, y + h / 2 - font:getHeight() / 2)
 end
 

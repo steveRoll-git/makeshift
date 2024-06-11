@@ -18,6 +18,8 @@ love.window.maximize()
 
 love.keyboard.setKeyRepeat(true)
 
+CurrentTheme = require "themes.defaultDark"
+
 local zap = require "lib.zap.zap"
 local treeView = require "ui.treeView"
 local sceneEditor = require "ui.sceneEditor"

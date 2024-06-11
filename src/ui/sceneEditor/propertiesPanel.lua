@@ -2,7 +2,6 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local hexToColor = require "util.hexToColor"
 local images = require "images"
 local fonts = require "fonts"
 local viewTools = require "util.viewTools"
@@ -36,11 +35,11 @@ function propertiesPanel:setObject(obj)
 end
 
 function propertiesPanel:render(x, y, w, h)
-  lg.setColor(hexToColor(0x2b2b2b))
+  lg.setColor(CurrentTheme.backgroundBright)
   lg.rectangle("fill", x, y, w, h, 4)
 
   x, y, w, h = viewTools.padding(x, y, w, h, 7)
-  lg.setColor(1, 1, 1)
+  lg.setColor(CurrentTheme.foregroundActive)
   lg.draw(icon, x, math.floor(y + font:getHeight() / 2 - icon:getHeight() / 2))
   lg.setFont(font)
   lg.print("Properties", x + icon:getWidth() + 2, y)
@@ -56,14 +55,17 @@ function propertiesPanel:render(x, y, w, h)
       separateInputMargin
 
   y = y + font:getHeight() + 6
+  lg.setColor(CurrentTheme.foregroundActive)
   lg.print("Position", x, y)
 
   local cx = x + w - totalColumnWidth
+  lg.setColor(CurrentTheme.foregroundActive)
   lg.print("X", cx, y)
   cx = cx + font:getWidth("X") + inputLabelMargin
   self.xInput:render(cx, y - inputHeightPadding, inputWidth, font:getHeight() + inputHeightPadding * 2)
 
   cx = cx + inputWidth + separateInputMargin
+  lg.setColor(CurrentTheme.foregroundActive)
   lg.print("Y", cx, y)
   cx = cx + font:getWidth("Y") + inputLabelMargin
   self.yInput:render(cx, y - inputHeightPadding, inputWidth, font:getHeight() + inputHeightPadding * 2)

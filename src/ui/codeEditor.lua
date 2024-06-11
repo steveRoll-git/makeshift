@@ -2,7 +2,6 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local hexToColor = require "util.hexToColor"
 local textEditor = require "ui.textEditor"
 local fonts = require "fonts"
 local scrollbar = require "ui.scrollbar"
@@ -42,7 +41,7 @@ function codeEditor:init(script)
   self.textEditor.preserveIndents = true
   self.textEditor.indentSize = 2
   self.textEditor.syntaxHighlighting = {
-    colors = require "syntaxThemes.dark",
+    colors = CurrentTheme.codeEditor,
     styles = require "syntaxLanguages.makeshiftLang"
   }
   self.textEditor:setText(script.code)
@@ -156,13 +155,13 @@ function codeEditor:render(x, y, w, h)
     self:checkSyntax()
   end
 
-  lg.setColor(hexToColor(0x1f1f1f))
+  lg.setColor(CurrentTheme.backgroundActive)
   lg.rectangle("fill", x, y, w, h)
 
   pushScissor(x, y, w, h)
 
   if RunningPlaytest and RunningPlaytest.engine.errorScript == self.script then
-    lg.setColor(0.5, 0, 0, 0.5)
+    lg.setColor(CurrentTheme.codeEditor.lineBackgroundError)
     lg.rectangle(
       "fill",
       x + self.leftColumnWidth,
@@ -176,7 +175,7 @@ function codeEditor:render(x, y, w, h)
     local endLine = RunningPlaytest.engine.loopStuckEndLine --[[@as number]]
     local startY = y + self:lineToY(startLine)
     local endY = y + self:lineToY(endLine + 1)
-    lg.setColor(1, 1, 1, 0.25)
+    lg.setColor(1, 1, 1, 0.25) -- unstyled
     lg.draw(
       gradientTop,
       x + self.leftColumnWidth,
@@ -195,7 +194,7 @@ function codeEditor:render(x, y, w, h)
     pushScissor(x + self.leftColumnWidth, startY, w - self.leftColumnWidth, endY - startY)
     local streakY =
         startY + ((love.timer.getTime() * 4) % (endLine - startLine + 3)) * font:getHeight()
-    lg.setColor(1, 1, 1, 0.1)
+    lg.setColor(1, 1, 1, 0.1) -- unstyled
     lg.draw(
       gradientTop,
       x + self.leftColumnWidth,
@@ -213,7 +212,7 @@ function codeEditor:render(x, y, w, h)
   self.textEditor:render(x + self.leftColumnWidth, y, w - self.leftColumnWidth - self.scrollbarY:desiredWidth(), h)
 
   for i = 1, #self.textEditor.lines do
-    lg.setColor(hexToColor(0x6e6e6e))
+    lg.setColor(CurrentTheme.codeEditor.lineNumber)
     lg.setFont(font)
     lg.printf(
       tostring(i),
@@ -235,7 +234,7 @@ function codeEditor:render(x, y, w, h)
   if self.syntaxError then
     self.syntaxErrorBar:render(x, y + h, w, self.syntaxErrorBar:desiredHeight())
 
-    lg.setColor(0.8, 0, 0)
+    lg.setColor(CurrentTheme.codeEditor.underlineError)
     lg.push()
     lg.translate(x + self.leftColumnWidth, y)
     self:drawSquiggle(

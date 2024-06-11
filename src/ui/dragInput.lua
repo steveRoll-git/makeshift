@@ -2,7 +2,6 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local hexToColor = require "util.hexToColor"
 local textEditor = require "ui.textEditor"
 local viewTools = require "util.viewTools"
 local clamp = require "util.clamp"
@@ -54,7 +53,7 @@ function tempEditor:popupClosed()
 end
 
 function tempEditor:render(x, y, w, h)
-  lg.setColor(hexToColor(0x181818))
+  lg.setColor(CurrentTheme.backgroundInactive)
   lg.rectangle("fill", x, y, w, h, 3)
   self.textEditor:render(x, y, w, h)
 end
@@ -95,10 +94,10 @@ function dragInput:mouseClicked(button)
 end
 
 function dragInput:render(x, y, w, h)
-  lg.setColor(hexToColor(0x181818))
+  lg.setColor(CurrentTheme.backgroundInactive)
   lg.rectangle("fill", x, y, w, h, 3)
 
-  lg.setColor(1, 1, 1)
+  lg.setColor(CurrentTheme.foregroundActive)
   lg.setFont(self.font)
   lg.printf(
     (self.numberFormat or defaultNumberFormat):format(self:currentValue()),

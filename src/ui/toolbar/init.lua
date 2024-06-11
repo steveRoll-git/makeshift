@@ -1,7 +1,6 @@
 local love = love
 local lg = love.graphics
 
-local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local button = require "ui.button"
 local fonts = require "fonts"
@@ -34,7 +33,7 @@ function toolbar:desiredHeight()
 end
 
 function toolbar:render(x, y, w, h)
-  lg.setColor(hexToColor(0x181818))
+  lg.setColor(CurrentTheme.backgroundActive)
   lg.rectangle("fill", x, y, w, h)
 
   local itemX = x
@@ -53,7 +52,7 @@ function toolbar:render(x, y, w, h)
     end
   end
 
-  lg.setColor(hexToColor(0x2b2b2b))
+  lg.setColor(CurrentTheme.outline)
   lg.setLineStyle("rough")
   lg.setLineWidth(1)
   lg.line(x, y + h, x + w, y + h)

@@ -5,7 +5,6 @@ local zap = require "lib.zap.zap"
 local slider = require "ui.colorPicker.slider"
 local hsvToRgb = require "util.hsvToRgb"
 local rgbToHsv = require "util.rgbToHsv"
-local hexToColor = require "util.hexToColor"
 local fonts = require "fonts"
 local dragInput = require "ui.dragInput"
 local viewTools = require "util.viewTools"
@@ -82,7 +81,7 @@ function colorPicker:updateColor(excludeSlider)
 end
 
 function colorPicker:render(x, y, w, h)
-  lg.setColor(hexToColor(0x1f1f1f))
+  lg.setColor(CurrentTheme.backgroundActive)
   lg.rectangle("fill", x, y, w, h, 6)
 
   x, y, w, h = viewTools.padding(x, y, w, h, 6)
@@ -91,7 +90,7 @@ function colorPicker:render(x, y, w, h)
   for i, s in ipairs(self.sliders) do
     local sliderY = math.floor(y + sliderHeight * (i - 1))
     local textY = math.floor(sliderY + sliderHeight / 2 - labelFont:getHeight() / 2)
-    lg.setColor(1, 1, 1)
+    lg.setColor(CurrentTheme.foregroundActive)
     lg.setFont(labelFont)
     lg.print(slidersHSV[i].label, x, textY)
 

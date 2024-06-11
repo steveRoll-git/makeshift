@@ -2,7 +2,6 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local hexToColor = require "util.hexToColor"
 local button = require "ui.button"
 local images = require "images"
 local window = require "ui.window"
@@ -134,14 +133,14 @@ function tab:render(x, y, w, h)
 
   pushScissor(x - 1, y, w + 2, h)
   if self.active or self:isHovered() then
-    lg.setColor(hexToColor(0x1f1f1f))
+    lg.setColor(CurrentTheme.backgroundActive)
   else
-    lg.setColor(hexToColor(0x181818))
+    lg.setColor(CurrentTheme.backgroundInactive)
   end
   lg.rectangle("fill", x, y, w, h + cornerRadius, cornerRadius)
 
   if self.active then
-    lg.setColor(hexToColor(0x2b2b2b))
+    lg.setColor(CurrentTheme.outline)
     lg.setLineStyle("rough")
     lg.setLineWidth(1)
     lg.rectangle("line", x, y + 2, w, h + cornerRadius, cornerRadius)
@@ -149,21 +148,22 @@ function tab:render(x, y, w, h)
 
   popScissor()
 
+  local foregroundColor = self.active and CurrentTheme.foregroundActive or CurrentTheme.foreground
   local textX = x + textMargin
   local textY = y + h / 2 - self.font:getHeight() / 2
 
   if self.icon then
-    lg.setColor(1, 1, 1)
+    lg.setColor(foregroundColor)
     lg.draw(self.icon, math.floor(textX), math.floor(y + h / 2 - self.icon:getHeight() / 2))
     textX = textX + self.icon:getWidth() + iconTextMargin
   end
 
-  lg.setColor(1, 1, 1)
+  lg.setColor(foregroundColor)
   lg.setFont(self.font)
   lg.print(self.text, textX, textY)
 
   if self.closable then
-    lg.setColor(1, 1, 1)
+    lg.setColor(foregroundColor)
     self.closeButton:render(
       x + w - self.closeButton:desiredWidth() - 4,
       textY + self.font:getHeight() / 2 - self.closeButton:desiredHeight() / 2 + math.floor(self.font:getHeight() / 10),

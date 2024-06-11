@@ -2,7 +2,6 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local hexToColor = require "util.hexToColor"
 
 local treeViewItem = require "ui.treeView.item"
 
@@ -34,6 +33,9 @@ function treeView:setItems(items)
 end
 
 function treeView:render(x, y, w, h)
+  lg.setColor(CurrentTheme.backgroundActive)
+  lg.rectangle("fill", x, y, w, h)
+
   local itemY = y
   for _, item in ipairs(self.items) do
     local itemH = item:desiredHeight()

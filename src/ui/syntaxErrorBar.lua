@@ -3,7 +3,6 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local fonts = require "fonts"
-local hexToColor = require "util.hexToColor"
 local images = require "images"
 
 local icon = images["icons/cancel_32.png"]
@@ -23,10 +22,10 @@ function syntaxErrorBar:desiredHeight()
 end
 
 function syntaxErrorBar:render(x, y, w, h)
-  lg.setColor(hexToColor(0x181818))
+  lg.setColor(CurrentTheme.backgroundInactive)
   lg.rectangle("fill", x, y, w, h)
 
-  lg.setColor(0.8, 0, 0)
+  lg.setColor(CurrentTheme.foregroundError)
   lg.draw(icon, x + padding, y + padding)
   lg.setFont(font)
   lg.print(

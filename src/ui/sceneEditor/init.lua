@@ -5,7 +5,6 @@ local zap = require "lib.zap.zap"
 local engine = require "engine"
 local toolbar = require "ui.toolbar"
 local images = require "images"
-local hexToColor = require "util.hexToColor"
 local spriteEditor = require "ui.spriteEditor"
 local zoomSlider = require "ui.zoomSlider"
 local propertiesPanel = require "ui.sceneEditor.propertiesPanel"
@@ -272,7 +271,7 @@ function sceneView:render(x, y, w, h)
     local x1, y1 = self.viewTransform:inverseTransformPoint(0, 0)
     local x2, y2 = self.viewTransform:inverseTransformPoint(w, h)
     lg.setLineStyle("rough")
-    lg.setColor(1, 1, 1, 0.1)
+    lg.setColor(1, 1, 1, 0.1) -- unstyled
     for lineX = math.ceil(x1 / self.gridSize) * self.gridSize, x2, self.gridSize do
       if lineX == 0 then
         lg.setLineWidth(3)
@@ -291,14 +290,14 @@ function sceneView:render(x, y, w, h)
     end
   end
 
-  lg.setColor(0.2, 0.6, 1, 0.2)
+  lg.setColor(0.2, 0.6, 1, 0.2) -- unstyled
   lg.setLineWidth(2)
   lg.rectangle("line", 0, 0, project.currentProject.windowWidth, project.currentProject.windowHeight)
 
   self.engine:draw()
 
   if self.selectedObject then
-    lg.setColor(1, 1, 1, 0.5)
+    lg.setColor(1, 1, 1, 0.5) -- unstyled
     lg.setLineWidth(1)
     lg.rectangle("line",
       self.selectedObject.x,
@@ -312,7 +311,7 @@ function sceneView:render(x, y, w, h)
   if self.creatingObject and self.creationX then
     local x1, y1 = self.viewTransform:transformPoint(self.creationX, self.creationY)
     local x2, y2 = self:getRelativeMouse()
-    lg.setColor(1, 1, 1, 0.2)
+    lg.setColor(1, 1, 1, 0.2) -- unstyled
     lg.setLineWidth(2)
     lg.setLineStyle("rough")
     lg.rectangle("line", x1, y1, x2 - x1, y2 - y1)

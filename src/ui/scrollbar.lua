@@ -2,7 +2,6 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local hexToColor = require "util.hexToColor"
 local clamp = require "util.clamp"
 
 local size = 14
@@ -36,11 +35,11 @@ end
 
 function thumb:render(x, y, w, h)
   if self:isPressed(1) then
-    lg.setColor(hexToColor(0x5f5f5f))
+    lg.setColor(CurrentTheme.elementPressed)
   elseif self:isHovered() then
-    lg.setColor(hexToColor(0x4f4f4f))
+    lg.setColor(CurrentTheme.elementHovered)
   else
-    lg.setColor(hexToColor(0x434343))
+    lg.setColor(CurrentTheme.elementNeutral)
   end
   lg.rectangle("fill", x, y, w, h, size / 2)
 end

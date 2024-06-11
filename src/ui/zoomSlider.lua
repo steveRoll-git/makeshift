@@ -27,13 +27,13 @@ function zoomSlider:desiredHeight()
 end
 
 function zoomSlider:render(x, y, w, h)
-  lg.setColor(0, 0, 0, 0.6)
+  lg.setColor(CurrentTheme.backgroundOverlay)
   lg.rectangle("fill", x, y, w + 3, h + 3, 3)
 
-  lg.setColor(0.8, 0.8, 0.8)
+  lg.setColor(CurrentTheme.foreground)
   lg.draw(icon, math.floor(x + w - icon:getWidth()), math.floor(y + h / 2 - icon:getHeight() / 2))
 
-  lg.setColor(1, 1, 1)
+  lg.setColor(CurrentTheme.foregroundActive)
   lg.setFont(font)
   lg.print(self:percentString(), math.floor(x + 2), math.floor(y + h / 2 - font:getHeight() / 2))
 end

@@ -1,7 +1,6 @@
 local love = love
 local lg = love.graphics
 
-local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local tabView = require "ui.tabView"
 local clamp = require "util.clamp"
@@ -96,7 +95,7 @@ function splitView:render(x, y, w, h)
     vertical and h or splitterWidth
   )
 
-  lg.setColor(hexToColor(0x2b2b2b))
+  lg.setColor(CurrentTheme.outline)
   lg.setLineStyle("rough")
   lg.setLineWidth((self.splitter:isHovered() or self.splitter:isPressed(1)) and splitterWidth or 1)
   if horizontal then

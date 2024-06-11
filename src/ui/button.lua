@@ -1,7 +1,6 @@
 local love = love
 local lg = love.graphics
 
-local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 
 ---@class Button: Zap.ElementClass
@@ -57,25 +56,28 @@ end
 
 function button:render(x, y, w, h)
   if self:isPressed(1) then
-    lg.setColor(1, 1, 1, 0.2)
+    lg.setColor(CurrentTheme.elementPressed)
   elseif self:isHovered() then
-    lg.setColor(1, 1, 1, 0.08)
+    lg.setColor(CurrentTheme.elementHovered)
   else
-    lg.setColor(0, 0, 0, 0)
+    lg.setColor(0, 0, 0, 0) -- unstyled
   end
   lg.rectangle("fill", x, y, w, h, 6)
 
   local totalW = self:desiredWidth()
+  local foregroundColor = (self:isHovered() or self:isPressed(1)) and
+      CurrentTheme.foregroundActive or
+      CurrentTheme.foreground
 
   if self:showsImage() then
-    lg.setColor(hexToColor(0xcccccc))
+    lg.setColor(foregroundColor)
     lg.draw(self.image,
       math.floor(x + w / 2 - totalW / 2),
       math.floor(y + h / 2 - self.image:getHeight() / 2))
   end
 
   if self:showsText() then
-    lg.setColor(hexToColor(0xcccccc))
+    lg.setColor(foregroundColor)
     lg.setFont(self.font)
     lg.printf(self.text,
       self.alignText == "left" and x + (self.textPadding or 0) or math.floor(x + w / 2 - totalW / 2),

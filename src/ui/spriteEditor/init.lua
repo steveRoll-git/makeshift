@@ -1,11 +1,9 @@
 local love = love
 local lg = love.graphics
 
-local hexToColor = require "util.hexToColor"
 local compareColors = require "util.compareColors"
 local dist = require "util.dist"
 local zap = require "lib.zap.zap"
-local tab = require "ui.tabView.tab"
 local toolbar = require "ui.spriteEditor.toolbar"
 local images = require "images"
 local colorPicker = require "ui.colorPicker"
@@ -15,8 +13,6 @@ local zoomSlider = require "ui.zoomSlider"
 local clamp = require "util.clamp"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
-
-local initialImageSize = 128
 
 local transparentColor = { 0, 0, 0, 0 }
 
@@ -530,7 +526,7 @@ function spriteEditor:render(x, y, w, h)
   lg.translate(x, y)
 
   local tx, ty = self.viewTransform:transformPoint(0, 0)
-  lg.setColor(1, 1, 1)
+  lg.setColor(1, 1, 1) -- unstyled
   lg.draw(transparency, self.transparencyQuad, tx, ty)
 
   lg.applyTransform(self.viewTransform)
@@ -554,7 +550,7 @@ function spriteEditor:render(x, y, w, h)
       lg.pop()
 
       lg.setStencilTest("equal", 2)
-      lg.setColor(0, 0, 0)
+      lg.setColor(0, 0, 0) -- unstyled
       lg.rectangle("fill",
         ix - math.floor(self.toolSize / 2),
         iy - math.floor(self.toolSize / 2),
@@ -562,7 +558,7 @@ function spriteEditor:render(x, y, w, h)
         self.toolSize + 1)
       lg.setStencilTest()
     else
-      lg.setColor(0, 0, 0)
+      lg.setColor(0, 0, 0) -- unstyled
       lg.setLineWidth(1 / self.zoom)
       lg.setLineStyle("rough")
       lg.circle("line", ix, iy, self.toolSize / 2)

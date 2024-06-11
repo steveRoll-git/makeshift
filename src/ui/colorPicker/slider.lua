@@ -74,12 +74,12 @@ function slider:wheelMoved(x, y)
 end
 
 function slider:render(x, y, w, h)
-  lg.setColor(1, 1, 1)
+  lg.setColor(1, 1, 1) -- unstyled
   lg.draw(self.image, x, y + arrowHeight, 0, w / self.image:getWidth(), h - arrowHeight)
 
   lg.push()
   lg.translate(math.floor(x + self:getValue() / self.maxValue * w), math.floor(y + arrowHeight))
-  lg.setColor(1, 1, 1)
+  lg.setColor(1, 1, 1) -- unstyled
   lg.polygon("fill", arrowPolygon)
   lg.pop()
 end

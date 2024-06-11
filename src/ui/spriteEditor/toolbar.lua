@@ -1,7 +1,6 @@
 local love = love
 local lg = love.graphics
 
-local hexToColor = require "util.hexToColor"
 local zap = require "lib.zap.zap"
 local images = require "images"
 local viewTools = require "util.viewTools"
@@ -28,15 +27,16 @@ function toolbarItem:spriteEditor()
 end
 
 function toolbarItem:render(x, y, w, h)
-  if self:spriteEditor().currentToolType == self.toolName then
-    lg.setColor(1, 1, 1, 0.2)
+  local active = self:spriteEditor().currentToolType == self.toolName
+  if active then
+    lg.setColor(CurrentTheme.elementPressed)
   elseif self:isHovered() then
-    lg.setColor(1, 1, 1, 0.08)
+    lg.setColor(CurrentTheme.elementHovered)
   else
-    lg.setColor(0, 0, 0, 0)
+    lg.setColor(0, 0, 0, 0) -- unstyled
   end
   lg.rectangle("fill", x, y, w, h, 6)
-  lg.setColor(hexToColor(0xcccccc))
+  lg.setColor(active and CurrentTheme.foregroundActive or CurrentTheme.foreground)
   lg.draw(self.image, x, y)
 end
 
@@ -64,17 +64,17 @@ end
 function colorItem:render(x, y, w, h)
   lg.setStencilTest("greater", 0)
   lg.stencil(self.rectFunc)
-  lg.setColor(1, 1, 1)
+  lg.setColor(1, 1, 1) -- unstyled
   lg.draw(transparency, x, y, 0, w / transparency:getWidth(), h / transparency:getHeight())
   lg.setColor(self.color)
   self.rectFunc()
   lg.setLineWidth(2)
-  lg.setColor(0, 0, 0, 0.2)
+  lg.setColor(0, 0, 0, 0.2) -- unstyled
   lg.rectangle("line", x + 2, y + 2, w - 4, h - 4, 6)
   lg.setStencilTest()
 
   lg.setLineWidth(2)
-  lg.setColor(1, 1, 1)
+  lg.setColor(1, 1, 1) -- unstyled
   lg.rectangle("line", x, y, w, h, 6)
 end
 
@@ -116,7 +116,7 @@ function toolbar:desiredHeight()
 end
 
 function toolbar:render(x, y, w, h)
-  lg.setColor(hexToColor(0x1f1f1f))
+  lg.setColor(CurrentTheme.backgroundActive)
   lg.rectangle("fill", x - 6, y, w + 6, h, 6)
   for i, item in ipairs(self.tools) do
     local ix, iy, iw, ih = x + itemPadding, y + (i - 1) * (itemSize + itemPadding) + itemPadding, itemSize, itemSize

@@ -55,13 +55,17 @@ function stopIndicator:desiredHeight()
 end
 
 function stopIndicator:render(x, y, w, h)
-  lg.setColor(0, 0, 0, 0.6)
+  lg.setColor(CurrentTheme.backgroundOverlay)
   lg.rectangle("fill", x, y, w, h, 3)
-  lg.setColor(1, 1, 1, lerp(0.7, 1, (math.sin(love.timer.getTime() * 4) + 1) / 2))
+  do
+    local r, g, b, a = unpack(CurrentTheme.foregroundActive)
+    a = (a or 1) * lerp(0.7, 1, (math.sin(love.timer.getTime() * 4) + 1) / 2)
+    lg.setColor(r, g, b, a)
+  end
   lg.draw(icons[self.stopReason], x + padding, y + padding)
 
   if self:isHovered() then
-    lg.setColor(1, 1, 1)
+    lg.setColor(CurrentTheme.foregroundActive)
     lg.setFont(font)
     lg.print(messages[self.stopReason], x + padding + iconSize + textPadding, y + h / 2 - font:getHeight())
   end

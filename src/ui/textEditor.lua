@@ -647,14 +647,18 @@ function textEditor:render(x, y, w, h)
         lg.rectangle("fill", startX, lineY, endX - startX, self.font:getHeight())
       end
     end
-    lg.setColor(1, 1, 1)
+    if self.syntaxHighlighting then
+      lg.setColor(1, 1, 1) -- unstyled
+    else
+      lg.setColor(CurrentTheme.foregroundActive)
+    end
     lg.draw(line.text, 0, lineY)
   end
 
   lg.pop()
 
   if math.floor(love.timer.getTime() * self.cursorFlashSpeed - self.cursorFlashTime) % 2 == 0 then
-    lg.setColor(1, 1, 1)
+    lg.setColor(CurrentTheme.foregroundActive)
     lg.setLineStyle("rough")
     lg.setLineWidth(self.cursorWidth)
     local dx, dy = self:screenCursorPosition()

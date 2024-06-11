@@ -4,7 +4,6 @@ local lg = love.graphics
 local zap = require "lib.zap.zap"
 local button = require "ui.button"
 local images = require "images"
-local hexToColor = require "util.hexToColor"
 local clamp = require "util.clamp"
 local viewTools = require "util.viewTools"
 local pushScissor = require "util.scissorStack".pushScissor
@@ -169,17 +168,17 @@ end
 function window:render(x, y, w, h)
   local cornerRadius = 6
   if self.focused then
-    lg.setColor(hexToColor(0x1f1f1f))
+    lg.setColor(CurrentTheme.backgroundActive)
   else
-    lg.setColor(hexToColor(0x181818))
+    lg.setColor(CurrentTheme.backgroundInactive)
   end
   lg.rectangle("fill", x, y, w, self:titleBarHeight() + cornerRadius, cornerRadius)
-  lg.setColor(hexToColor(0x2b2b2b))
+  lg.setColor(CurrentTheme.outline)
   lg.setLineStyle("rough")
   lg.setLineWidth(1)
   lg.rectangle("line", x, y, w, self:titleBarHeight() + cornerRadius, cornerRadius)
 
-  lg.setColor(1, 1, 1)
+  lg.setColor(self.focused and CurrentTheme.foregroundActive or CurrentTheme.foreground)
   local ex = x + 6
   if self.icon then
     lg.draw(self.icon, ex, math.floor(y + self:titleBarHeight() / 2 - self.icon:getHeight() / 2))
@@ -199,14 +198,14 @@ function window:render(x, y, w, h)
       1))
   end
 
-  lg.setColor(hexToColor(0x181818))
+  lg.setColor(CurrentTheme.backgroundInactive)
   lg.rectangle("fill", x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
 
   pushScissor(x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
   self.content:render(x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
   popScissor()
 
-  lg.setColor(hexToColor(0x2b2b2b))
+  lg.setColor(CurrentTheme.outline)
   lg.setLineStyle("rough")
   lg.setLineWidth(1)
   lg.line(

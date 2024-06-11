@@ -2,7 +2,6 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local hexToColor = require "util.hexToColor"
 local fonts = require "fonts"
 local button = require "ui.button"
 
@@ -68,9 +67,9 @@ function popupMenu:popupAtCursor()
 end
 
 function popupMenu:render(x, y, w, h)
-  lg.setColor(hexToColor(0x1f1f1f))
+  lg.setColor(CurrentTheme.backgroundActive)
   lg.rectangle("fill", x, y, w, h, 6)
-  lg.setColor(hexToColor(0x454545))
+  lg.setColor(CurrentTheme.outlineActive)
   lg.setLineStyle("rough")
   lg.setLineWidth(1)
   lg.rectangle("line", x, y, w, h, 6)
@@ -81,7 +80,7 @@ function popupMenu:render(x, y, w, h)
     itemY = itemY + itemHeight
     if self.separators[i] then
       itemY = itemY + itemPadding
-      lg.setColor(hexToColor(0x454545))
+      lg.setColor(CurrentTheme.outlineActive)
       lg.setLineStyle("rough")
       lg.setLineWidth(1)
       lg.line(x, itemY, x + w, itemY)
