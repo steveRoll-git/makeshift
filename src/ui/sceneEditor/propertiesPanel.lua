@@ -7,7 +7,7 @@ local fonts = require "fonts"
 local viewTools = require "util.viewTools"
 local dragInput = require "ui.dragInput"
 
-local icon = images["icons/object_14.png"]
+local icon = images["icons/properties_14.png"]
 
 local font = fonts("Inter-Regular.ttf", 14)
 
