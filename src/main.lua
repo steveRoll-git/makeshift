@@ -128,6 +128,9 @@ end
 ---@param w Window
 function RemoveWindow(w)
   windows:remove(w)
+  if focusedWindow == w then
+    SetFocusedWindow(windows:last())
+  end
 end
 
 ---@param w Window
