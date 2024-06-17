@@ -202,6 +202,16 @@ function project:saveToFile()
 
   local writeEmbeddedOrExternalResource
 
+  ---Writes a resource if it's not nil, otherwise writes \0.
+  ---@param r Resource?
+  local function writeOptionalResource(r)
+    if r then
+      writeEmbeddedOrExternalResource(r)
+    else
+      f:write("\0")
+    end
+  end
+
   ---@param r Resource
   local function writeResource(r)
     -- Write the resource's id, name and type.
@@ -216,7 +226,7 @@ function project:saveToFile()
         f:write(string.char(objectTypes[o.type]))
         writeNumber(o.x)
         writeNumber(o.y)
-        writeEmbeddedOrExternalResource(o.script)
+        writeOptionalResource(o.script)
         if o.type == "sprite" then
           ---@cast o Sprite
           writeEmbeddedOrExternalResource(o.spriteData)
@@ -286,6 +296,19 @@ function project:loadFromFile(projectName)
 
   local readEmbeddedOrExternalResource
 
+  ---Reads and returns a resource if it was set, otherwise returns nil.
+  ---@param type ResourceType?
+  ---@return Resource?
+  local function readOptionalResource(type)
+    local pos = file:tell()
+    if file:read(1) == "\0" then
+      return nil
+    else
+      file:seek(pos)
+      return readEmbeddedOrExternalResource(type)
+    end
+  end
+
   ---@param expectedType? ResourceType
   local function readResource(expectedType)
     local id = file:read(UIDLength)
@@ -307,7 +330,7 @@ function project:loadFromFile(projectName)
         local objectType = objectTypesLookup[file:read(1):byte()]
         local x = readNumber()
         local y = readNumber()
-        local script = readEmbeddedOrExternalResource("script") --[[@as Script]]
+        local script = readOptionalResource("script") --[[@as Script]]
         ---@type Object
         local object = {
           type = objectType,
