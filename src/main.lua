@@ -203,11 +203,11 @@ function OpenResourceTab(r)
     text = r.name
     icon = images["icons/scene_24.png"]
     content = sceneEditor(r)
-  elseif r.type == "objectData" then
+  elseif r.type == "spriteData" then
     text = r.name
     icon = images["icons/brush_24.png"]
     content = spriteEditor()
-    content.editingObjectData = r --[[@as ObjectData]]
+    content.editingSprite = r --[[@as SpriteData]]
   elseif r.type == "script" then
     text = "Code Editor"
     icon = images["icons/code_24.png"]

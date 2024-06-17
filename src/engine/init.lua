@@ -7,28 +7,30 @@ local strongType = require "lang.strongType"
 local hexToUID = require "util.hexToUid"
 local project = require "project"
 
+---@alias ObjectType "object" | "sprite"
+
 ---@class Script: Resource
 ---@field code string
----@field compiledCode {code: string, func: function, sourceMap: table<number, number>}?
+---@field compiledCode {code: string, func: function, sourceMap: table<number, number>, events: table<string, fun(instance: StrongTypeInstance, ...: any)>}?
 
----@class ObjectData: Resource
+---@class SpriteData: Resource
 ---@field w number
 ---@field h number
----@field frames SpriteFrame[] A list of all the frames in this object. They are all assumed to be the same size.
----@field script Script
-
----@class Object
----@field x number
----@field y number
----@field data ObjectData
-
----@class RuntimeObject: Object
----@field events table<string, fun(instance: StrongTypeInstance, ...: any)>
----@field scriptInstance StrongTypeInstance
+---@field frames SpriteFrame[] A list of all the frames in this sprite. They are all assumed to be the same size.
 
 ---@class SpriteFrame
 ---@field imageData love.ImageData
 ---@field image love.Image
+
+---@class Object
+---@field type ObjectType
+---@field x number
+---@field y number
+---@field script Script
+---@field scriptInstance StrongTypeInstance?
+
+---@class Sprite: Object
+---@field spriteData SpriteData
 
 ---@class Scene: Resource
 ---@field objects Object[]
@@ -48,7 +50,6 @@ local loopStuckWaitDuration = 3
 -- Used in the editor and the runtime.
 ---@class Engine
 ---@field objects OrderedSet
----@field runningObject RuntimeObject
 local engine = {}
 engine.__index = engine
 
@@ -72,9 +73,9 @@ function engine:init(scene, active)
     -- runs in a loop and doesn't exit from it.
     self.codeRunner = coroutine.create(function(...)
       while true do
-        ---@type RuntimeObject, string, any, any, any, any
+        ---@type Object, string, any, any, any, any
         local object, event, p1, p2, p3, p4 = coroutine.yield("eventEnd")
-        local f = object.events[event]
+        local f = object.script.compiledCode.events[event]
         if f then
           f(object.scriptInstance, p1, p2, p3, p4)
         end
@@ -87,10 +88,10 @@ function engine:init(scene, active)
   if scene then
     for _, obj in ipairs(scene.objects) do
       local newObj = deepCopy(obj)
-      if active and obj.data.script.compiledCode then
-        ---@cast newObj RuntimeObject
-        setfenv(obj.data.script.compiledCode.func, self.scriptEnvironment)
-        newObj.events = obj.data.script.compiledCode.func()
+      if active and obj.script.compiledCode then
+        for _, f in pairs(obj.script.compiledCode.events) do
+          setfenv(f, self.scriptEnvironment)
+        end
         newObj.scriptInstance = objectType:instance(newObj)
       end
       self:addObject(newObj)
@@ -162,7 +163,7 @@ end
 -- it runs a loop for more than a specified amount.
 --
 -- If parameters are given, it starts the runner with those parameters.
----@param object RuntimeObject
+---@param object Object
 ---@param event string
 ---@param p1 any
 ---@param p2 any
@@ -218,7 +219,7 @@ end
 
 -- starts executing an object's method. it may finish running in the same call,
 -- but it may also enter a stuck loop from here.
----@param object RuntimeObject
+---@param object Object
 ---@param event string
 ---@param p1 any
 ---@param p2 any
@@ -229,7 +230,7 @@ function engine:callObjectEvent(object, event, p1, p2, p3, p4)
     return
   end
 
-  if not object.events or not object.events[event] then
+  if not object.script.compiledCode.events or not object.script.compiledCode.events[event] then
     return
   end
 
@@ -277,8 +278,11 @@ end
 function engine:draw()
   for _, o in ipairs(self.objects.list) do
     ---@cast o Object
-    lg.setColor(1, 1, 1)
-    lg.draw(o.data.frames[1].image, o.x, o.y)
+    if o.type == "sprite" then
+      ---@cast o Sprite
+      lg.setColor(1, 1, 1)
+      lg.draw(o.spriteData.frames[1].image, o.x, o.y)
+    end
   end
 end
 

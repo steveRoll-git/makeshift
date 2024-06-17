@@ -3,6 +3,7 @@ local uidToHex = require "util.uidToHex"
 local binConvert = require "util.binConvert"
 local parser = require "lang.parser"
 local outputLua = require "lang.outputLua"
+local reverseLookup = require "util.reverseLookup"
 local numberToBytes = binConvert.numberToBytes
 local bytesToNumber = binConvert.bytesToNumber
 
@@ -11,16 +12,20 @@ local untitledSceneName = "Untitled Scene"
 local projectsDirectory = "projects/"
 local projectFileExtension = ".makeshift"
 
-local binaryTagTypes = {
+local resourceTypes = {
   scene = 1,
-  objectData = 2,
+  spriteData = 2,
   script = 3,
 }
 ---@type table<number, ResourceType>
-local binaryTagLookup = {}
-for k, v in pairs(binaryTagTypes) do
-  binaryTagLookup[v] = k
-end
+local resourceTypesLookup = reverseLookup(resourceTypes)
+
+local objectTypes = {
+  object = 1,
+  sprite = 2,
+}
+---@type table<number, ObjectType>
+local objectTypesLookup = reverseLookup(objectTypes)
 
 local resourceBytes = {
   external = '\xfe',
@@ -29,7 +34,7 @@ local resourceBytes = {
 
 local projectFileMagic = "makeshiftproject"
 
----@alias ResourceType "scene" | "objectData" | "script"
+---@alias ResourceType "scene" | "spriteData" | "script"
 
 ---@class Resource
 ---@field id string
@@ -65,26 +70,36 @@ function project:addResource(resource)
   self.resources[resource.id] = resource
 end
 
----Looks for an embedded resource with `id` inside the given `resource`.
+---Searches `object` for an embedded resource with the given `id`.
+---@param object Object
 ---@param id string
+local function searchObjectForResource(object, id)
+  if object.script.id == id then
+    return object.script
+  end
+  if object.type == "sprite" then
+    ---@cast object Sprite
+    if object.spriteData.id == id then
+      return object.spriteData
+    end
+  end
+end
+
+---Searches `resource` for an embedded resource with the given `id`.
 ---@param resource Resource
+---@param id string
 ---@return Resource?
-function project:searchForResource(id, resource)
+function project:searchForResource(resource, id)
   if id == resource.id then
     return resource
   end
   if resource.type == "scene" then
     ---@cast resource Scene
     for _, o in ipairs(resource.objects) do
-      local found = self:searchForResource(id, o.data)
+      local found = searchObjectForResource(o, id)
       if found then
         return found
       end
-    end
-  elseif resource.type == "objectData" then
-    ---@cast resource ObjectData
-    if resource.script.id == id then
-      return resource.script
     end
   end
 end
@@ -98,7 +113,7 @@ function project:getResourceById(id)
   end
   --TODO probably cache this process
   for _, resource in pairs(self.resources) do
-    local found = self:searchForResource(id, resource)
+    local found = self:searchForResource(resource, id)
     if found then
       return found
     end
@@ -140,7 +155,7 @@ function project:compileScripts()
     if r.type == "scene" then
       ---@cast r Scene
       for _, obj in ipairs(r.objects) do
-        local script = obj.data.script
+        local script = obj.script
         if #script.code > 0 then
           local p = parser.new(script.code, script)
           local ast = p:parseObjectCode()
@@ -156,6 +171,7 @@ function project:compileScripts()
           script.compiledCode = {
             code = luaCode,
             func = func,
+            events = func(),
             sourceMap = sourceMap
           }
         end
@@ -191,18 +207,23 @@ function project:saveToFile()
     -- Write the resource's id, name and type.
     f:write(r.id)
     writeString(r.name or "")
-    f:write(string.char(binaryTagTypes[r.type]))
+    f:write(string.char(resourceTypes[r.type]))
 
     if r.type == "scene" then
       ---@cast r Scene
       writeNumber(#r.objects)
       for _, o in ipairs(r.objects) do
+        f:write(string.char(objectTypes[o.type]))
         writeNumber(o.x)
         writeNumber(o.y)
-        writeEmbeddedOrExternalResource(o.data)
+        writeEmbeddedOrExternalResource(o.script)
+        if o.type == "sprite" then
+          ---@cast o Sprite
+          writeEmbeddedOrExternalResource(o.spriteData)
+        end
       end
-    elseif r.type == "objectData" then
-      ---@cast r ObjectData
+    elseif r.type == "spriteData" then
+      ---@cast r SpriteData
       writeNumber(r.w)
       writeNumber(r.h)
       writeNumber(#r.frames)
@@ -211,7 +232,6 @@ function project:saveToFile()
         writeNumber(encodedData:getSize())
         f:write(encodedData)
       end
-      writeEmbeddedOrExternalResource(r.script)
     elseif r.type == "script" then
       ---@cast r Script
       writeString(r.code)
@@ -264,11 +284,13 @@ function project:loadFromFile(projectName)
     return file:read(size)
   end
 
+  local readEmbeddedOrExternalResource
+
   ---@param expectedType? ResourceType
   local function readResource(expectedType)
     local id = file:read(UIDLength)
     local name = readString()
-    local type = binaryTagLookup[file:read(1):byte()]
+    local type = resourceTypesLookup[file:read(1):byte()]
     if expectedType and type ~= expectedType then
       error(("Expected a resource of type %q, but got %q"):format(expectedType, type))
     end
@@ -282,25 +304,26 @@ function project:loadFromFile(projectName)
       resource.objects = {}
       local numObjects = readNumber()
       for i = 1, numObjects do
+        local objectType = objectTypesLookup[file:read(1):byte()]
         local x = readNumber()
         local y = readNumber()
-        local resourceOrValue = file:read(1)
-        local objectData
-        if resourceOrValue == resourceBytes.external then
-          error("TODO")
-        elseif resourceOrValue == resourceBytes.embedded then
-          objectData = readResource("objectData") --[[@as ObjectData]]
-        else
-          error()
-        end
-        resource.objects[#resource.objects + 1] = {
+        local script = readEmbeddedOrExternalResource("script") --[[@as Script]]
+        ---@type Object
+        local object = {
+          type = objectType,
           x = x,
           y = y,
-          data = objectData
+          script = script
         }
+        if objectType == "sprite" then
+          ---@cast object Sprite
+          local spriteData = readEmbeddedOrExternalResource("spriteData") --[[@as SpriteData]]
+          object.spriteData = spriteData
+        end
+        resource.objects[#resource.objects + 1] = object
       end
-    elseif type == "objectData" then
-      ---@cast resource ObjectData
+    elseif type == "spriteData" then
+      ---@cast resource SpriteData
 
       resource.w = readNumber()
       resource.h = readNumber()
@@ -317,15 +340,6 @@ function project:loadFromFile(projectName)
         frame.image:setFilter("linear", "nearest")
         resource.frames[#resource.frames + 1] = frame
       end
-
-      local scriptResourceOrValue = file:read(1)
-      if scriptResourceOrValue == resourceBytes.external then
-        error("TODO")
-      elseif scriptResourceOrValue == resourceBytes.embedded then
-        resource.script = readResource("script") --[[@as Script]]
-      else
-        error()
-      end
     elseif type == "script" then
       ---@cast resource Script
 
@@ -335,6 +349,19 @@ function project:loadFromFile(projectName)
     end
 
     return resource
+  end
+
+  ---@param expectedType ResourceType
+  ---@return Scene|Script|SpriteData
+  readEmbeddedOrExternalResource = function(expectedType)
+    local resourceOrValue = file:read(1)
+    if resourceOrValue == resourceBytes.external then
+      error("TODO")
+    elseif resourceOrValue == resourceBytes.embedded then
+      return readResource(expectedType)
+    else
+      error()
+    end
   end
 
   local magic = file:read(#projectFileMagic)

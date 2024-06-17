@@ -18,7 +18,7 @@ local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 
 ---Opens a code editor for this object.
 ---@param object Object
 local function openCodeEditor(object)
-  OpenResourceTab(object.data.script)
+  OpenResourceTab(object.script)
 end
 
 ---@class SceneView: Zap.ElementClass
@@ -58,22 +58,22 @@ function sceneView:updateViewTransform()
 end
 
 function sceneView:startCreatingObject()
-  self.creatingObject = true
+  self.creatingSprite = true
   self.creationX = nil
   self.creationY = nil
 end
 
 ---Opens an embedded sprite editor.
----@param object Object
-function sceneView:openSpriteEditor(object)
-  if FocusResourceEditor(object.data.id) then
+---@param sprite Sprite
+function sceneView:openSpriteEditor(sprite)
+  if FocusResourceEditor(sprite.spriteData.id) then
     return
   end
   self.spriteEditor = spriteEditor(self)
-  self.spriteEditor.editingObjectData = object.data
-  self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(object.x, object.y)
+  self.spriteEditor.editingSprite = sprite.spriteData
+  self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(sprite.x, sprite.y)
   self.spriteEditor.zoom = self.zoom
-  if #object.data.frames > 0 then
+  if #sprite.spriteData.frames > 0 then
     self.spriteEditor:updateTransparencyQuad()
   end
 end
@@ -94,7 +94,7 @@ function sceneView:selectObject(obj)
 end
 
 function sceneView:mousePressed(button)
-  if self.creatingObject and button == 1 then
+  if self.creatingSprite and button == 1 then
     self.creationX, self.creationY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
     return
   end
@@ -105,16 +105,19 @@ function sceneView:mousePressed(button)
     for i = #self.engine.objects.list, 1, -1 do
       ---@type Object
       local obj = self.engine.objects.list[i]
-      if mx >= obj.x and my >= obj.y and mx < obj.x + obj.data.w and my < obj.y + obj.data.h then
-        self:selectObject(obj)
-        if button == 1 then
-          self.draggingObject = {
-            object = obj,
-            offsetX = obj.x - mx,
-            offsetY = obj.y - my,
-          }
+      if obj.type == "sprite" then
+        ---@cast obj Sprite
+        if mx >= obj.x and my >= obj.y and mx < obj.x + obj.spriteData.w and my < obj.y + obj.spriteData.h then
+          self:selectObject(obj)
+          if button == 1 then
+            self.draggingObject = {
+              object = obj,
+              offsetX = obj.x - mx,
+              offsetY = obj.y - my,
+            }
+          end
+          break
         end
-        break
       end
     end
   end
@@ -124,7 +127,7 @@ function sceneView:mousePressed(button)
       {
         text = "Draw",
         action = function()
-          self:openSpriteEditor(self.selectedObject)
+          self:openSpriteEditor(self.selectedObject --[[@as Sprite]])
         end
       },
       {
@@ -155,32 +158,34 @@ end
 
 function sceneView:mouseReleased(button)
   if button == 1 then
-    if self.creatingObject then
+    if self.creatingSprite then
       local mx, my = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
       local x = math.min(mx, self.creationX)
       local y = math.min(my, self.creationY)
       local w = math.floor(math.abs(mx - self.creationX))
       local h = math.floor(math.abs(my - self.creationY))
 
-      local newData = MakeResource("objectData") --[[@as ObjectData]]
+      local newData = MakeResource("spriteData") --[[@as SpriteData]]
       newData.w = w
       newData.h = h
       newData.frames = {}
-      newData.script = MakeResource("script") --[[@as Script]]
-      newData.script.code = ""
+      local newScript = MakeResource("script") --[[@as Script]]
+      newScript.code = ""
 
-      ---@type Object
-      local newObject = {
+      ---@type Sprite
+      local newSprite = {
+        type = "sprite",
         x = x,
         y = y,
-        data = newData
+        script = newScript,
+        spriteData = newData
       }
-      self.engine.objects:add(newObject)
-      self:openSpriteEditor(newObject)
+      self.engine.objects:add(newSprite)
+      self:openSpriteEditor(newSprite)
       self.spriteEditor:addFrame()
-      self:selectObject(newObject)
+      self:selectObject(newSprite)
 
-      self.creatingObject = false
+      self.creatingSprite = false
     elseif self.draggingObject then
       self.draggingObject = nil
     end
@@ -203,7 +208,9 @@ end
 
 function sceneView:mouseDoubleClicked(button)
   if button == 1 and self.selectedObject then
-    self:openSpriteEditor(self.selectedObject)
+    if self.selectedObject.type == "sprite" then
+      self:openSpriteEditor(self.selectedObject --[[@as Sprite]])
+    end
     self.draggingObject = nil
   end
 end
@@ -241,7 +248,7 @@ function sceneView:wheelMoved(x, y)
 end
 
 function sceneView:getCursor()
-  if self.creatingObject then
+  if self.creatingSprite then
     return love.mouse.getSystemCursor("crosshair")
   else
     return nil
@@ -297,18 +304,21 @@ function sceneView:render(x, y, w, h)
   self.engine:draw()
 
   if self.selectedObject then
-    lg.setColor(1, 1, 1, 0.5) -- unstyled
-    lg.setLineWidth(1)
-    lg.rectangle("line",
-      self.selectedObject.x,
-      self.selectedObject.y,
-      self.selectedObject.data.frames[1].image:getWidth(),
-      self.selectedObject.data.frames[1].image:getHeight())
+    if self.selectedObject.type == "sprite" then
+      local sprite = self.selectedObject --[[@as Sprite]]
+      lg.setColor(1, 1, 1, 0.5) -- unstyled
+      lg.setLineWidth(1)
+      lg.rectangle("line",
+        sprite.x,
+        sprite.y,
+        sprite.spriteData.frames[1].image:getWidth(),
+        sprite.spriteData.frames[1].image:getHeight())
+    end
   end
 
   lg.pop()
 
-  if self.creatingObject and self.creationX then
+  if self.creatingSprite and self.creationX then
     local x1, y1 = self.viewTransform:transformPoint(self.creationX, self.creationY)
     local x2, y2 = self:getRelativeMouse()
     lg.setColor(1, 1, 1, 0.2) -- unstyled

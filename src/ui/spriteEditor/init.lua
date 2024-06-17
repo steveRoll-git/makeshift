@@ -111,7 +111,7 @@ end
 ---@alias ToolType "pencil" | "eraser" | "fill"
 
 ---@class SpriteEditor: ResourceEditor
----@field editingObjectData ObjectData
+---@field editingSprite SpriteData
 ---@field currentFrameIndex number
 ---@field panX number
 ---@field panY number
@@ -218,7 +218,7 @@ function spriteEditor:init(sceneView)
 end
 
 function spriteEditor:resourceId()
-  return self.editingObjectData.id
+  return self.editingSprite.id
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
@@ -252,7 +252,7 @@ end
 ---Returns the frame currently being edited.
 ---@return SpriteFrame
 function spriteEditor:currentFrame()
-  return self.editingObjectData.frames[self.currentFrameIndex]
+  return self.editingSprite.frames[self.currentFrameIndex]
 end
 
 ---Returns the ImageData currently being edited.
@@ -280,13 +280,13 @@ end
 ---Appends a new frame to the edited object.
 function spriteEditor:addFrame()
   local frame = {
-    imageData = love.image.newImageData(self.editingObjectData.w, self.editingObjectData.h)
+    imageData = love.image.newImageData(self.editingSprite.w, self.editingSprite.h)
   }
   frame.image = lg.newImage(frame.imageData)
   frame.image:setFilter("linear", "nearest")
-  table.insert(self.editingObjectData.frames, frame)
+  table.insert(self.editingSprite.frames, frame)
 
-  self.currentFrameIndex = #self.editingObjectData.frames
+  self.currentFrameIndex = #self.editingSprite.frames
   self:updateTransparencyQuad()
 end
 
