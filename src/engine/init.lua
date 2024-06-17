@@ -230,7 +230,7 @@ function engine:callObjectEvent(object, event, p1, p2, p3, p4)
     return
   end
 
-  if not object.script.compiledCode.events or not object.script.compiledCode.events[event] then
+  if not object.script.compiledCode or not object.script.compiledCode.events[event] then
     return
   end
 
