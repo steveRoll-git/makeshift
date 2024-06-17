@@ -57,8 +57,14 @@ function sceneView:updateViewTransform()
   end
 end
 
-function sceneView:startCreatingObject()
+function sceneView:startCreatingSprite()
   self.creatingSprite = true
+  self.creationX = nil
+  self.creationY = nil
+end
+
+function sceneView:startCreatingText()
+  self.creatingText = true
   self.creationX = nil
   self.creationY = nil
 end
@@ -93,8 +99,22 @@ function sceneView:selectObject(obj)
   end
 end
 
+---Returns the rectangle that the user drew when creating a Sprite or Text.
+---@return number
+---@return number
+---@return number
+---@return number
+function sceneView:getCreationRect()
+  local mx, my = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
+  local x = math.min(mx, self.creationX)
+  local y = math.min(my, self.creationY)
+  local w = math.floor(math.abs(mx - self.creationX))
+  local h = math.floor(math.abs(my - self.creationY))
+  return x, y, w, h
+end
+
 function sceneView:mousePressed(button)
-  if self.creatingSprite and button == 1 then
+  if (self.creatingSprite or self.creatingText) and button == 1 then
     self.creationX, self.creationY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
     return
   end
@@ -105,19 +125,17 @@ function sceneView:mousePressed(button)
     for i = #self.engine.objects.list, 1, -1 do
       ---@type Object
       local obj = self.engine.objects.list[i]
-      if obj.type == "sprite" then
-        ---@cast obj Sprite
-        if mx >= obj.x and my >= obj.y and mx < obj.x + obj.spriteData.w and my < obj.y + obj.spriteData.h then
-          self:selectObject(obj)
-          if button == 1 then
-            self.draggingObject = {
-              object = obj,
-              offsetX = obj.x - mx,
-              offsetY = obj.y - my,
-            }
-          end
-          break
+      local x, y, w, h = self.engine:getObjectBoundingBox(obj)
+      if mx >= x and my >= y and mx < x + w and my < y + h then
+        self:selectObject(obj)
+        if button == 1 then
+          self.draggingObject = {
+            object = obj,
+            offsetX = x - mx,
+            offsetY = y - my,
+          }
         end
+        break
       end
     end
   end
@@ -159,11 +177,7 @@ end
 function sceneView:mouseReleased(button)
   if button == 1 then
     if self.creatingSprite then
-      local mx, my = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
-      local x = math.min(mx, self.creationX)
-      local y = math.min(my, self.creationY)
-      local w = math.floor(math.abs(mx - self.creationX))
-      local h = math.floor(math.abs(my - self.creationY))
+      local x, y, w, h = self:getCreationRect()
 
       local newData = MakeResource("spriteData") --[[@as SpriteData]]
       newData.w = w
@@ -180,12 +194,25 @@ function sceneView:mouseReleased(button)
         script = newScript,
         spriteData = newData
       }
-      self.engine.objects:add(newSprite)
+      self.engine:addObject(newSprite)
       self:openSpriteEditor(newSprite)
       self.spriteEditor:addFrame()
       self:selectObject(newSprite)
 
       self.creatingSprite = false
+    elseif self.creatingText then
+      local x, y, w, h = self:getCreationRect()
+
+      local newText = self.engine:prepareObjectRuntime {
+        type = "text",
+        x = x,
+        y = y,
+        string = "",
+        fontSize = 32 -- TODO
+      }
+      self.engine:addObject(newText)
+
+      self.creatingText = false
     elseif self.draggingObject then
       self.draggingObject = nil
     end
@@ -248,7 +275,7 @@ function sceneView:wheelMoved(x, y)
 end
 
 function sceneView:getCursor()
-  if self.creatingSprite then
+  if self.creatingSprite or self.creatingText then
     return love.mouse.getSystemCursor("crosshair")
   else
     return nil
@@ -304,21 +331,15 @@ function sceneView:render(x, y, w, h)
   self.engine:draw()
 
   if self.selectedObject then
-    if self.selectedObject.type == "sprite" then
-      local sprite = self.selectedObject --[[@as Sprite]]
-      lg.setColor(1, 1, 1, 0.5) -- unstyled
-      lg.setLineWidth(1)
-      lg.rectangle("line",
-        sprite.x,
-        sprite.y,
-        sprite.spriteData.frames[1].image:getWidth(),
-        sprite.spriteData.frames[1].image:getHeight())
-    end
+    local ox, oy, ow, oh = self.engine:getObjectBoundingBox(self.selectedObject)
+    lg.setColor(1, 1, 1, 0.5) -- unstyled
+    lg.setLineWidth(1)
+    lg.rectangle("line", ox, oy, ow, oh)
   end
 
   lg.pop()
 
-  if self.creatingSprite and self.creationX then
+  if (self.creatingSprite or self.creatingText) and self.creationX then
     local x1, y1 = self.viewTransform:transformPoint(self.creationX, self.creationY)
     local x2, y2 = self:getRelativeMouse()
     lg.setColor(1, 1, 1, 0.2) -- unstyled
@@ -348,9 +369,16 @@ function sceneEditor:init(scene)
       text = "New Sprite",
       image = images["icons/sprite_add_24.png"],
       action = function()
-        self.sceneView:startCreatingObject()
+        self.sceneView:startCreatingSprite()
       end
-    }
+    },
+    {
+      text = "New Text",
+      image = images["icons/text_add_24.png"],
+      action = function()
+        self.sceneView:startCreatingText()
+      end
+    },
   }
 
   self.zoomSlider = zoomSlider()

@@ -23,7 +23,7 @@ function toolbar:setItems(items)
     b.onClick = item.action
     b.displayMode = "textAfterImage"
     b.font = fonts("Inter-Regular.ttf", 14)
-    b.textImageMargin = 3
+    b.textImageMargin = 6
     table.insert(self.buttons, b)
   end
 end

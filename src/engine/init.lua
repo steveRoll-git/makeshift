@@ -6,8 +6,9 @@ local deepCopy = require "util.deepCopy"
 local strongType = require "lang.strongType"
 local hexToUID = require "util.hexToUid"
 local project = require "project"
+local fonts = require "fonts"
 
----@alias ObjectType "object" | "sprite"
+---@alias ObjectType "object" | "sprite" | "text"
 
 ---@class Script: Resource
 ---@field code string
@@ -26,19 +27,52 @@ local project = require "project"
 ---@field type ObjectType
 ---@field x number
 ---@field y number
----@field script Script
+---@field script? Script
 ---@field scriptInstance StrongTypeInstance?
 
 ---@class Sprite: Object
 ---@field spriteData SpriteData
 
+---@class Text: Object
+---@field text love.Text
+---@field string string
+---@field fontSize number
+---@field font love.Font
+
 ---@class Scene: Resource
 ---@field objects Object[]
 
-local objectType = strongType.new("object", {
+local objectType = strongType.new("Object", {
   x = { type = "number" },
   y = { type = "number" },
 })
+
+local spriteType = strongType.new("Sprite", {}, objectType)
+
+local textType = strongType.new("Text", {
+  text = {
+    type = "string",
+
+    ---@param self Text
+    ---@return string
+    getter = function(self)
+      return self.string
+    end,
+
+    ---@param self Text
+    ---@param value string
+    setter = function(self, value)
+      self.text:set(value)
+    end
+  },
+  fontSize = { type = "number" }
+}, objectType)
+
+local objectStrongTypes = {
+  object = objectType,
+  sprite = spriteType,
+  text = textType,
+}
 
 -- the maximum amount of times to `yield` inside a loop before moving on.
 local maxLoopYields = 1000
@@ -88,13 +122,50 @@ function engine:init(scene, active)
   if scene then
     for _, obj in ipairs(scene.objects) do
       local newObj = deepCopy(obj)
-      if active and obj.script.compiledCode then
+      if active and obj.script and obj.script.compiledCode then
         for _, f in pairs(obj.script.compiledCode.events) do
           setfenv(f, self.scriptEnvironment)
         end
-        newObj.scriptInstance = objectType:instance(newObj)
+        newObj.scriptInstance = objectStrongTypes[obj.type]:instance(newObj)
       end
       self:addObject(newObj)
+    end
+  end
+end
+
+---Prepares an Object with any runtime objects that it needs, that weren't loaded from the file (such as images and Text objects.)<br>
+---Returns the same object for convenience.
+---@param obj Object
+---@return Object
+function engine:prepareObjectRuntime(obj)
+  if obj.type == "sprite" then
+    ---@cast obj Sprite
+    self:prepareResourceRuntime(obj.spriteData)
+  elseif obj.type == "text" then
+    ---@cast obj Text
+    if not obj.text then
+      obj.font = fonts("Inter-Regular.ttf", obj.fontSize)
+      obj.text = love.graphics.newText(obj.font, obj.string)
+    end
+  end
+  return obj
+end
+
+---Prepares a resource with any runtime objects that it needs, that weren't loaded from the file (such as images and Text objects.)
+---@param r Resource
+function engine:prepareResourceRuntime(r)
+  if r.type == "scene" then
+    ---@cast r Scene
+    for _, o in ipairs(r.objects) do
+      self:prepareObjectRuntime(o)
+    end
+  elseif r.type == "spriteData" then
+    ---@cast r SpriteData
+    for _, f in ipairs(r.frames) do
+      if not f.image then
+        f.image = love.graphics.newImage(f.imageData)
+        f.image:setFilter("linear", "nearest")
+      end
     end
   end
 end
@@ -230,7 +301,7 @@ function engine:callObjectEvent(object, event, p1, p2, p3, p4)
     return
   end
 
-  if not object.script.compiledCode or not object.script.compiledCode.events[event] then
+  if not object.script or not object.script.compiledCode or not object.script.compiledCode.events[event] then
     return
   end
 
@@ -246,7 +317,22 @@ end
 ---Add an object into the scene.
 ---@param obj Object
 function engine:addObject(obj)
+  self:prepareObjectRuntime(obj)
   self.objects:add(obj)
+end
+
+---Returns the bounding box that this Object occupies.
+---@param object Object
+---@return number, number, number, number
+function engine:getObjectBoundingBox(object)
+  if object.type == "text" then
+    ---@cast object Text
+    return object.x, object.y, object.text:getDimensions()
+  elseif object.type == "sprite" then
+    ---@cast object Sprite
+    return object.x, object.y, object.spriteData.w, object.spriteData.h
+  end
+  return object.x - 3, object.y - 3, object.x + 3, object.y + 3
 end
 
 function engine:update(dt)
@@ -282,6 +368,10 @@ function engine:draw()
       ---@cast o Sprite
       lg.setColor(1, 1, 1)
       lg.draw(o.spriteData.frames[1].image, o.x, o.y)
+    elseif o.type == "text" then
+      ---@cast o Text
+      lg.setColor(1, 1, 1)
+      lg.draw(o.text, o.x, o.y)
     end
   end
 end

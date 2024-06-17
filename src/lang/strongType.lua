@@ -8,6 +8,8 @@ end
 
 ---@class StrongTypeField
 ---@field type string
+---@field getter? fun(any): any
+---@field setter? fun(any, any)
 
 ---@class StrongTypeInstance
 

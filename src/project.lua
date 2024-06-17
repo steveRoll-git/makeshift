@@ -23,6 +23,7 @@ local resourceTypesLookup = reverseLookup(resourceTypes)
 local objectTypes = {
   object = 1,
   sprite = 2,
+  text = 3,
 }
 ---@type table<number, ObjectType>
 local objectTypesLookup = reverseLookup(objectTypes)
@@ -156,7 +157,7 @@ function project:compileScripts()
       ---@cast r Scene
       for _, obj in ipairs(r.objects) do
         local script = obj.script
-        if #script.code > 0 then
+        if script and #script.code > 0 then
           local p = parser.new(script.code, script)
           local ast = p:parseObjectCode()
           if #p.errorStack > 0 then
@@ -230,6 +231,10 @@ function project:saveToFile()
         if o.type == "sprite" then
           ---@cast o Sprite
           writeEmbeddedOrExternalResource(o.spriteData)
+        elseif o.type == "text" then
+          ---@cast o Text
+          writeNumber(o.fontSize)
+          writeString(o.string)
         end
       end
     elseif r.type == "spriteData" then
@@ -297,7 +302,7 @@ function project:loadFromFile(projectName)
   local readEmbeddedOrExternalResource
 
   ---Reads and returns a resource if it was set, otherwise returns nil.
-  ---@param type ResourceType?
+  ---@param type ResourceType
   ---@return Resource?
   local function readOptionalResource(type)
     local pos = file:tell()
@@ -342,6 +347,10 @@ function project:loadFromFile(projectName)
           ---@cast object Sprite
           local spriteData = readEmbeddedOrExternalResource("spriteData") --[[@as SpriteData]]
           object.spriteData = spriteData
+        elseif objectType == "text" then
+          ---@cast object Text
+          object.fontSize = readNumber()
+          object.string = readString()
         end
         resource.objects[#resource.objects + 1] = object
       end
@@ -357,10 +366,8 @@ function project:loadFromFile(projectName)
         local size = readNumber()
         local data = love.image.newImageData(file:read("data", size))
         local frame = {
-          imageData = data,
-          image = love.graphics.newImage(data)
+          imageData = data
         }
-        frame.image:setFilter("linear", "nearest")
         resource.frames[#resource.frames + 1] = frame
       end
     elseif type == "script" then

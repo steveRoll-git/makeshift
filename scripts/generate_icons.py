@@ -39,6 +39,7 @@ def generate_icons():
     icon("properties", 14)
     icon("scene", 24)
     icon("sprite_add", 24)
+    icon("text_add", 24)
     icon("zoom_in", 14)
 
 if __name__ == "__main__":
