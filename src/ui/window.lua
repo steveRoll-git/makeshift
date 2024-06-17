@@ -166,6 +166,8 @@ function window:textInput(text)
 end
 
 function window:render(x, y, w, h)
+  local outlineColor = self.focused and CurrentTheme.outlineActive or CurrentTheme.outline
+
   local cornerRadius = 6
   if self.focused then
     lg.setColor(CurrentTheme.backgroundActive)
@@ -173,7 +175,7 @@ function window:render(x, y, w, h)
     lg.setColor(CurrentTheme.backgroundInactive)
   end
   lg.rectangle("fill", x, y, w, self:titleBarHeight() + cornerRadius, cornerRadius)
-  lg.setColor(CurrentTheme.outline)
+  lg.setColor(outlineColor)
   lg.setLineStyle("rough")
   lg.setLineWidth(1)
   lg.rectangle("line", x, y, w, self:titleBarHeight() + cornerRadius, cornerRadius)
@@ -205,7 +207,7 @@ function window:render(x, y, w, h)
   self.content:render(x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
   popScissor()
 
-  lg.setColor(CurrentTheme.outline)
+  lg.setColor(outlineColor)
   lg.setLineStyle("rough")
   lg.setLineWidth(1)
   lg.line(
