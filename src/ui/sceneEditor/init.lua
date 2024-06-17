@@ -18,6 +18,10 @@ local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 
 ---Opens a code editor for this object.
 ---@param object Object
 local function openCodeEditor(object)
+  if not object.script then
+    object.script = MakeResource("script") --[[@as Script]]
+    object.script.code = ""
+  end
   OpenResourceTab(object.script)
 end
 
@@ -183,15 +187,12 @@ function sceneView:mouseReleased(button)
       newData.w = w
       newData.h = h
       newData.frames = {}
-      local newScript = MakeResource("script") --[[@as Script]]
-      newScript.code = ""
 
       ---@type Sprite
       local newSprite = {
         type = "sprite",
         x = x,
         y = y,
-        script = newScript,
         spriteData = newData
       }
       self.engine:addObject(newSprite)

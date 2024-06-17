@@ -121,6 +121,13 @@ function project:getResourceById(id)
   end
 end
 
+---Returns whether this resource is an external resource.
+---@param resource Resource
+---@return boolean
+function project:isResourceExternal(resource)
+  return not not self.resources[resource.id]
+end
+
 ---Adds a new scene to the project and returns it.
 function project:addScene()
   -- If there are already scenes named "Untitled Scene", append an incrementing number to the name.
@@ -227,7 +234,11 @@ function project:saveToFile()
         f:write(string.char(objectTypes[o.type]))
         writeNumber(o.x)
         writeNumber(o.y)
-        writeOptionalResource(o.script)
+        if o.script and not self:isResourceExternal(o.script) and #o.script.code == 0 then
+          f:write("\0")
+        else
+          writeOptionalResource(o.script)
+        end
         if o.type == "sprite" then
           ---@cast o Sprite
           writeEmbeddedOrExternalResource(o.spriteData)
@@ -257,7 +268,7 @@ function project:saveToFile()
 
   ---@param resource Resource
   writeEmbeddedOrExternalResource = function(resource)
-    if self.resources[resource.id] then
+    if self:isResourceExternal(resource) then
       f:write(resourceBytes.external)
       f:write(resource.id)
     else
