@@ -14,26 +14,31 @@ end
 ---@class StrongType
 ---@field name string
 ---@field fields {[string]: StrongTypeField}
+---@field parent StrongType?
 local strongType = {}
 strongType.__index = strongType
 
 ---@param name string
 ---@param fields {[string]: StrongTypeField}
-function strongType.new(name, fields)
+---@param parent? StrongType
+function strongType.new(name, fields, parent)
   local self = setmetatable({}, strongType)
-  self:init(name, fields)
+  self:init(name, fields, parent)
   return self
 end
 
 ---@param name string
 ---@param fields {[string]: StrongTypeField}
-function strongType:init(name, fields)
+---@param parent? StrongType
+function strongType:init(name, fields, parent)
   self.name = name
   self.fields = fields
+  self.parent = parent
 
   self.indexFunction = function(obj, key)
     local actual = getmetatable(obj).__actualValue
-    if self.fields[key] then
+    local field = self:getField(key)
+    if field then
       return actual[key]
     else
       error(("Type %s doesn't have a field named %q"):format(self.name, key), 2)
@@ -42,8 +47,9 @@ function strongType:init(name, fields)
 
   self.newIndexFunction = function(obj, key, value)
     local actual = getmetatable(obj).__actualValue
-    if self.fields[key] then
-      if getType(value) == self.fields[key].type then
+    local field = self:getField(key)
+    if field then
+      if getType(value) == field.type then
         actual[key] = value
       else
         error(
@@ -56,6 +62,19 @@ function strongType:init(name, fields)
       error(("Type %s doesn't have a field named %q"):format(self.name, key), 2)
     end
   end
+end
+
+---Returns this type's field of this name, if it exists.
+---@param name string
+---@return StrongTypeField?
+function strongType:getField(name)
+  if self.fields[name] then
+    return self.fields[name]
+  end
+  if self.parent then
+    return self.parent:getField(name)
+  end
+  return nil
 end
 
 ---Creates a new instance of this StrongType.
