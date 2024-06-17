@@ -345,8 +345,8 @@ function sceneEditor:init(scene)
   self.toolbar = toolbar()
   self.toolbar:setItems {
     {
-      text = "New Object",
-      image = images["icons/object_add_24.png"],
+      text = "New Sprite",
+      image = images["icons/sprite_add_24.png"],
       action = function()
         self.sceneView:startCreatingObject()
       end

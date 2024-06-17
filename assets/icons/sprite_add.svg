@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="24px"
+   viewBox="0 -960 960 960"
+   width="24px"
+   fill="#ffffff"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="sprite_add.svg"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#000000"
+     bordercolor="#4d4d4d"
+     borderopacity="0.24705882"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#000000"
+     showgrid="true"
+     inkscape:zoom="22.627417"
+     inkscape:cx="15.313281"
+     inkscape:cy="16.484427"
+     inkscape:window-width="1920"
+     inkscape:window-height="1006"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1">
+    <inkscape:grid
+       id="grid1"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="40"
+       spacingy="40"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+  </sodipodi:namedview>
+  <path
+     d="m 560,-280 h 120 v -53.35937 L 570,-480 450,-320 360,-440 240,-280 Z"
+     style=""
+     id="path6" />
+  <path
+     d="m 200,-840 c -21.99998,0 -40.81772,7.84897 -56.48438,23.51563 C 127.84897,-800.81772 120,-781.99998 120,-760 v 560 c 0,21.99998 7.84897,40.81772 23.51562,56.48438 C 159.18228,-127.84897 178.00002,-120 200,-120 h 360 v -80 H 200 v -560 h 560 v 360 h 80 v -360 c 0,-21.99998 -7.84897,-40.81772 -23.51563,-56.48437 C 800.81772,-832.15103 781.99998,-840 760,-840 Z"
+     style=""
+     id="path5" />
+  <path
+     d="M 760,0 V -120 H 640 v -80 h 120 v -120 h 80 v 120 h 120 v 80 H 840 V 0 Z"
+     id="path1-8"
+     inkscape:label="plus"
+     style="display:inline" />
+</svg>
