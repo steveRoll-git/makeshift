@@ -12,6 +12,7 @@ local popupMenu = require "ui.popupMenu"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
 local project = require "project"
+local textEditor = require "ui.textEditor"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -42,6 +43,14 @@ function sceneView:init(editor)
   self.initialPanDone = false
   self.zoom = 1
   self.viewTransform = love.math.newTransform()
+  ---@type Zap.MouseTransform
+  self.textEditMouseTransform = function(mouseX, mouseY)
+    local x, y, _, _ = self:getView()
+    mouseX = mouseX - x
+    mouseY = mouseY - y
+    mouseX, mouseY = self.viewTransform:inverseTransformPoint(mouseX, mouseY)
+    return self.engine:getObjectTransform(self.editingText):inverseTransformPoint(mouseX, mouseY)
+  end
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
@@ -100,6 +109,24 @@ function sceneView:exitSpriteEditor()
   self.spriteEditor = nil
 end
 
+---@param text Text
+function sceneView:startEditingText(text)
+  self.editingText = text
+  self.editingText.visible = false
+  self.editingTextEditor = textEditor()
+  self.editingTextEditor.font = text.font
+  self.editingTextEditor.multiline = true
+  self.editingTextEditor:setText(text.string)
+end
+
+function sceneView:stopEditingText()
+  self.editingText.string = self.editingTextEditor:getString()
+  self.editingText.text:set(self.editingText.string)
+  self.editingText.visible = true
+  self.editingText = nil
+  self.editingTextEditor = nil
+end
+
 ---@param obj Object?
 function sceneView:selectObject(obj)
   self.selectedObject = obj
@@ -126,6 +153,9 @@ function sceneView:mousePressed(button)
   if (self.creatingSprite or self.creatingText) and button == 1 then
     self.creationX, self.creationY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
     return
+  end
+  if self.editingText then
+    self:stopEditingText()
   end
   if button == 1 or button == 2 then
     self:selectObject(nil)
@@ -209,15 +239,17 @@ function sceneView:mouseReleased(button)
     elseif self.creatingText then
       local x, y, w, h = self:getCreationRect()
 
-      local newText = self.engine:prepareObjectRuntime {
+      local newText = self.engine:prepareObjectRuntime({
         type = "text",
         visible = true,
         x = x,
         y = y,
         string = "",
         fontSize = 32 -- TODO
-      }
+      }) --[[@as Text]]
       self.engine:addObject(newText)
+      self:selectObject(newText)
+      self:startEditingText(newText)
 
       self.creatingText = false
     elseif self.draggingObject then
@@ -244,6 +276,8 @@ function sceneView:mouseDoubleClicked(button)
   if button == 1 and self.selectedObject then
     if self.selectedObject.type == "sprite" then
       self:openSpriteEditor(self.selectedObject --[[@as Sprite]])
+    elseif self.selectedObject.type == "text" then
+      self:startEditingText(self.selectedObject --[[@as Text]])
     end
     self.draggingObject = nil
   end
@@ -337,6 +371,19 @@ function sceneView:render(x, y, w, h)
 
   self.engine:draw()
 
+  if self.editingText then
+    lg.push()
+    lg.applyTransform(self.engine:getObjectTransform(self.editingText))
+    self:getScene():pushMouseTransform(self.textEditMouseTransform)
+    self.editingTextEditor:render(
+      0,
+      0,
+      self.editingTextEditor:contentWidth(),
+      self.editingTextEditor:contentHeight())
+    self:getScene():popMouseTransform()
+    lg.pop()
+  end
+
   if self.selectedObject then
     local ox, oy, ow, oh = self.engine:getObjectBoundingBox(self.selectedObject)
     lg.setColor(1, 1, 1, 0.5) -- unstyled
@@ -399,6 +446,10 @@ function sceneEditor:resourceId()
 end
 
 function sceneEditor:writeToScene()
+  if self.sceneView.editingText then
+    self.sceneView:stopEditingText()
+  end
+
   self.originalScene.objects = {}
   for _, o in ipairs(self.engine.objects.list) do
     table.insert(self.originalScene.objects, o)
@@ -412,6 +463,14 @@ end
 function sceneEditor:keyPressed(key)
   if key == "f9" and self.sceneView.selectedObject then
     openCodeEditor(self.sceneView.selectedObject)
+  elseif self.sceneView.editingText then
+    self.sceneView.editingTextEditor:keyPressed(key)
+  end
+end
+
+function sceneEditor:textInput(text)
+  if self.sceneView.editingText then
+    self.sceneView.editingTextEditor:textInput(text)
   end
 end
 

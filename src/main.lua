@@ -346,6 +346,7 @@ local function updateCursor()
       local e = hovered[i]
       if e.class.getCursor then
         cursorToSet = e.class.getCursor(e)
+        break
       end
     end
   end

@@ -90,7 +90,7 @@ end
 function textEditor:setText(text)
   self.lines = {}
   if #text == 0 then
-    table.insert(self.lines, { string = "", text = lg.newText(self.font) })
+    table.insert(self.lines, { string = "", text = lg.newText(self.font), width = 0 })
     return
   end
   local current = 1
@@ -342,6 +342,16 @@ end
 ---@return TextPosition
 function textEditor:selectionLastEdge()
   return comparePositions(self.cursor, self.selectionStart) and self.selectionStart or self.cursor
+end
+
+---Returns the width of the longest line in the editor.
+---@return number
+function textEditor:contentWidth()
+  local width = 0
+  for _, l in ipairs(self.lines) do
+    width = math.max(l.width, width)
+  end
+  return width + self.padding * 2
 end
 
 ---Get the height of all the content in this textEditor, including all the lines and padding.
