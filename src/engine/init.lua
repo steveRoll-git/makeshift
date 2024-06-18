@@ -329,7 +329,11 @@ end
 function engine:getObjectBoundingBox(object)
   if object.type == "text" then
     ---@cast object Text
-    return object.x, object.y, object.text:getDimensions()
+    local w, h = object.text:getDimensions()
+    if object.string:sub(#object.string) == "\n" then
+      h = h + object.font:getHeight()
+    end
+    return object.x, object.y, w, h
   elseif object.type == "sprite" then
     ---@cast object Sprite
     return object.x, object.y, object.spriteData.w, object.spriteData.h
