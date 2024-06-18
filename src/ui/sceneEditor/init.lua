@@ -155,10 +155,10 @@ function sceneView:mousePressed(button)
     self.creationX, self.creationY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
     return
   end
-  if self.editingText then
-    self:stopEditingText()
-  end
   if button == 1 or button == 2 then
+    if self.editingText then
+      self:stopEditingText()
+    end
     self:selectObject(nil)
     local mx, my = self:getRelativeMouse()
     mx, my = self.viewTransform:inverseTransformPoint(mx, my)
