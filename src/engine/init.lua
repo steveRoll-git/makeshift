@@ -335,6 +335,14 @@ function engine:getObjectBoundingBox(object)
   return object.x - 3, object.y - 3, object.x + 3, object.y + 3
 end
 
+local tempTransform = love.math.newTransform()
+---Returns the transform needed to display this object at its correct position.
+---@param object Object
+---@return love.Transform
+function engine:getObjectTransform(object)
+  return tempTransform:setTransformation(object.x, object.y)
+end
+
 function engine:update(dt)
   if not self.running then return end
 
@@ -364,15 +372,18 @@ end
 function engine:draw()
   for _, o in ipairs(self.objects.list) do
     ---@cast o Object
+    lg.push()
+    lg.applyTransform(self:getObjectTransform(o))
     if o.type == "sprite" then
       ---@cast o Sprite
       lg.setColor(1, 1, 1)
-      lg.draw(o.spriteData.frames[1].image, o.x, o.y)
+      lg.draw(o.spriteData.frames[1].image)
     elseif o.type == "text" then
       ---@cast o Text
       lg.setColor(1, 1, 1)
-      lg.draw(o.text, o.x, o.y)
+      lg.draw(o.text)
     end
+    lg.pop()
   end
 end
 
