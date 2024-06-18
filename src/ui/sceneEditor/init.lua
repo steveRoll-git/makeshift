@@ -63,12 +63,18 @@ function sceneView:updateViewTransform()
 end
 
 function sceneView:startCreatingSprite()
+  if self.editingText then
+    self:stopEditingText()
+  end
   self.creatingSprite = true
   self.creationX = nil
   self.creationY = nil
 end
 
 function sceneView:startCreatingText()
+  if self.editingText then
+    self:stopEditingText()
+  end
   self.creatingText = true
   self.creationX = nil
   self.creationY = nil
@@ -121,11 +127,15 @@ function sceneView:startEditingText(text)
 end
 
 function sceneView:stopEditingText()
-  self.editingText.string = self.editingTextEditor:getString()
-  self.editingText.text:set(self.editingText.string)
+  self:updateEditingText()
   self.editingText.visible = true
   self.editingText = nil
   self.editingTextEditor = nil
+end
+
+function sceneView:updateEditingText()
+  self.editingText.string = self.editingTextEditor:getString()
+  self.editingText.text:set(self.editingText.string)
 end
 
 ---@param obj Object?
@@ -386,8 +396,14 @@ function sceneView:render(x, y, w, h)
     lg.pop()
   end
 
-  if self.selectedObject then
-    local ox, oy, ow, oh = self.engine:getObjectBoundingBox(self.selectedObject)
+  if self.selectedObject or self.editingText then
+    local ox, oy, ow, oh
+    if self.editingText then
+      ox, oy = self.selectedObject.x, self.selectedObject.y
+      ow, oh = self.editingTextEditor:contentWidth(), self.editingTextEditor:contentHeight()
+    else
+      ox, oy, ow, oh = self.engine:getObjectBoundingBox(self.selectedObject)
+    end
     lg.setColor(1, 1, 1, 0.5) -- unstyled
     lg.setLineWidth(1)
     lg.rectangle("line", ox, oy, ow, oh)
