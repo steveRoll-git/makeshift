@@ -43,14 +43,6 @@ function sceneView:init(editor)
   self.initialPanDone = false
   self.zoom = 1
   self.viewTransform = love.math.newTransform()
-  ---@type Zap.MouseTransform
-  self.textEditMouseTransform = function(mouseX, mouseY)
-    local x, y, _, _ = self:getView()
-    mouseX = mouseX - x
-    mouseY = mouseY - y
-    mouseX, mouseY = self.viewTransform:inverseTransformPoint(mouseX, mouseY)
-    return self.engine:getObjectTransform(self.editingText):inverseTransformPoint(mouseX, mouseY)
-  end
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
@@ -117,6 +109,15 @@ function sceneView:startEditingText(text)
   self.editingTextEditor.font = text.font
   self.editingTextEditor.multiline = true
   self.editingTextEditor:setText(text.string)
+
+  ---@type Zap.MouseTransform
+  self.textEditMouseTransform = function(mouseX, mouseY)
+    local x, y, _, _ = self:getView()
+    mouseX = mouseX - x
+    mouseY = mouseY - y
+    mouseX, mouseY = self.viewTransform:inverseTransformPoint(mouseX, mouseY)
+    return self.engine:getObjectTransform(text):inverseTransformPoint(mouseX, mouseY)
+  end
 end
 
 function sceneView:stopEditingText()
