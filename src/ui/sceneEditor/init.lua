@@ -79,6 +79,8 @@ function sceneView:openSpriteEditor(sprite)
   if FocusResourceEditor(sprite.spriteData.id) then
     return
   end
+  self.editingSprite = sprite
+  self.editingSprite.visible = false
   self.spriteEditor = spriteEditor(self)
   self.spriteEditor.editingSprite = sprite.spriteData
   self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(sprite.x, sprite.y)
@@ -88,10 +90,13 @@ function sceneView:openSpriteEditor(sprite)
   end
 end
 
+---Closes the embedded sprite editor.
 function sceneView:exitSpriteEditor()
   self.zoom = self.spriteEditor.zoom
   self.panX = -(self.spriteEditor.panX / self.spriteEditor.zoom - self.selectedObject.x)
   self.panY = -(self.spriteEditor.panY / self.spriteEditor.zoom - self.selectedObject.y)
+  self.editingSprite.visible = true
+  self.editingSprite = nil
   self.spriteEditor = nil
 end
 
@@ -206,6 +211,7 @@ function sceneView:mouseReleased(button)
 
       local newText = self.engine:prepareObjectRuntime {
         type = "text",
+        visible = true,
         x = x,
         y = y,
         string = "",

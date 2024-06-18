@@ -25,6 +25,7 @@ local fonts = require "fonts"
 
 ---@class Object
 ---@field type ObjectType
+---@field visible boolean
 ---@field x number
 ---@field y number
 ---@field script? Script
@@ -138,6 +139,7 @@ end
 ---@param obj Object
 ---@return Object
 function engine:prepareObjectRuntime(obj)
+  obj.visible = true -- TODO temporary before this property is serialized in the project
   if obj.type == "sprite" then
     ---@cast obj Sprite
     self:prepareResourceRuntime(obj.spriteData)
@@ -372,18 +374,20 @@ end
 function engine:draw()
   for _, o in ipairs(self.objects.list) do
     ---@cast o Object
-    lg.push()
-    lg.applyTransform(self:getObjectTransform(o))
-    if o.type == "sprite" then
-      ---@cast o Sprite
-      lg.setColor(1, 1, 1)
-      lg.draw(o.spriteData.frames[1].image)
-    elseif o.type == "text" then
-      ---@cast o Text
-      lg.setColor(1, 1, 1)
-      lg.draw(o.text)
+    if o.visible then
+      lg.push()
+      lg.applyTransform(self:getObjectTransform(o))
+      if o.type == "sprite" then
+        ---@cast o Sprite
+        lg.setColor(1, 1, 1)
+        lg.draw(o.spriteData.frames[1].image)
+      elseif o.type == "text" then
+        ---@cast o Text
+        lg.setColor(1, 1, 1)
+        lg.draw(o.text)
+      end
+      lg.pop()
     end
-    lg.pop()
   end
 end
 
