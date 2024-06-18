@@ -12,7 +12,7 @@ local viewTools = require "util.viewTools"
 local toolbar = zap.elementClass()
 
 ---Sets this toolbar's items.
----@param items {image: love.Image, text: string, action: fun(), visible: boolean | fun(): boolean}[]
+---@param items {image: love.Image, text: string, action: fun(), visible?: boolean | fun(): boolean}[]
 function toolbar:setItems(items)
   self.models = items
   self.buttons = {}
@@ -43,7 +43,7 @@ function toolbar:render(x, y, w, h)
     if type(model.visible) == "function" then
       visible = model.visible()
     else
-      visible = model.visible or type(model.visible == "nil")
+      visible = model.visible or type(model.visible) == "nil"
     end
     if visible then
       local buttonW = b:desiredWidth() + 12
