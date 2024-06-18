@@ -186,7 +186,8 @@ function sceneView:mousePressed(button)
         text = "Draw",
         action = function()
           self:openSpriteEditor(self.selectedObject --[[@as Sprite]])
-        end
+        end,
+        visible = self.selectedObject.type == "sprite"
       },
       {
         text = "Code",

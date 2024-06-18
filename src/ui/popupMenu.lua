@@ -14,6 +14,7 @@ local itemHeight = font:getHeight() + itemTextPadding * 2
 ---@class PopupMenuItemModel
 ---@field text string
 ---@field action function
+---@field visible? boolean | fun(): boolean
 
 ---@class PopupMenu: Zap.ElementClass
 ---@field items Zap.Element[]
@@ -24,6 +25,7 @@ local popupMenu = zap.elementClass()
 ---Sets the items inside this PopupMenu.
 ---@param items (PopupMenuItemModel | "separator")[]
 function popupMenu:setItems(items)
+  self.models = items
   self.items = {}
   self.separators = {}
   for _, item in ipairs(items) do
@@ -45,14 +47,29 @@ function popupMenu:setItems(items)
   end
 end
 
+---Returns whether the item at `index` is visible.
+---@param index number
+---@return boolean
+function popupMenu:isItemVisible(index)
+  local model = self.models[index]
+  if type(model.visible) == "function" then
+    return model.visible()
+  else
+    local visible = model.visible --[[@as boolean?]]
+    return visible or type(visible) == "nil"
+  end
+end
+
 function popupMenu:desiredWidth()
   return 200
 end
 
 function popupMenu:desiredHeight()
   local h = itemPadding * 2
-  for _, _ in ipairs(self.items) do
-    h = h + itemHeight
+  for i, _ in ipairs(self.items) do
+    if self:isItemVisible(i) then
+      h = h + itemHeight
+    end
   end
   for _, _ in pairs(self.separators) do
     h = h + itemPadding * 2
@@ -76,15 +93,17 @@ function popupMenu:render(x, y, w, h)
 
   local itemY = y + itemPadding
   for i, item in ipairs(self.items) do
-    item:render(x + itemPadding, itemY, w - itemPadding * 2, itemHeight)
-    itemY = itemY + itemHeight
-    if self.separators[i] then
-      itemY = itemY + itemPadding
-      lg.setColor(CurrentTheme.outlineActive)
-      lg.setLineStyle("rough")
-      lg.setLineWidth(1)
-      lg.line(x, itemY, x + w, itemY)
-      itemY = itemY + itemPadding
+    if self:isItemVisible(i) then
+      item:render(x + itemPadding, itemY, w - itemPadding * 2, itemHeight)
+      itemY = itemY + itemHeight
+      if self.separators[i] then
+        itemY = itemY + itemPadding
+        lg.setColor(CurrentTheme.outlineActive)
+        lg.setLineStyle("rough")
+        lg.setLineWidth(1)
+        lg.line(x, itemY, x + w, itemY)
+        itemY = itemY + itemPadding
+      end
     end
   end
 end
