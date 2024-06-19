@@ -25,7 +25,7 @@ local treeView = require "ui.treeView"
 local sceneEditor = require "ui.sceneEditor"
 local tabView = require "ui.tabView"
 local spriteEditor = require "ui.spriteEditor"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 local hexToColor = require "util.hexToColor"
 local project = require "project"
 local images = require "images"
@@ -99,7 +99,7 @@ function IsPopupOpen(popup)
 end
 
 local mainTabView = tabView()
-mainTabView.font = fonts("Inter-Regular.ttf", 14)
+mainTabView.font = fontCache.get("Inter-Regular.ttf", 14)
 mainTabView.focused = true
 
 local windows = orderedSet.new()
@@ -172,7 +172,7 @@ end
 libraryPanel:setItems(resourceItemModels())
 
 local explorerTabView = tabView()
-explorerTabView.font = fonts("Inter-Regular.ttf", 14)
+explorerTabView.font = fontCache.get("Inter-Regular.ttf", 14)
 explorerTabView:setTabs {
   {
     text = "Library",
@@ -315,7 +315,7 @@ local function runPlaytest()
   end
 
   local playtestWindow = window()
-  playtestWindow.titleFont = fonts("Inter-Regular.ttf", 14)
+  playtestWindow.titleFont = fontCache.get("Inter-Regular.ttf", 14)
   playtestWindow.title = "Playtest"
   playtestWindow.icon = images["icons/game_24.png"]
   playtestWindow:setContentSize(

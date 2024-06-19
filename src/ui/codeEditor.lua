@@ -3,7 +3,7 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local textEditor = require "ui.textEditor"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 local scrollbar = require "ui.scrollbar"
 local clamp = require "util.clamp"
 local pushScissor = require "util.scissorStack".pushScissor
@@ -13,7 +13,7 @@ local parser = require "lang.parser"
 local syntaxErrorBar = require "ui.syntaxErrorBar"
 local images = require "images"
 
-local font = fonts("SourceCodePro-Regular.ttf", 16)
+local font = fontCache.get("SourceCodePro-Regular.ttf", 16)
 
 local gradientTop = lg.newMesh({
   { 0, 0, 0, 0, 1, 1, 1, 1 },

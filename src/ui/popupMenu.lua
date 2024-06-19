@@ -2,13 +2,13 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 local button = require "ui.button"
 
 local itemPadding = 3
 local itemTextPadding = 3
 
-local font = fonts("Inter-Regular.ttf", 14)
+local font = fontCache.get("Inter-Regular.ttf", 14)
 local itemHeight = font:getHeight() + itemTextPadding * 2
 
 ---@class PopupMenuItemModel

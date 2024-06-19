@@ -2,9 +2,9 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 
-local font = fonts("Inter-Regular.ttf", 16)
+local font = fontCache.get("Inter-Regular.ttf", 16)
 local defaultWidth = 600
 
 local tailPolygon = {

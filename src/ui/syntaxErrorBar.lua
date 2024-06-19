@@ -2,12 +2,12 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 local images = require "images"
 
 local icon = images["icons/cancel_32.png"]
 
-local font = fonts("Inter-Regular.ttf", 16)
+local font = fontCache.get("Inter-Regular.ttf", 16)
 
 local padding = 8
 local textMargin = 4

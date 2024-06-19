@@ -5,11 +5,11 @@ local zap = require "lib.zap.zap"
 local slider = require "ui.colorPicker.slider"
 local hsvToRgb = require "util.hsvToRgb"
 local rgbToHsv = require "util.rgbToHsv"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 local dragInput = require "ui.dragInput"
 local viewTools = require "util.viewTools"
 
-local labelFont = fonts("Inter-Regular.ttf", 14)
+local labelFont = fontCache.get("Inter-Regular.ttf", 14)
 
 local slidersHSV = {
   {

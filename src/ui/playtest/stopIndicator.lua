@@ -4,7 +4,7 @@ local lg = love.graphics
 local zap = require "lib.zap.zap"
 local images = require "images"
 local lerp = require "util.lerp"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 
 local icons = {
   error = images["icons/error_stopped_32.png"],
@@ -23,7 +23,7 @@ Click to go to code.]],
 local iconSize = 32
 local padding = 6
 local textPadding = 4
-local font = fonts("Inter-Regular.ttf", 14)
+local font = fontCache.get("Inter-Regular.ttf", 14)
 
 ---@class StopIndicator: Zap.ElementClass
 ---@field stopReason "error" | "wait"

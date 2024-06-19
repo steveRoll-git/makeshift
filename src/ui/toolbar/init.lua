@@ -3,7 +3,7 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local button = require "ui.button"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 local viewTools = require "util.viewTools"
 
 ---@class Toolbar: Zap.ElementClass
@@ -22,7 +22,7 @@ function toolbar:setItems(items)
     b.text = item.text
     b.onClick = item.action
     b.displayMode = "textAfterImage"
-    b.font = fonts("Inter-Regular.ttf", 14)
+    b.font = fontCache.get("Inter-Regular.ttf", 14)
     b.textImageMargin = 6
     table.insert(self.buttons, b)
   end

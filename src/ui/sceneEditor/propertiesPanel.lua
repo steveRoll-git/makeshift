@@ -3,13 +3,13 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local images = require "images"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 local viewTools = require "util.viewTools"
 local dragInput = require "ui.dragInput"
 
 local icon = images["icons/properties_14.png"]
 
-local font = fonts("Inter-Regular.ttf", 14)
+local font = fontCache.get("Inter-Regular.ttf", 14)
 
 ---@class SceneEditorPropertiesPanel: Zap.ElementClass
 ---@field selectedObject Object?

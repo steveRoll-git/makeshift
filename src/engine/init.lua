@@ -6,7 +6,7 @@ local deepCopy = require "util.deepCopy"
 local strongType = require "lang.strongType"
 local hexToUID = require "util.hexToUid"
 local project = require "project"
-local fonts = require "fonts"
+local fontCache = require "util.fontCache"
 
 ---@alias ObjectType "object" | "sprite" | "text"
 
@@ -147,7 +147,7 @@ function engine:prepareObjectRuntime(obj)
   elseif obj.type == "text" then
     ---@cast obj Text
     if not obj.font then
-      obj.font = fonts("Inter-Regular.ttf", obj.fontSize)
+      obj.font = fontCache.get("Inter-Regular.ttf", obj.fontSize)
     end
     obj.text = love.graphics.newText(obj.font, obj.string)
   end
