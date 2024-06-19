@@ -98,6 +98,10 @@ function IsPopupOpen(popup)
   return popups:has(popup)
 end
 
+local mainTabView = tabView()
+mainTabView.font = fonts("Inter-Regular.ttf", 14)
+mainTabView.focused = true
+
 local windows = orderedSet.new()
 
 ---@type Window?
@@ -107,6 +111,8 @@ local focusedWindow
 function SetFocusedWindow(w)
   if focusedWindow then
     focusedWindow.focused = false
+  else
+    mainTabView.focused = false
   end
   focusedWindow = w
   if w then
@@ -115,6 +121,8 @@ function SetFocusedWindow(w)
       windows:remove(w)
       windows:add(w)
     end
+  else
+    mainTabView.focused = true
   end
 end
 
@@ -172,9 +180,6 @@ explorerTabView:setTabs {
     content = libraryPanel,
   },
 }
-
-local mainTabView = tabView()
-mainTabView.font = fonts("Inter-Regular.ttf", 14)
 
 local testSplitView = splitView()
 testSplitView.orientation = "vertical"
@@ -268,8 +273,8 @@ local function getFocusedElement()
     return popups:last()
   elseif focusedWindow then
     return focusedWindow
-  elseif mainTabView.activeTab then
-    return mainTabView.activeTab.content
+  else
+    return mainTabView
   end
 end
 

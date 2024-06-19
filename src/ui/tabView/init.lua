@@ -10,6 +10,7 @@ local tab = require "ui.tabView.tab"
 ---@field tabs Tab[]
 ---@field activeTab Tab
 ---@field font love.Font
+---@field focused boolean
 ---@operator call:TabView
 local tabView = zap.elementClass()
 
@@ -117,6 +118,24 @@ function tabView:renderTab(tab, x, y)
   tab:render(tabX, y, tabW, self:tabBarHeight())
 end
 
+function tabView:keyPressed(key)
+  if self.activeTab and self.activeTab.content.class.keyPressed then
+    self.activeTab.content.class.keyPressed(self.activeTab.content, key)
+  end
+end
+
+function tabView:keyReleased(key)
+  if self.activeTab and self.activeTab.content.class.keyReleased then
+    self.activeTab.content.class.keyReleased(self.activeTab.content, key)
+  end
+end
+
+function tabView:textInput(text)
+  if self.activeTab and self.activeTab.content.class.textInput then
+    self.activeTab.content.class.textInput(self.activeTab.content, text)
+  end
+end
+
 function tabView:render(x, y, w, h)
   for _, tab in ipairs(self.tabs) do
     if tab ~= self.activeTab then
@@ -126,7 +145,7 @@ function tabView:render(x, y, w, h)
   if self.activeTab then
     self:renderTab(self.activeTab, x, y)
     self.activeTab.content:render(x, y + self:tabBarHeight(), w, h - self:tabBarHeight())
-    lg.setColor(CurrentTheme.outline)
+    lg.setColor(self.focused and CurrentTheme.outlineActive or CurrentTheme.outline)
     lg.setLineStyle("rough")
     lg.setLineWidth(1)
     local ax, _, aw, _ = self.activeTab:getView()

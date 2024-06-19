@@ -140,7 +140,7 @@ function tab:render(x, y, w, h)
   lg.rectangle("fill", x, y, w, h + cornerRadius, cornerRadius)
 
   if self.active then
-    lg.setColor(CurrentTheme.outline)
+    lg.setColor(self:parentTabView().focused and CurrentTheme.outlineActive or CurrentTheme.outline)
     lg.setLineStyle("rough")
     lg.setLineWidth(1)
     lg.rectangle("line", x, y + 2, w, h + cornerRadius, cornerRadius)
