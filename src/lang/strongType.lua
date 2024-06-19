@@ -41,7 +41,13 @@ function strongType:init(name, fields, parent)
     local actual = getmetatable(obj).__actualValue
     local field = self:getField(key)
     if field then
-      return actual[key]
+      if field.getter then
+        return field.getter(actual)
+      elseif field.setter then
+        error(("Field %q is write-only"):format(key), 2)
+      else
+        return actual[key]
+      end
     else
       error(("Type %s doesn't have a field named %q"):format(self.name, key), 2)
     end
@@ -52,7 +58,13 @@ function strongType:init(name, fields, parent)
     local field = self:getField(key)
     if field then
       if getType(value) == field.type then
-        actual[key] = value
+        if field.setter then
+          field.setter(actual, value)
+        elseif field.getter then
+          error(("Field %q is read-only"):format(key), 2)
+        else
+          actual[key] = value
+        end
       else
         error(
           ("Field %q is of type %s - can't assign value of type %s to it"):format(

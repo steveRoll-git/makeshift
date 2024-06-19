@@ -63,6 +63,7 @@ local textType = strongType.new("Text", {
     ---@param self Text
     ---@param value string
     setter = function(self, value)
+      self.string = value
       self.text:set(value)
     end
   },
