@@ -146,10 +146,10 @@ function engine:prepareObjectRuntime(obj)
     self:prepareResourceRuntime(obj.spriteData)
   elseif obj.type == "text" then
     ---@cast obj Text
-    if not obj.text then
+    if not obj.font then
       obj.font = fonts("Inter-Regular.ttf", obj.fontSize)
-      obj.text = love.graphics.newText(obj.font, obj.string)
     end
+    obj.text = love.graphics.newText(obj.font, obj.string)
   end
   return obj
 end
