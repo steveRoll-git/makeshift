@@ -75,7 +75,7 @@ end
 ---@param object Object
 ---@param id string
 local function searchObjectForResource(object, id)
-  if object.script.id == id then
+  if object.script and object.script.id == id then
     return object.script
   end
   if object.type == "sprite" then
