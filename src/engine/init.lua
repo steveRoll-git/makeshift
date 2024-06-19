@@ -334,6 +334,8 @@ function engine:getObjectBoundingBox(object)
     if object.string:sub(#object.string) == "\n" then
       h = h + object.font:getHeight()
     end
+    w = math.max(w, object.font:getWidth(" "))
+    h = math.max(h, object.font:getHeight())
     return object.x, object.y, w, h
   elseif object.type == "sprite" then
     ---@cast object Sprite
