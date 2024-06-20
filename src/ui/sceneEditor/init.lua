@@ -383,6 +383,20 @@ function sceneView:render(x, y, w, h)
 
   self.engine:draw()
 
+  for _, o in ipairs(self.engine.objects.list) do
+    ---@cast o Object
+    local ox, oy, ow, oh
+    if o == self.editingText then
+      ox, oy = self.selectedObject.x, self.selectedObject.y
+      ow, oh = self.editingTextEditor:contentWidth(), self.editingTextEditor:contentHeight()
+    else
+      ox, oy, ow, oh = self.engine:getObjectBoundingBox(o)
+    end
+    lg.setColor(1, 1, 1, self.selectedObject == o and 0.5 or 0.2) -- unstyled
+    lg.setLineWidth(1)
+    lg.rectangle("line", ox, oy, ow, oh)
+  end
+
   if self.editingText then
     lg.push()
     lg.applyTransform(self.engine:getObjectTransform(self.editingText))
@@ -394,19 +408,6 @@ function sceneView:render(x, y, w, h)
       self.editingTextEditor:contentHeight())
     self:getScene():popMouseTransform()
     lg.pop()
-  end
-
-  if self.selectedObject or self.editingText then
-    local ox, oy, ow, oh
-    if self.editingText then
-      ox, oy = self.selectedObject.x, self.selectedObject.y
-      ow, oh = self.editingTextEditor:contentWidth(), self.editingTextEditor:contentHeight()
-    else
-      ox, oy, ow, oh = self.engine:getObjectBoundingBox(self.selectedObject)
-    end
-    lg.setColor(1, 1, 1, 0.5) -- unstyled
-    lg.setLineWidth(1)
-    lg.rectangle("line", ox, oy, ow, oh)
   end
 
   lg.pop()
