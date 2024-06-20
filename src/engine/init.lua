@@ -2,7 +2,6 @@ local love = love
 local lg = love.graphics
 
 local orderedSet = require "util.orderedSet"
-local deepCopy = require "util.deepCopy"
 local strongType = require "lang.strongType"
 local hexToUID = require "util.hexToUid"
 local project = require "project"
@@ -82,6 +81,32 @@ local maxLoopYields = 1000
 -- How many seconds to wait while `stuckInLoop` before showing it to the user.
 local loopStuckWaitDuration = 3
 
+---Returns a copy of an object.
+---@param o Object
+---@return Object
+local function copyObject(o)
+  ---@type Object
+  local new = {
+    type = o.type,
+    visible = o.visible,
+    x = o.x,
+    y = o.y,
+    script = o.script
+  }
+  if o.type == "sprite" then
+    ---@cast o Sprite
+    ---@cast new Sprite
+    new.spriteData = o.spriteData
+  elseif o.type == "text" then
+    ---@cast o Text
+    ---@cast new Text
+    new.string = o.string
+    new.fontSize = o.fontSize
+    new.font = o.font
+  end
+  return new
+end
+
 -- An instance of a running Makeshift engine.<br>
 -- Used in the editor and the runtime.
 ---@class Engine
@@ -123,7 +148,7 @@ function engine:init(scene, active)
   self.objects = orderedSet.new()
   if scene then
     for _, obj in ipairs(scene.objects) do
-      local newObj = deepCopy(obj)
+      local newObj = copyObject(obj)
       if active and obj.script and obj.script.compiledCode then
         for _, f in pairs(obj.script.compiledCode.events) do
           setfenv(f, self.scriptEnvironment)
