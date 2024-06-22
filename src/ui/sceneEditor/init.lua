@@ -7,12 +7,12 @@ local toolbar = require "ui.toolbar"
 local images = require "images"
 local spriteEditor = require "ui.spriteEditor"
 local zoomSlider = require "ui.zoomSlider"
-local propertiesPanel = require "ui.sceneEditor.propertiesPanel"
 local popupMenu = require "ui.popupMenu"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
 local project = require "project"
 local textEditor = require "ui.textEditor"
+local dataPanel = require "ui.dataPanel"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -142,7 +142,19 @@ end
 function sceneView:selectObject(obj)
   self.selectedObject = obj
   if obj then
-    self.editor.propertiesPanel:setObject(obj)
+    self.editor.propertiesPanel = dataPanel({
+      {
+        type = "vec2",
+        text = "Position",
+        targetObject = self.selectedObject,
+        xKey = "x",
+        yKey = "y"
+      },
+    })
+    self.editor.propertiesPanel.text = "Properties"
+    self.editor.propertiesPanel.icon = images["icons/properties_14.png"]
+  else
+    self.editor.propertiesPanel = nil
   end
 end
 
@@ -426,6 +438,7 @@ function sceneView:render(x, y, w, h)
 end
 
 ---@class SceneEditor: ResourceEditor
+---@field propertiesPanel DataPanel?
 ---@operator call:SceneEditor
 local sceneEditor = zap.elementClass()
 
@@ -456,8 +469,6 @@ function sceneEditor:init(scene)
 
   self.zoomSlider = zoomSlider()
   self.zoomSlider.targetTable = self.sceneView
-
-  self.propertiesPanel = propertiesPanel()
 end
 
 function sceneEditor:resourceId()
@@ -509,7 +520,7 @@ function sceneEditor:render(x, y, w, h)
     self.zoomSlider:render(x + w - sliderW, y + h - sliderH, sliderW, sliderH)
   end
 
-  if self.sceneView.selectedObject and not self.sceneView.spriteEditor then
+  if self.propertiesPanel and not self.sceneView.spriteEditor then
     local pw, ph = 240, 200
     local margin = 4
     self.propertiesPanel:render(x + margin, y + h - ph - margin, pw, ph)
