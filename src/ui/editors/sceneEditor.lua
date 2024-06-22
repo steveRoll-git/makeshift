@@ -115,6 +115,10 @@ function SceneView:startEditingText(text)
   self.editingTextEditor.font = text.font
   self.editingTextEditor.multiline = true
   self.editingTextEditor:setText(text.string)
+  self.editingTextEditor:flashCursor()
+  self.editingTextEditor:nextRender(function(_)
+    self.editingTextEditor:moveCursorToMouse()
+  end)
 
   ---@type Zap.MouseTransform
   self.textEditMouseTransform = function(mouseX, mouseY)

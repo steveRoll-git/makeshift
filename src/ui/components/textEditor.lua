@@ -420,6 +420,11 @@ function TextEditor:callTextChanged()
   end
 end
 
+---Moves the cursor to the mouse's position in the editor.
+function TextEditor:moveCursorToMouse()
+  self.cursor.line, self.cursor.col = self:screenToTextPos(self:getRelativeMouse())
+end
+
 function TextEditor:keyPressed(key)
   self._textChanged = false
 
@@ -574,7 +579,7 @@ end
 
 function TextEditor:mousePressed(button)
   if button == 1 then
-    self.cursor.line, self.cursor.col = self:screenToTextPos(self:getRelativeMouse())
+    self:moveCursorToMouse()
     self.cursor.lastCol = self.cursor.col
     if love.keyboard.isDown("lshift", "rshift") then
       self.selecting = true
