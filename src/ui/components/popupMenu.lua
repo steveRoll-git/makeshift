@@ -3,7 +3,7 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local fontCache = require "util.fontCache"
-local button = require "ui.button"
+local button = require "ui.components.button"
 
 local itemPadding = 3
 local itemTextPadding = 3

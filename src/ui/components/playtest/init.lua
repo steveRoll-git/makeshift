@@ -3,7 +3,7 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local engine = require "engine"
-local stopIndicator = require "ui.playtest.stopIndicator"
+local stopIndicator = require "ui.components.playtest.stopIndicator"
 
 ---@class PlaytestElement: Zap.ElementClass
 ---@operator call:PlaytestElement

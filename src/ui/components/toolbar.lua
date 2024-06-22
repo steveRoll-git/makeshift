@@ -2,7 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local button = require "ui.button"
+local button = require "ui.components.button"
 local fontCache = require "util.fontCache"
 local viewTools = require "util.viewTools"
 

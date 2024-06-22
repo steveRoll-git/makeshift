@@ -2,7 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local tab = require "ui.tabView.tab"
+local tab = require "ui.components.tabView.tab"
 
 ---@alias TabModel {text: string, icon: love.Image?, content: Zap.Element, closable: boolean, dockable?: boolean}
 

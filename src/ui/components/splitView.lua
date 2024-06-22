@@ -2,7 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local tabView = require "ui.tabView"
+local tabView = require "ui.components.tabView"
 local clamp = require "util.clamp"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor

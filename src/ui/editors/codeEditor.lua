@@ -2,15 +2,15 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local textEditor = require "ui.textEditor"
+local textEditor = require "ui.components.textEditor"
 local fontCache = require "util.fontCache"
-local scrollbar = require "ui.scrollbar"
+local scrollbar = require "ui.components.scrollbar"
 local clamp = require "util.clamp"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
-local errorBubble = require "ui.errorBubble"
+local errorBubble = require "ui.components.errorBubble"
 local parser = require "lang.parser"
-local syntaxErrorBar = require "ui.syntaxErrorBar"
+local syntaxErrorBar = require "ui.components.syntaxErrorBar"
 local images = require "images"
 
 local font = fontCache.get("SourceCodePro-Regular.ttf", 16)

@@ -2,9 +2,9 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local button = require "ui.button"
+local button = require "ui.components.button"
 local images = require "images"
-local window = require "ui.window"
+local window = require "ui.components.window"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
 

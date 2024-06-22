@@ -3,7 +3,7 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 
-local treeViewItem = require "ui.treeView.item"
+local treeViewItem = require "ui.components.treeView.item"
 
 ---@class TreeItemModel
 ---@field text string

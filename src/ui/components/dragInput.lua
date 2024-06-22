@@ -2,7 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local textEditor = require "ui.textEditor"
+local textEditor = require "ui.components.textEditor"
 local viewTools = require "util.viewTools"
 local clamp = require "util.clamp"
 

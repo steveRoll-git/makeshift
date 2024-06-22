@@ -2,11 +2,11 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local slider = require "ui.colorPicker.slider"
+local slider = require "ui.components.colorPicker.slider"
 local hsvToRgb = require "util.hsvToRgb"
 local rgbToHsv = require "util.rgbToHsv"
 local fontCache = require "util.fontCache"
-local dragInput = require "ui.dragInput"
+local dragInput = require "ui.components.dragInput"
 local viewTools = require "util.viewTools"
 
 local labelFont = fontCache.get("Inter-Regular.ttf", 14)

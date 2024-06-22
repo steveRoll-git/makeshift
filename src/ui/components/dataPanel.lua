@@ -5,7 +5,7 @@ local zap = require "lib.zap.zap"
 local images = require "images"
 local fontCache = require "util.fontCache"
 local viewTools = require "util.viewTools"
-local dragInput = require "ui.dragInput"
+local dragInput = require "ui.components.dragInput"
 
 local font = fontCache.get("Inter-Regular.ttf", 14)
 

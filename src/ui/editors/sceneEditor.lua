@@ -3,16 +3,16 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local engine = require "engine"
-local toolbar = require "ui.toolbar"
+local toolbar = require "ui.components.toolbar"
 local images = require "images"
-local spriteEditor = require "ui.spriteEditor"
-local zoomSlider = require "ui.zoomSlider"
-local popupMenu = require "ui.popupMenu"
+local spriteEditor = require "ui.editors.spriteEditor"
+local zoomSlider = require "ui.components.zoomSlider"
+local popupMenu = require "ui.components.popupMenu"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
 local project = require "project"
-local textEditor = require "ui.textEditor"
-local dataPanel = require "ui.dataPanel"
+local textEditor = require "ui.components.textEditor"
+local dataPanel = require "ui.components.dataPanel"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 

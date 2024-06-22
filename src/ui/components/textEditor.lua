@@ -4,7 +4,7 @@ local lg = love.graphics
 local zap = require "lib.zap.zap"
 local clamp = require "util.clamp"
 local splitString = require "util.splitString"
-local popupMenu = require "ui.popupMenu"
+local popupMenu = require "ui.components.popupMenu"
 
 ---Returns `true` if `a` is positioned before `b`.
 ---@param a TextPosition
