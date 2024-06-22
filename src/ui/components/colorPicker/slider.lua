@@ -16,7 +16,7 @@ local arrowPolygon = {
 -- This ImageData is kept around to generate the images for each slider.
 local imageData = love.image.newImageData(256, 1)
 
----@class ColorPickerSlider: Zap.ElementClass
+---@class ColorPicker.Slider: Zap.ElementClass
 ---@field colorFunc fun(a:number, b:number, c:number): number, number, number The color function that converts the model to RGB values.
 ---@field model number[] The table that contains the color to be modified.
 ---@field modelKey number The index of the component in the `model` that this slider will modify.
@@ -24,11 +24,11 @@ local imageData = love.image.newImageData(256, 1)
 ---@field maxValue number The largest value of the slider.
 ---@field image love.Image
 ---@field onChange fun() Called when the slider's value changes.
----@operator call:ColorPickerSlider
-local slider = zap.elementClass()
+---@operator call:ColorPicker.Slider
+local Slider = zap.elementClass()
 
 ---Updates the slider's image according to the model's current values.
-function slider:updateImage()
+function Slider:updateImage()
   local color = { unpack(self.model) }
   imageData:mapPixel(function(x, y)
     color[self.modelKey] = self.minValue + (self.maxValue - self.minValue) * (x / imageData:getWidth())
@@ -41,39 +41,39 @@ function slider:updateImage()
   end
 end
 
-function slider:getValue()
+function Slider:getValue()
   return self.model[self.modelKey]
 end
 
-function slider:setValue(v)
+function Slider:setValue(v)
   self.model[self.modelKey] = math.min(math.max(v, self.minValue), self.maxValue)
   self.onChange()
 end
 
 ---Updates the slider's value when the mouse is clicked or dragged on it.
-function slider:dragValue()
+function Slider:dragValue()
   local mx, _ = self:getRelativeMouse()
   local _, _, w, _ = self:getView()
   self:setValue(self.minValue + (mx / w) * (self.maxValue - self.minValue))
 end
 
-function slider:mousePressed(btn)
+function Slider:mousePressed(btn)
   if btn == 1 then
     self:dragValue()
   end
 end
 
-function slider:mouseMoved()
+function Slider:mouseMoved()
   if self:isPressed(1) then
     self:dragValue()
   end
 end
 
-function slider:wheelMoved(x, y)
+function Slider:wheelMoved(x, y)
   self:setValue(self:getValue() + sign(y))
 end
 
-function slider:render(x, y, w, h)
+function Slider:render(x, y, w, h)
   lg.setColor(1, 1, 1) -- unstyled
   lg.draw(self.image, x, y + arrowHeight, 0, w / self.image:getWidth(), h - arrowHeight)
 
@@ -84,4 +84,4 @@ function slider:render(x, y, w, h)
   lg.pop()
 end
 
-return slider
+return Slider

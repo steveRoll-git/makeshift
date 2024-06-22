@@ -21,23 +21,23 @@ love.keyboard.setKeyRepeat(true)
 CurrentTheme = require "themes.defaultDark"
 
 local zap = require "lib.zap.zap"
-local treeView = require "ui.components.treeView"
-local sceneEditor = require "ui.editors.sceneEditor"
-local tabView = require "ui.components.tabView"
-local spriteEditor = require "ui.editors.spriteEditor"
+local TreeView = require "ui.components.treeView"
+local SceneEditor = require "ui.editors.sceneEditor"
+local TabView = require "ui.components.tabView"
+local SpriteEditor = require "ui.editors.spriteEditor"
 local fontCache = require "util.fontCache"
 local hexToColor = require "util.hexToColor"
-local project = require "project"
+local Project = require "project"
 local images = require "images"
-local orderedSet = require "util.orderedSet"
-local window = require "ui.components.window"
-local splitView = require "ui.components.splitView"
-local playtest = require "ui.components.playtest"
-local codeEditor = require "ui.editors.codeEditor"
+local OrderedSet = require "util.orderedSet"
+local Window = require "ui.components.window"
+local SplitView = require "ui.components.splitView"
+local Playtest = require "ui.components.playtest"
+local CodeEditor = require "ui.editors.codeEditor"
 
 require "util.scissorStack"
 
----@type PlaytestElement?
+---@type Playtest?
 RunningPlaytest = nil
 
 local uiScene = zap.createScene()
@@ -56,7 +56,7 @@ local uiScene = zap.createScene()
 ---@class ResourceEditor: Zap.ElementClass
 ---@field resourceId fun(self: Zap.Element): string
 
-local popups = orderedSet.new()
+local popups = OrderedSet.new()
 ---@type table<Zap.Element, number[]>
 local popupViews = {}
 setmetatable(popupViews, { __mode = 'k' })
@@ -98,11 +98,11 @@ function IsPopupOpen(popup)
   return popups:has(popup)
 end
 
-local mainTabView = tabView()
+local mainTabView = TabView()
 mainTabView.font = fontCache.get("Inter-Regular.ttf", 14)
 mainTabView.focused = true
 
-local windows = orderedSet.new()
+local windows = OrderedSet.new()
 
 ---@type Window?
 local focusedWindow
@@ -152,12 +152,12 @@ function CloseWindow(w)
   end
 end
 
-local libraryPanel = treeView()
+local libraryPanel = TreeView()
 
 local function resourceItemModels()
   ---@type TreeItemModel[]
   local items = {}
-  for _, resource in pairs(project.currentProject.resources) do
+  for _, resource in pairs(Project.currentProject.resources) do
     table.insert(items, {
       text = resource.name,
       icon = resource.type == "scene" and images["icons/scene_24.png"],
@@ -171,7 +171,7 @@ end
 
 libraryPanel:setItems(resourceItemModels())
 
-local explorerTabView = tabView()
+local explorerTabView = TabView()
 explorerTabView.font = fontCache.get("Inter-Regular.ttf", 14)
 explorerTabView:setTabs {
   {
@@ -181,7 +181,7 @@ explorerTabView:setTabs {
   },
 }
 
-local testSplitView = splitView()
+local testSplitView = SplitView()
 testSplitView.orientation = "vertical"
 testSplitView.side1 = explorerTabView
 testSplitView.side2 = mainTabView
@@ -207,16 +207,16 @@ function OpenResourceTab(r)
   if r.type == "scene" then
     text = r.name
     icon = images["icons/scene_24.png"]
-    content = sceneEditor(r)
+    content = SceneEditor(r)
   elseif r.type == "spriteData" then
     text = r.name
     icon = images["icons/brush_24.png"]
-    content = spriteEditor()
+    content = SpriteEditor()
     content.editingSprite = r --[[@as SpriteData]]
   elseif r.type == "script" then
     text = "Code Editor"
     icon = images["icons/code_24.png"]
-    content = codeEditor(r)
+    content = CodeEditor(r)
   end
   AddNewTab {
     text = text,
@@ -307,25 +307,25 @@ local function runPlaytest()
     return
   end
 
-  local success, errors = project.currentProject:compileScripts()
+  local success, errors = Project.currentProject:compileScripts()
   if not success then
     local editor = OpenResourceTab(errors[1].source) --[[@as CodeEditor]]
     editor:checkSyntax()
     return
   end
 
-  local playtestWindow = window()
+  local playtestWindow = Window()
   playtestWindow.titleFont = fontCache.get("Inter-Regular.ttf", 14)
   playtestWindow.title = "Playtest"
   playtestWindow.icon = images["icons/game_24.png"]
   playtestWindow:setContentSize(
-    project.currentProject.windowWidth,
-    project.currentProject.windowHeight
+    Project.currentProject.windowWidth,
+    Project.currentProject.windowHeight
   )
   playtestWindow.x = math.floor(lg.getWidth() / 2 - playtestWindow.width / 2)
   playtestWindow.y = math.floor(lg.getHeight() / 2 - playtestWindow.height / 2)
   playtestWindow.closable = true
-  RunningPlaytest = playtest(project.currentProject.resources[project.currentProject.initialSceneId])
+  RunningPlaytest = Playtest(Project.currentProject.resources[Project.currentProject.initialSceneId])
   playtestWindow.content = RunningPlaytest
 
   AddWindow(playtestWindow)
@@ -388,7 +388,7 @@ function love.mousepressed(x, y, btn)
     pressedElement.class.mouseDoubleClicked(pressedElement, btn)
   end
 
-  if pressedElement:getRoot().class == window then
+  if pressedElement:getRoot().class == Window then
     SetFocusedWindow(pressedElement:getRoot() --[[@as Window]])
   else
     SetFocusedWindow(nil)
@@ -459,7 +459,7 @@ end
 
 function love.quit()
   saveAllOpenResourceEditors()
-  project.currentProject:saveToFile()
+  Project.currentProject:saveToFile()
 end
 
 function love.resize()

@@ -2,7 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local tab = require "ui.components.tabView.tab"
+local Tab = require "ui.components.tabView.tab"
 
 ---@alias TabModel {text: string, icon: love.Image?, content: Zap.Element, closable: boolean, dockable?: boolean}
 
@@ -12,17 +12,17 @@ local tab = require "ui.components.tabView.tab"
 ---@field font love.Font
 ---@field focused boolean
 ---@operator call:TabView
-local tabView = zap.elementClass()
+local TabView = zap.elementClass()
 
-function tabView:init()
+function TabView:init()
   self.tabs = {}
 end
 
 ---Adds a new tab.
 ---@param tabModel TabModel
 ---@return Tab
-function tabView:addTab(tabModel)
-  local newTab = tab()
+function TabView:addTab(tabModel)
+  local newTab = Tab()
   newTab.text = tabModel.text
   newTab.icon = tabModel.icon
   newTab.content = tabModel.content
@@ -38,7 +38,7 @@ end
 
 ---Set the tabs shown by this TabContainer.
 ---@param tabs TabModel[]
-function tabView:setTabs(tabs)
+function TabView:setTabs(tabs)
   self.tabs = {}
   for _, tabModel in ipairs(tabs) do
     self:addTab(tabModel)
@@ -50,14 +50,14 @@ end
 ---Set a tab's index.
 ---@param tab Tab
 ---@param index number
-function tabView:setTabIndex(tab, index)
+function TabView:setTabIndex(tab, index)
   table.remove(self.tabs, tab.index)
   table.insert(self.tabs, index, tab)
   self:layoutTabs()
 end
 
 ---Update all the tabs' `index` and `layoutX` according to their index.
-function tabView:layoutTabs()
+function TabView:layoutTabs()
   local x = 0
   for i, tab in ipairs(self.tabs) do
     tab.layoutX = x
@@ -68,7 +68,7 @@ end
 
 ---Sets the active tab.
 ---@param tab Tab
-function tabView:setActiveTab(tab)
+function TabView:setActiveTab(tab)
   if self.activeTab then
     self.activeTab.active = false
   end
@@ -78,7 +78,7 @@ end
 
 ---Removes this tab without calling the `saveResource` callback.
 ---@param tab Tab
-function tabView:removeTab(tab)
+function TabView:removeTab(tab)
   table.remove(self.tabs, tab.index)
   self:layoutTabs()
   if self.activeTab == tab then
@@ -92,51 +92,51 @@ end
 
 ---Closes this tab.
 ---@param tab Tab
-function tabView:closeTab(tab)
+function TabView:closeTab(tab)
   self:removeTab(tab)
   if tab.content.class.saveResource then
     tab.content.class.saveResource(tab.content)
   end
 end
 
-function tabView:tabBarHeight()
+function TabView:tabBarHeight()
   return self.font:getHeight() + 16
 end
 
 ---Returns whether the mouse is over the TabView's tab area.
 ---@return boolean
-function tabView:isMouseOverTabBar()
+function TabView:isMouseOverTabBar()
   return self:isMouseOver() and select(2, self:getRelativeMouse()) < self:tabBarHeight()
 end
 
 ---@param tab Tab
 ---@param x number
 ---@param y number
-function tabView:renderTab(tab, x, y)
+function TabView:renderTab(tab, x, y)
   local tabX = (tab.isDragging and tab.dragX or x + tab.layoutX)
   local tabW = tab:desiredWidth()
   tab:render(tabX, y, tabW, self:tabBarHeight())
 end
 
-function tabView:keyPressed(key)
+function TabView:keyPressed(key)
   if self.activeTab and self.activeTab.content.class.keyPressed then
     self.activeTab.content.class.keyPressed(self.activeTab.content, key)
   end
 end
 
-function tabView:keyReleased(key)
+function TabView:keyReleased(key)
   if self.activeTab and self.activeTab.content.class.keyReleased then
     self.activeTab.content.class.keyReleased(self.activeTab.content, key)
   end
 end
 
-function tabView:textInput(text)
+function TabView:textInput(text)
   if self.activeTab and self.activeTab.content.class.textInput then
     self.activeTab.content.class.textInput(self.activeTab.content, text)
   end
 end
 
-function tabView:render(x, y, w, h)
+function TabView:render(x, y, w, h)
   for _, tab in ipairs(self.tabs) do
     if tab ~= self.activeTab then
       self:renderTab(tab, x, y)
@@ -154,4 +154,4 @@ function tabView:render(x, y, w, h)
   end
 end
 
-return tabView
+return TabView

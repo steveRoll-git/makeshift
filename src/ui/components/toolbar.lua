@@ -2,22 +2,22 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local button = require "ui.components.button"
+local Button = require "ui.components.button"
 local fontCache = require "util.fontCache"
 local viewTools = require "util.viewTools"
 
 ---@class Toolbar: Zap.ElementClass
 ---@field private buttons Zap.Element[]
 ---@operator call:Toolbar
-local toolbar = zap.elementClass()
+local Toolbar = zap.elementClass()
 
 ---Sets this toolbar's items.
 ---@param items {image: love.Image, text: string, action: fun(), visible?: boolean | fun(): boolean}[]
-function toolbar:setItems(items)
+function Toolbar:setItems(items)
   self.models = items
   self.buttons = {}
   for _, item in ipairs(items) do
-    local b = button()
+    local b = Button()
     b.image = item.image
     b.text = item.text
     b.onClick = item.action
@@ -28,11 +28,11 @@ function toolbar:setItems(items)
   end
 end
 
-function toolbar:desiredHeight()
+function Toolbar:desiredHeight()
   return 34
 end
 
-function toolbar:render(x, y, w, h)
+function Toolbar:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundActive)
   lg.rectangle("fill", x, y, w, h)
 
@@ -58,4 +58,4 @@ function toolbar:render(x, y, w, h)
   lg.line(x, y + h, x + w, y + h)
 end
 
-return toolbar
+return Toolbar

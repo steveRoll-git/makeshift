@@ -2,22 +2,22 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local textEditor = require "ui.components.textEditor"
+local TextEditor = require "ui.components.textEditor"
 local viewTools = require "util.viewTools"
 local clamp = require "util.clamp"
 
 local defaultNumberFormat = "%d"
 
----@class DragInputTempEditor: Zap.ElementClass
----@operator call:DragInputTempEditor
-local tempEditor = zap.elementClass()
+---@class DragInput.TempEditor: Zap.ElementClass
+---@operator call:DragInput.TempEditor
+local TempEditor = zap.elementClass()
 
 ---@param parent DragInput
 ---@param viewWidth number
-function tempEditor:init(parent, viewWidth)
+function TempEditor:init(parent, viewWidth)
   local valueString = tostring(parent:currentValue())
   self.dragInput = parent
-  self.textEditor = textEditor()
+  self.textEditor = TextEditor()
   self.textEditor.font = parent.font
   self.textEditor.centerHorizontally = true
   self.textEditor.centerVertically = true
@@ -25,14 +25,14 @@ function tempEditor:init(parent, viewWidth)
   self.textEditor:selectAll()
 end
 
-function tempEditor:writeValue()
+function TempEditor:writeValue()
   local value = tonumber(self.textEditor:getString())
   if value then
     self.dragInput:setValue(value)
   end
 end
 
-function tempEditor:keyPressed(key)
+function TempEditor:keyPressed(key)
   self.textEditor:keyPressed(key)
   if key == "escape" then
     self.cancel = true
@@ -42,17 +42,17 @@ function tempEditor:keyPressed(key)
   end
 end
 
-function tempEditor:textInput(text)
+function TempEditor:textInput(text)
   self.textEditor:textInput(text)
 end
 
-function tempEditor:popupClosed()
+function TempEditor:popupClosed()
   if not self.cancel then
     self:writeValue()
   end
 end
 
-function tempEditor:render(x, y, w, h)
+function TempEditor:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundInactive)
   lg.rectangle("fill", x, y, w, h, 3)
   self.textEditor:render(x, y, w, h)
@@ -67,33 +67,33 @@ end
 ---@field maxValue? number
 ---@field onChange? function
 ---@operator call:DragInput
-local dragInput = zap.elementClass()
+local DragInput = zap.elementClass()
 
 ---Returns the current value of the target property.
 ---@return number
-function dragInput:currentValue()
+function DragInput:currentValue()
   return self.targetObject[self.targetKey]
 end
 
 ---Sets the target object's property to `value`.
 ---@param value number
-function dragInput:setValue(value)
+function DragInput:setValue(value)
   self.targetObject[self.targetKey] = clamp(value, self.minValue or -math.huge, self.maxValue or math.huge)
   if self.onChange then
     self.onChange()
   end
 end
 
-function dragInput:mouseClicked(button)
+function DragInput:mouseClicked(button)
   if button == 1 then
     local x, y, w, h = self:getView()
     local textWidth = math.max(self.font:getWidth(tostring(self:currentValue())), w)
     x, y, w, h = viewTools.padding(math.floor(x + w / 2 - textWidth / 2), y, textWidth, h, -3)
-    OpenPopup(tempEditor(self, w), x, y, w, h)
+    OpenPopup(TempEditor(self, w), x, y, w, h)
   end
 end
 
-function dragInput:render(x, y, w, h)
+function DragInput:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundInactive)
   lg.rectangle("fill", x, y, w, h, 3)
 
@@ -107,4 +107,4 @@ function dragInput:render(x, y, w, h)
     "center")
 end
 
-return dragInput
+return DragInput

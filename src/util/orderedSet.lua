@@ -2,11 +2,11 @@
 ---@field private lookup table<any, number>
 ---@field list any[]
 ---@field private count number
-local orderedSet = {}
-orderedSet.__index = orderedSet
+local OrderedSet = {}
+OrderedSet.__index = OrderedSet
 
-function orderedSet.new(elements)
-  local self = setmetatable({}, orderedSet)
+function OrderedSet.new(elements)
+  local self = setmetatable({}, OrderedSet)
   self.lookup = {}
   self.list = {}
   self.count = 0
@@ -20,7 +20,7 @@ end
 
 ---Adds the item into the set's end.
 ---@param item any
-function orderedSet:add(item)
+function OrderedSet:add(item)
   assert(not self.lookup[item], "added item is already inside the set")
 
   self.count = self.count + 1
@@ -31,7 +31,7 @@ end
 ---Inserts the item at the specified index.
 ---@param index number
 ---@param item any
-function orderedSet:insertAt(index, item)
+function OrderedSet:insertAt(index, item)
   assert(not self.lookup[item], "added item is already inside the set")
   assert(index >= 1 and index <= self.count + 1)
 
@@ -47,7 +47,7 @@ end
 
 ---Removes the item at `index` from the set.
 ---@param index number
-function orderedSet:removeAt(index)
+function OrderedSet:removeAt(index)
   assert(index >= 1 and index <= self.count, "index is out of range")
 
   local item = self.list[index]
@@ -63,7 +63,7 @@ end
 
 ---Removes the item from the set.
 ---@param item any
-function orderedSet:remove(item)
+function OrderedSet:remove(item)
   assert(self.lookup[item], "item is not in the set")
   self:removeAt(self.lookup[item])
 end
@@ -71,7 +71,7 @@ end
 ---Returns the index of the item in the set.
 ---@param item any
 ---@return number
-function orderedSet:getIndex(item)
+function OrderedSet:getIndex(item)
   assert(self.lookup[item], "item is not in the set")
 
   return self.lookup[item]
@@ -80,27 +80,27 @@ end
 ---Returns the item at `index`
 ---@param index number
 ---@return any
-function orderedSet:itemAt(index)
+function OrderedSet:itemAt(index)
   return self.list[index]
 end
 
 ---Returns the last item in the set.
 ---@return any
-function orderedSet:last()
+function OrderedSet:last()
   return self.list[self.count]
 end
 
 ---Returns whether `item` is in this set.
 ---@param item any
 ---@return boolean
-function orderedSet:has(item)
+function OrderedSet:has(item)
   return not not self.lookup[item]
 end
 
 ---Returns the number of items currently in the set.
 ---@return number
-function orderedSet:getCount()
+function OrderedSet:getCount()
   return self.count
 end
 
-return orderedSet
+return OrderedSet

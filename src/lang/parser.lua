@@ -1,6 +1,5 @@
-local lexer = require "lang.lexer"
+local Lexer = require "lang.lexer"
 local lookupify = require "util.lookupify"
-local inspect = require "lib.inspect"
 local articleNoun = require "util.articleNoun"
 
 local binaryPrecedence = {
@@ -36,21 +35,21 @@ end
 ---@class Parser
 ---@field lexer Lexer
 ---@field errorStack SyntaxError[]
-local parser = {}
-parser.__index = parser
+local Parser = {}
+Parser.__index = Parser
 
 ---@param code string
 ---@param sourceScript Script
 ---@return Parser
-function parser.new(code, sourceScript)
-  local self = setmetatable({}, parser)
-  self.lexer = lexer.new(code, sourceScript)
+function Parser.new(code, sourceScript)
+  local self = setmetatable({}, Parser)
+  self.lexer = Lexer.new(code, sourceScript)
   self.errorStack = self.lexer.errorStack
   self:nextToken()
   return self
 end
 
-function parser:nextToken()
+function Parser:nextToken()
   repeat
     self.token = self.lexer:nextToken()
   until self.token.kind ~= "singleComment"
@@ -61,7 +60,7 @@ end
 ---@param kind TokenKind
 ---@param value? string
 ---@return Token?
-function parser:accept(kind, value)
+function Parser:accept(kind, value)
   if self.token.kind == kind then
     if not value or self.token.value == value then
       local prev = self.token
@@ -76,7 +75,7 @@ end
 ---@param value? string
 ---@return Token?
 ---@nodiscard
-function parser:expect(kind, value)
+function Parser:expect(kind, value)
   local result = self:accept(kind, value)
   if not result then
     local noun = value and value or articleNoun(kind)
@@ -87,7 +86,7 @@ function parser:expect(kind, value)
 end
 
 ---Parses the primary pieces used in an expression.
-function parser:parsePrimary()
+function Parser:parsePrimary()
   if self.token.kind == "punctuation" and unaryOperators[self.token.value] then
     local operator = self.token
     self:nextToken()
@@ -129,7 +128,7 @@ function parser:parsePrimary()
 end
 
 ---Parses an infix expression using the shunting yard algorithm.
-function parser:parseInfixExpression()
+function Parser:parseInfixExpression()
   local output = {}
   local operatorStack = {}
 
@@ -166,7 +165,7 @@ end
 
 -- parses either an object index, or a function call.
 -- this is because these can appear in both expressions and statements.
-function parser:parseIndexOrCall(object)
+function Parser:parseIndexOrCall(object)
   if not object then
     if self:accept("punctuation", "(") then
       object = self:parseInfixExpression()
@@ -246,7 +245,7 @@ function parser:parseIndexOrCall(object)
   return object
 end
 
-function parser:parseStatement()
+function Parser:parseStatement()
   if self:accept("keyword", "var") then
     local ident = self:expect("identifier")
     if not ident then
@@ -331,7 +330,7 @@ function parser:parseStatement()
   }
 end
 
-function parser:parseBlock()
+function Parser:parseBlock()
   local lCurly = self:expect("punctuation", "{")
   if not lCurly then
     return self:errorTree()
@@ -354,7 +353,7 @@ function parser:parseBlock()
   }
 end
 
-function parser:parseObjectCode()
+function Parser:parseObjectCode()
   local events = {}
   while true do
     if self:accept("keyword", "on") then
@@ -404,7 +403,7 @@ end
 
 ---Returns a tree to be returned on errors.
 ---@return table
-function parser:errorTree()
+function Parser:errorTree()
   return {
     kind = "error"
   }
@@ -412,9 +411,9 @@ end
 
 ---Pushes a syntax error onto the error stack, and returns an error tree.
 ---@param message string
-function parser:syntaxError(message)
+function Parser:syntaxError(message)
   self.lexer:syntaxError(message)
   return self:errorTree()
 end
 
-return parser
+return Parser

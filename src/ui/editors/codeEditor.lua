@@ -2,15 +2,15 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local textEditor = require "ui.components.textEditor"
+local TextEditor = require "ui.components.textEditor"
 local fontCache = require "util.fontCache"
-local scrollbar = require "ui.components.scrollbar"
+local Scrollbar = require "ui.components.scrollbar"
 local clamp = require "util.clamp"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
-local errorBubble = require "ui.components.errorBubble"
-local parser = require "lang.parser"
-local syntaxErrorBar = require "ui.components.syntaxErrorBar"
+local ErrorBubble = require "ui.components.errorBubble"
+local Parser = require "lang.parser"
+local SyntaxErrorBar = require "ui.components.syntaxErrorBar"
 local images = require "images"
 
 local font = fontCache.get("SourceCodePro-Regular.ttf", 16)
@@ -30,12 +30,12 @@ local syntaxCheckDelay = 0.5
 
 ---@class CodeEditor: ResourceEditor
 ---@operator call:CodeEditor
-local codeEditor = zap.elementClass()
+local CodeEditor = zap.elementClass()
 
 ---@param script Script
-function codeEditor:init(script)
+function CodeEditor:init(script)
   self.script = script
-  self.textEditor = textEditor()
+  self.textEditor = TextEditor()
   self.textEditor.font = font
   self.textEditor.multiline = true
   self.textEditor.preserveIndents = true
@@ -51,7 +51,7 @@ function codeEditor:init(script)
     self.lastTypeTime = love.timer.getTime()
   end
 
-  self.scrollbarY = scrollbar()
+  self.scrollbarY = Scrollbar()
   self.scrollbarY.direction = "y"
   self.scrollbarY.targetTable = self.textEditor
   self.scrollbarY.targetField = "offsetY"
@@ -66,39 +66,39 @@ function codeEditor:init(script)
   self.leftColumnWidth = self.lineNumberColumnWidth + font:getWidth("  ")
 end
 
-function codeEditor:resourceId()
+function CodeEditor:resourceId()
   return self.script.id
 end
 
-function codeEditor:write()
+function CodeEditor:write()
   self.script.code = self.textEditor:getString()
 end
 
-function codeEditor:saveResource()
+function CodeEditor:saveResource()
   self:write()
 end
 
-function codeEditor:showError()
-  self.errorBubble = errorBubble(RunningPlaytest.engine.errorMessage)
-  self.errorBubble.tailY = font:getHeight() / 2 + errorBubble.padding
+function CodeEditor:showError()
+  self.errorBubble = ErrorBubble(RunningPlaytest.engine.errorMessage)
+  self.errorBubble.tailY = font:getHeight() / 2 + ErrorBubble.padding
   self.errorBubble:setContained(true)
   self.textEditor:jumpToLine(RunningPlaytest.engine.errorLine)
 end
 
-function codeEditor:clearSyntaxError()
+function CodeEditor:clearSyntaxError()
   self.syntaxError = nil
   self.syntaxErrorBar = nil
 end
 
-function codeEditor:checkSyntax()
+function CodeEditor:checkSyntax()
   self:clearSyntaxError()
 
   self:saveResource()
-  local p = parser.new(self.script.code, self.script)
+  local p = Parser.new(self.script.code, self.script)
   local ast = p:parseObjectCode()
   if #p.errorStack > 0 then
     self.syntaxError = p.errorStack[1]
-    self.syntaxErrorBar = syntaxErrorBar()
+    self.syntaxErrorBar = SyntaxErrorBar()
     self.syntaxErrorBar.error = self.syntaxError
   end
 
@@ -108,7 +108,7 @@ end
 ---Converts a line number to its pixel Y position.
 ---@param line number
 ---@return number
-function codeEditor:lineToY(line)
+function CodeEditor:lineToY(line)
   return (line - 1) * font:getHeight() + self.textEditor:actualOffsetY()
 end
 
@@ -118,7 +118,7 @@ local squiggleQuad = lg.newQuad(0, 0, 0, 0, 0, 0)
 ---@param fromCol number
 ---@param toLine number
 ---@param toCol number
-function codeEditor:drawSquiggle(fromLine, fromCol, toLine, toCol)
+function CodeEditor:drawSquiggle(fromLine, fromCol, toLine, toCol)
   local x1, y1 = self.textEditor:textToScreenPos(fromLine, fromCol)
   local x2, y2 = self.textEditor:textToScreenPos(toLine, toCol)
   y1 = y1 + self.textEditor.font:getBaseline()
@@ -133,24 +133,24 @@ function codeEditor:drawSquiggle(fromLine, fromCol, toLine, toCol)
   lg.draw(squiggleImage, squiggleQuad, x1, y1)
 end
 
-function codeEditor:playtestStarted()
+function CodeEditor:playtestStarted()
   self.errorBubble = nil
   self:checkSyntax()
 end
 
-function codeEditor:keyPressed(key)
+function CodeEditor:keyPressed(key)
   self.textEditor:keyPressed(key)
 end
 
-function codeEditor:textInput(text)
+function CodeEditor:textInput(text)
   self.textEditor:textInput(text)
 end
 
-function codeEditor:wheelMoved(x, y)
+function CodeEditor:wheelMoved(x, y)
   self.textEditor.offsetY = clamp(self.textEditor.offsetY - y * font:getHeight() * 3, 0, self.scrollbarY:maximumScroll())
 end
 
-function codeEditor:render(x, y, w, h)
+function CodeEditor:render(x, y, w, h)
   if not self.checkedSyntax and love.timer.getTime() >= self.lastTypeTime + syntaxCheckDelay then
     self:checkSyntax()
   end
@@ -225,7 +225,7 @@ function codeEditor:render(x, y, w, h)
   if RunningPlaytest and self.errorBubble then
     self.errorBubble:render(
       x + self.leftColumnWidth + self.textEditor.lines[RunningPlaytest.engine.errorLine].width + font:getWidth("  "),
-      y + self:lineToY(RunningPlaytest.engine.errorLine) - errorBubble.padding,
+      y + self:lineToY(RunningPlaytest.engine.errorLine) - ErrorBubble.padding,
       self.errorBubble:desiredWidth(),
       self.errorBubble:desiredHeight()
     )
@@ -253,4 +253,4 @@ function codeEditor:render(x, y, w, h)
   popScissor()
 end
 
-return codeEditor
+return CodeEditor

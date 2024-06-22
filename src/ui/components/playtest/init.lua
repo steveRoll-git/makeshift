@@ -3,23 +3,23 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local engine = require "engine"
-local stopIndicator = require "ui.components.playtest.stopIndicator"
+local StopIndicator = require "ui.components.playtest.stopIndicator"
 
----@class PlaytestElement: Zap.ElementClass
----@operator call:PlaytestElement
-local playtest = zap.elementClass()
+---@class Playtest: Zap.ElementClass
+---@operator call:Playtest
+local Playtest = zap.elementClass()
 
 ---@param scene Scene
-function playtest:init(scene)
+function Playtest:init(scene)
   self.engine = engine.createEngine(scene, true)
-  self.stopIndicator = stopIndicator(self)
+  self.stopIndicator = StopIndicator(self)
 end
 
-function playtest:update(dt)
+function Playtest:update(dt)
   self.engine:update(dt)
 end
 
-function playtest:render(x, y, w, h)
+function Playtest:render(x, y, w, h)
   lg.push()
   lg.translate(x, y)
   self.engine:draw()
@@ -37,4 +37,4 @@ function playtest:render(x, y, w, h)
   end
 end
 
-return playtest
+return Playtest

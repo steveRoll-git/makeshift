@@ -15,13 +15,13 @@ local textMargin = 4
 ---@class SyntaxErrorBar: Zap.ElementClass
 ---@field error SyntaxError
 ---@operator call:SyntaxErrorBar
-local syntaxErrorBar = zap.elementClass()
+local SyntaxErrorBar = zap.elementClass()
 
-function syntaxErrorBar:desiredHeight()
+function SyntaxErrorBar:desiredHeight()
   return math.max(font:getHeight(), icon:getHeight()) + padding * 2
 end
 
-function syntaxErrorBar:render(x, y, w, h)
+function SyntaxErrorBar:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundInactive)
   lg.rectangle("fill", x, y, w, h)
 
@@ -34,4 +34,4 @@ function syntaxErrorBar:render(x, y, w, h)
     math.floor(y + h / 2 - font:getHeight() / 2))
 end
 
-return syntaxErrorBar
+return SyntaxErrorBar

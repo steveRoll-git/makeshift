@@ -2,14 +2,14 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local slider = require "ui.components.colorPicker.slider"
+local Slider = require "ui.components.colorPicker.slider"
 local hsvToRgb = require "util.hsvToRgb"
 local rgbToHsv = require "util.rgbToHsv"
-local fontCache = require "util.fontCache"
-local dragInput = require "ui.components.dragInput"
+local FontCache = require "util.fontCache"
+local DragInput = require "ui.components.dragInput"
 local viewTools = require "util.viewTools"
 
-local labelFont = fontCache.get("Inter-Regular.ttf", 14)
+local labelFont = FontCache.get("Inter-Regular.ttf", 14)
 
 local slidersHSV = {
   {
@@ -31,12 +31,12 @@ local slidersHSV = {
 
 ---@class ColorPicker: Zap.ElementClass
 ---@field color number[]
----@field sliders ColorPickerSlider[]
+---@field sliders ColorPicker.Slider[]
 ---@field dragInputs DragInput[]
 ---@operator call:ColorPicker
-local colorPicker = zap.elementClass()
+local ColorPicker = zap.elementClass()
 
-function colorPicker:init(color)
+function ColorPicker:init(color)
   self.color = color
   self.modeledColor = { rgbToHsv(unpack(color)) }
 
@@ -44,7 +44,7 @@ function colorPicker:init(color)
   self.dragInputs = {}
   for i = 1, 3 do
     local sliderInfo = slidersHSV[i]
-    local theSlider = slider()
+    local theSlider = Slider()
     theSlider.model = self.modeledColor
     theSlider.modelKey = i
     theSlider.minValue = sliderInfo.minValue
@@ -56,7 +56,7 @@ function colorPicker:init(color)
     end
     theSlider:updateImage()
 
-    local theDragInput = dragInput()
+    local theDragInput = DragInput()
     theDragInput.targetObject = self.modeledColor
     theDragInput.targetKey = i
     theDragInput.onChange = function()
@@ -71,7 +71,7 @@ end
 
 ---Updates the color picker's color based on the modeled color, and update all the sliders' images.
 ---@param excludeSlider? number Optionally skip updating the slider at this index.
-function colorPicker:updateColor(excludeSlider)
+function ColorPicker:updateColor(excludeSlider)
   self.color[1], self.color[2], self.color[3], self.color[4] = hsvToRgb(unpack(self.modeledColor))
   for j, s in ipairs(self.sliders) do
     if j ~= excludeSlider then
@@ -80,7 +80,7 @@ function colorPicker:updateColor(excludeSlider)
   end
 end
 
-function colorPicker:render(x, y, w, h)
+function ColorPicker:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundActive)
   lg.rectangle("fill", x, y, w, h, 6)
 
@@ -101,4 +101,4 @@ function colorPicker:render(x, y, w, h)
   end
 end
 
-return colorPicker
+return ColorPicker

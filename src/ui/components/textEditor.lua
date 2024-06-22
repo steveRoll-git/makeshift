@@ -4,7 +4,7 @@ local lg = love.graphics
 local zap = require "lib.zap.zap"
 local clamp = require "util.clamp"
 local splitString = require "util.splitString"
-local popupMenu = require "ui.components.popupMenu"
+local PopupMenu = require "ui.components.popupMenu"
 
 ---Returns `true` if `a` is positioned before `b`.
 ---@param a TextPosition
@@ -50,9 +50,9 @@ end
 ---@field centerHorizontally boolean Whether to center the text horizontally inside the view. Currently works only on one line.
 ---@field centerVertically boolean Whether to center the text vertically inside the view.
 ---@operator call:TextEditor
-local textEditor = zap.elementClass()
+local TextEditor = zap.elementClass()
 
-function textEditor:init()
+function TextEditor:init()
   self.lines = {}
   self.offsetX = 0
   self.offsetY = 0
@@ -69,7 +69,7 @@ function textEditor:init()
   self.selectionColor = { 1, 1, 1, 0.2 }
 end
 
-function textEditor:actualOffsetX()
+function TextEditor:actualOffsetX()
   if self.centerHorizontally then
     local _, _, w, _ = self:getView()
     return math.floor(w / 2 - self.lines[1].width / 2)
@@ -77,7 +77,7 @@ function textEditor:actualOffsetX()
   return -self.offsetX + self.padding
 end
 
-function textEditor:actualOffsetY()
+function TextEditor:actualOffsetY()
   if self.centerVertically then
     local _, _, _, h = self:getView()
     return math.floor(h / 2 - self:contentHeight() / 2)
@@ -87,7 +87,7 @@ end
 
 ---Sets the text currently being edited.
 ---@param text string
-function textEditor:setText(text)
+function TextEditor:setText(text)
   self.lines = {}
   if #text == 0 then
     table.insert(self.lines, { string = "", text = lg.newText(self.font), width = 0 })
@@ -104,7 +104,7 @@ end
 
 ---Inserts `text` into where the cursor is.
 ---@param text string
-function textEditor:insertText(text)
+function TextEditor:insertText(text)
   if self.selecting then
     self:deleteSelection()
   end
@@ -142,7 +142,7 @@ end
 
 ---Inserts a newline into where the cursor is.
 ---@param preserveIndents boolean?
-function textEditor:newLine(preserveIndents)
+function TextEditor:newLine(preserveIndents)
   if self.selecting then
     self:deleteSelection()
   end
@@ -171,7 +171,7 @@ function textEditor:newLine(preserveIndents)
 end
 
 ---Delete the currently selected text.
-function textEditor:deleteSelection()
+function TextEditor:deleteSelection()
   local firstEdge = self:selectionFirstEdge()
   local lastEdge = self:selectionLastEdge()
   if firstEdge.line == lastEdge.line then
@@ -201,7 +201,7 @@ end
 ---Changes the indentation on line `i` - add indentation if `direction` is 1, or unindent if it's -1.
 ---@param i number
 ---@param direction 1 | -1
-function textEditor:changeLineIndent(i, direction)
+function TextEditor:changeLineIndent(i, direction)
   local line = self.lines[i]
   local indent, rest = line.string:match("^(%s*)(.*)")
   local newIndent = (" "):rep((math.floor(#indent / self.indentSize) + direction) * self.indentSize)
@@ -217,22 +217,22 @@ function textEditor:changeLineIndent(i, direction)
 end
 
 ---Cuts the selected text into the system clipboard.
-function textEditor:cut()
+function TextEditor:cut()
   self:copy()
   self:deleteSelection()
 end
 
 ---Copies the selected text into the system clipboard.
-function textEditor:copy()
+function TextEditor:copy()
   love.system.setClipboardText(self:getSelectionString())
 end
 
 ---Inserts text from the system clipboard.
-function textEditor:paste()
+function TextEditor:paste()
   self:insertText(love.system.getClipboardText())
 end
 
-function textEditor:selectAll()
+function TextEditor:selectAll()
   self.selecting = true
   self.cursor.line, self.cursor.col = 1, 1
   self.selectionStart.line, self.selectionStart.col = #self.lines, #self.lines[#self.lines].string + 1
@@ -242,7 +242,7 @@ end
 ---@param from number
 ---@param to number
 ---@return string
-function textEditor:concatLines(from, to)
+function TextEditor:concatLines(from, to)
   local str = ""
   for i = from, to do
     str = str .. self.lines[i].string .. (i < to and "\n" or "")
@@ -252,11 +252,11 @@ end
 
 ---Returns a string of the entire editor's contents.
 ---@return string
-function textEditor:getString()
+function TextEditor:getString()
   return self:concatLines(1, #self.lines)
 end
 
-function textEditor:getSelectionString()
+function TextEditor:getSelectionString()
   if not self.selecting then
     return self:curString()
   elseif self:selectionFirstEdge().line == self:selectionLastEdge().line then
@@ -275,7 +275,7 @@ end
 
 ---Updates the text displayed on line `i`.
 ---@param i number
-function textEditor:updateLine(i)
+function TextEditor:updateLine(i)
   local l = self.lines[i]
   if self.syntaxHighlighting then
     l.text:clear()
@@ -322,31 +322,31 @@ function textEditor:updateLine(i)
 end
 
 ---Updates the line the cursor is currently on.
-function textEditor:updateCurLine()
+function TextEditor:updateCurLine()
   self:updateLine(self.cursor.line)
 end
 
 ---Returns the string of the line the cursor is currently on.
 ---@return string
-function textEditor:curString()
+function TextEditor:curString()
   return self.lines[self.cursor.line].string
 end
 
 ---Returns the position at which the selection begins.
 ---@return TextPosition
-function textEditor:selectionFirstEdge()
+function TextEditor:selectionFirstEdge()
   return comparePositions(self.cursor, self.selectionStart) and self.cursor or self.selectionStart
 end
 
 ---Returns the position at which the selection ends.
 ---@return TextPosition
-function textEditor:selectionLastEdge()
+function TextEditor:selectionLastEdge()
   return comparePositions(self.cursor, self.selectionStart) and self.selectionStart or self.cursor
 end
 
 ---Returns the width of the longest line in the editor.
 ---@return number
-function textEditor:contentWidth()
+function TextEditor:contentWidth()
   local width = 0
   for _, l in ipairs(self.lines) do
     width = math.max(l.width, width)
@@ -356,7 +356,7 @@ end
 
 ---Get the height of all the content in this textEditor, including all the lines and padding.
 ---@return number
-function textEditor:contentHeight()
+function TextEditor:contentHeight()
   return #self.lines * self.font:getHeight() + self.padding * 2
 end
 
@@ -364,7 +364,7 @@ end
 ---@param line number
 ---@param column number
 ---@return number x, number y
-function textEditor:textToScreenPos(line, column)
+function TextEditor:textToScreenPos(line, column)
   return
       self.font:getWidth(self.lines[line].string:sub(1, column - 1)) + 1 + self:actualOffsetX(),
       (line - 1) * self.font:getHeight() + self:actualOffsetY()
@@ -372,7 +372,7 @@ end
 
 ---Returns the screen position of the cursor.
 ---@return number x, number y
-function textEditor:screenCursorPosition()
+function TextEditor:screenCursorPosition()
   return self:textToScreenPos(self.cursor.line, self.cursor.col)
 end
 
@@ -381,7 +381,7 @@ end
 ---@param y number
 ---@return number line
 ---@return number column
-function textEditor:screenToTextPos(x, y)
+function TextEditor:screenToTextPos(x, y)
   x = x - self:actualOffsetX()
   y = y - self:actualOffsetY()
   local line = clamp(math.ceil(y / self.font:getHeight()), 1, #self.lines)
@@ -402,25 +402,25 @@ function textEditor:screenToTextPos(x, y)
 end
 
 ---Resets `cursorFlashTime` to make the cursor flash now.
-function textEditor:flashCursor()
+function TextEditor:flashCursor()
   self.cursorFlashTime = love.timer.getTime() * self.cursorFlashSpeed
 end
 
 ---Moves the cursor to the specified line.
 ---@param line number
-function textEditor:jumpToLine(line)
+function TextEditor:jumpToLine(line)
   self.selecting = false
   self.cursor.line = line
 end
 
 ---Calls the `onTextChanged` function if it exists.
-function textEditor:callTextChanged()
+function TextEditor:callTextChanged()
   if self.onTextChanged then
     self.onTextChanged()
   end
 end
 
-function textEditor:keyPressed(key)
+function TextEditor:keyPressed(key)
   self._textChanged = false
 
   local ctrlDown = love.keyboard.isDown("lctrl", "rctrl")
@@ -567,12 +567,12 @@ function textEditor:keyPressed(key)
   end
 end
 
-function textEditor:textInput(text)
+function TextEditor:textInput(text)
   self:insertText(text)
   self:callTextChanged()
 end
 
-function textEditor:mousePressed(button)
+function TextEditor:mousePressed(button)
   if button == 1 then
     self.cursor.line, self.cursor.col = self:screenToTextPos(self:getRelativeMouse())
     self.cursor.lastCol = self.cursor.col
@@ -585,7 +585,7 @@ function textEditor:mousePressed(button)
     self:flashCursor()
   end
   if button == 2 then
-    local menu = popupMenu()
+    local menu = PopupMenu()
     menu:setItems {
       {
         text = "Cut",
@@ -619,7 +619,7 @@ function textEditor:mousePressed(button)
   end
 end
 
-function textEditor:mouseMoved()
+function TextEditor:mouseMoved()
   if self:isPressed(1) then
     self.cursor.line, self.cursor.col = self:screenToTextPos(self:getRelativeMouse())
     self.selecting = self.cursor.line ~= self.selectionStart.line or self.cursor.col ~= self.selectionStart.col
@@ -627,11 +627,11 @@ function textEditor:mouseMoved()
   end
 end
 
-function textEditor:getCursor()
+function TextEditor:getCursor()
   return love.mouse.getSystemCursor("ibeam")
 end
 
-function textEditor:render(x, y, w, h)
+function TextEditor:render(x, y, w, h)
   if #self.lines == 0 then
     self:setText("")
   end
@@ -678,4 +678,4 @@ function textEditor:render(x, y, w, h)
   end
 end
 
-return textEditor
+return TextEditor

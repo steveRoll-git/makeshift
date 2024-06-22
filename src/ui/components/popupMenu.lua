@@ -3,7 +3,7 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local fontCache = require "util.fontCache"
-local button = require "ui.components.button"
+local Button = require "ui.components.button"
 
 local itemPadding = 3
 local itemTextPadding = 3
@@ -20,17 +20,17 @@ local itemHeight = font:getHeight() + itemTextPadding * 2
 ---@field items Zap.Element[]
 ---@field separators table<number, boolean>
 ---@operator call:PopupMenu
-local popupMenu = zap.elementClass()
+local PopupMenu = zap.elementClass()
 
 ---Sets the items inside this PopupMenu.
 ---@param items (PopupMenuItemModel | "separator")[]
-function popupMenu:setItems(items)
+function PopupMenu:setItems(items)
   self.models = items
   self.items = {}
   self.separators = {}
   for _, item in ipairs(items) do
     if type(item) == "table" then
-      local newButton = button()
+      local newButton = Button()
       newButton.displayMode = "text"
       newButton.text = item.text
       newButton.font = font
@@ -50,7 +50,7 @@ end
 ---Returns whether the item at `index` is visible.
 ---@param index number
 ---@return boolean
-function popupMenu:isItemVisible(index)
+function PopupMenu:isItemVisible(index)
   local model = self.models[index]
   if type(model.visible) == "function" then
     return model.visible()
@@ -60,11 +60,11 @@ function popupMenu:isItemVisible(index)
   end
 end
 
-function popupMenu:desiredWidth()
+function PopupMenu:desiredWidth()
   return 200
 end
 
-function popupMenu:desiredHeight()
+function PopupMenu:desiredHeight()
   local h = itemPadding * 2
   for i, _ in ipairs(self.items) do
     if self:isItemVisible(i) then
@@ -78,12 +78,12 @@ function popupMenu:desiredHeight()
 end
 
 ---Opens this menu as a popup at the cursor's position.
-function popupMenu:popupAtCursor()
+function PopupMenu:popupAtCursor()
   local mx, my = love.mouse.getPosition()
   OpenPopup(self, mx, my, self:desiredWidth(), self:desiredHeight())
 end
 
-function popupMenu:render(x, y, w, h)
+function PopupMenu:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundActive)
   lg.rectangle("fill", x, y, w, h, 6)
   lg.setColor(CurrentTheme.outlineActive)
@@ -108,4 +108,4 @@ function popupMenu:render(x, y, w, h)
   end
 end
 
-return popupMenu
+return PopupMenu

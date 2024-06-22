@@ -2,9 +2,9 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local button = require "ui.components.button"
+local Button = require "ui.components.button"
 local images = require "images"
-local window = require "ui.components.window"
+local Window = require "ui.components.window"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
 
@@ -27,10 +27,10 @@ local iconTextMargin = 6
 ---@field dragStartY number
 ---@field dragX number
 ---@operator call:Tab
-local tab = zap.elementClass()
+local Tab = zap.elementClass()
 
-function tab:init()
-  self.closeButton = button()
+function Tab:init()
+  self.closeButton = Button()
   self.closeButton.displayMode = "image"
   self.closeButton.image = images["icons/close_18.png"]
   self.closeButton.onClick = function()
@@ -38,14 +38,14 @@ function tab:init()
   end
 end
 
-function tab:parentTabView()
+function Tab:parentTabView()
   return self:getParent() --[[@as TabView]]
 end
 
 ---Creates a new floating window with this tab's contents, and removes the tab.
-function tab:undockIntoWindow()
+function Tab:undockIntoWindow()
   local mx, my = self:getAbsoluteMouse()
-  local newWindow = window()
+  local newWindow = Window()
   newWindow.titleFont = self.font
   newWindow.title = self.text
   newWindow.icon = self.icon
@@ -65,12 +65,12 @@ function tab:undockIntoWindow()
   self:parentTabView():removeTab(self)
 end
 
-function tab:updateDragX()
+function Tab:updateDragX()
   local mx = self:getAbsoluteMouse()
   self.dragX = mx - self.dragStartX
 end
 
-function tab:dragReorder()
+function Tab:dragReorder()
   local tabView = self:parentTabView()
   local x, _, w, _ = self:getView()
   for i, otherTab in ipairs(tabView.tabs) do
@@ -87,7 +87,7 @@ function tab:dragReorder()
   end
 end
 
-function tab:mousePressed(btn)
+function Tab:mousePressed(btn)
   if btn == 1 then
     self:parentTabView():setActiveTab(self)
     if self.draggable then
@@ -98,13 +98,13 @@ function tab:mousePressed(btn)
   end
 end
 
-function tab:mouseReleased()
+function Tab:mouseReleased()
   if self.isDragging then
     self.isDragging = false
   end
 end
 
-function tab:mouseMoved(_, _)
+function Tab:mouseMoved(_, _)
   if self.isDragging then
     local tabView = self:getParent() --[[@as TabView]]
     if not tabView:isMouseOverTabBar() and self.dockable then
@@ -116,19 +116,19 @@ function tab:mouseMoved(_, _)
   end
 end
 
-function tab:mouseClicked(btn)
+function Tab:mouseClicked(btn)
   if btn == 3 and self.closable then
     self:parentTabView():closeTab(self)
   end
 end
 
-function tab:desiredWidth()
+function Tab:desiredWidth()
   return self.font:getWidth(self.text) + textMargin * 2
       + (self.closable and self.closeButton:desiredWidth() or 0)
       + (self.icon and (self.icon:getWidth() + iconTextMargin) or 0)
 end
 
-function tab:render(x, y, w, h)
+function Tab:render(x, y, w, h)
   local cornerRadius = 6
 
   pushScissor(x - 1, y, w + 2, h)
@@ -172,4 +172,4 @@ function tab:render(x, y, w, h)
   end
 end
 
-return tab
+return Tab

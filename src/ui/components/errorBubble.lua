@@ -16,25 +16,25 @@ local tailPolygon = {
 ---@class ErrorBubble: Zap.ElementClass
 ---@field tailY number?
 ---@operator call:ErrorBubble
-local errorBubble = zap.elementClass()
+local ErrorBubble = zap.elementClass()
 
-errorBubble.padding = 8
+ErrorBubble.padding = 8
 
 ---@param text string
-function errorBubble:init(text)
+function ErrorBubble:init(text)
   self.text = lg.newText(font)
   self.text:addf(text, defaultWidth, "left", 0, 0)
 end
 
-function errorBubble:desiredWidth()
-  return self.text:getWidth() + errorBubble.padding * 2
+function ErrorBubble:desiredWidth()
+  return self.text:getWidth() + ErrorBubble.padding * 2
 end
 
-function errorBubble:desiredHeight()
-  return self.text:getHeight() + errorBubble.padding * 2
+function ErrorBubble:desiredHeight()
+  return self.text:getHeight() + ErrorBubble.padding * 2
 end
 
-function errorBubble:render(x, y, w, h)
+function ErrorBubble:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundError)
   lg.rectangle("fill", x, y, w, h, 4, 4, 4)
   if self.tailY then
@@ -45,7 +45,7 @@ function errorBubble:render(x, y, w, h)
   end
 
   lg.setColor(CurrentTheme.foregroundActive)
-  lg.draw(self.text, x + errorBubble.padding, y + errorBubble.padding)
+  lg.draw(self.text, x + ErrorBubble.padding, y + ErrorBubble.padding)
 end
 
-return errorBubble
+return ErrorBubble

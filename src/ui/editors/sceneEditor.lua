@@ -3,16 +3,16 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 local engine = require "engine"
-local toolbar = require "ui.components.toolbar"
+local Toolbar = require "ui.components.toolbar"
 local images = require "images"
-local spriteEditor = require "ui.editors.spriteEditor"
-local zoomSlider = require "ui.components.zoomSlider"
-local popupMenu = require "ui.components.popupMenu"
+local SpriteEditor = require "ui.editors.spriteEditor"
+local ZoomSlider = require "ui.components.zoomSlider"
+local PopupMenu = require "ui.components.popupMenu"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
-local project = require "project"
-local textEditor = require "ui.components.textEditor"
-local dataPanel = require "ui.components.dataPanel"
+local Project = require "project"
+local TextEditor = require "ui.components.textEditor"
+local DataPanel = require "ui.components.dataPanel"
 
 local zoomValues = { 0.25, 1 / 3, 0.5, 1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64 }
 
@@ -32,10 +32,10 @@ end
 ---@field selectedObject Object?
 ---@field draggingObject {object: Object, offsetX: number, offsetY: number}
 ---@operator call:SceneView
-local sceneView = zap.elementClass()
+local SceneView = zap.elementClass()
 
 ---@param editor SceneEditor
-function sceneView:init(editor)
+function SceneView:init(editor)
   self.editor = editor
   self.engine = editor.engine
   self.gridSize = 100
@@ -46,7 +46,7 @@ function sceneView:init(editor)
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
-function sceneView:updateViewTransform()
+function SceneView:updateViewTransform()
   if self.spriteEditor then
     self.viewTransform
         :reset()
@@ -62,7 +62,7 @@ function sceneView:updateViewTransform()
   end
 end
 
-function sceneView:startCreatingSprite()
+function SceneView:startCreatingSprite()
   if self.editingText then
     self:stopEditingText()
   end
@@ -71,7 +71,7 @@ function sceneView:startCreatingSprite()
   self.creationY = nil
 end
 
-function sceneView:startCreatingText()
+function SceneView:startCreatingText()
   if self.editingText then
     self:stopEditingText()
   end
@@ -82,13 +82,13 @@ end
 
 ---Opens an embedded sprite editor.
 ---@param sprite Sprite
-function sceneView:openSpriteEditor(sprite)
+function SceneView:openSpriteEditor(sprite)
   if FocusResourceEditor(sprite.spriteData.id) then
     return
   end
   self.editingSprite = sprite
   self.editingSprite.visible = false
-  self.spriteEditor = spriteEditor(self)
+  self.spriteEditor = SpriteEditor(self)
   self.spriteEditor.editingSprite = sprite.spriteData
   self.spriteEditor.panX, self.spriteEditor.panY = self.viewTransform:transformPoint(sprite.x, sprite.y)
   self.spriteEditor.zoom = self.zoom
@@ -98,7 +98,7 @@ function sceneView:openSpriteEditor(sprite)
 end
 
 ---Closes the embedded sprite editor.
-function sceneView:exitSpriteEditor()
+function SceneView:exitSpriteEditor()
   self.zoom = self.spriteEditor.zoom
   self.panX = -(self.spriteEditor.panX / self.spriteEditor.zoom - self.selectedObject.x)
   self.panY = -(self.spriteEditor.panY / self.spriteEditor.zoom - self.selectedObject.y)
@@ -108,10 +108,10 @@ function sceneView:exitSpriteEditor()
 end
 
 ---@param text Text
-function sceneView:startEditingText(text)
+function SceneView:startEditingText(text)
   self.editingText = text
   self.editingText.visible = false
-  self.editingTextEditor = textEditor()
+  self.editingTextEditor = TextEditor()
   self.editingTextEditor.font = text.font
   self.editingTextEditor.multiline = true
   self.editingTextEditor:setText(text.string)
@@ -126,23 +126,23 @@ function sceneView:startEditingText(text)
   end
 end
 
-function sceneView:stopEditingText()
+function SceneView:stopEditingText()
   self:updateEditingText()
   self.editingText.visible = true
   self.editingText = nil
   self.editingTextEditor = nil
 end
 
-function sceneView:updateEditingText()
+function SceneView:updateEditingText()
   self.editingText.string = self.editingTextEditor:getString()
   self.editingText.text:set(self.editingText.string)
 end
 
 ---@param obj Object?
-function sceneView:selectObject(obj)
+function SceneView:selectObject(obj)
   self.selectedObject = obj
   if obj then
-    self.editor.propertiesPanel = dataPanel({
+    self.editor.propertiesPanel = DataPanel({
       {
         type = "vec2",
         text = "Position",
@@ -163,7 +163,7 @@ end
 ---@return number
 ---@return number
 ---@return number
-function sceneView:getCreationRect()
+function SceneView:getCreationRect()
   local mx, my = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
   local x = math.min(mx, self.creationX)
   local y = math.min(my, self.creationY)
@@ -172,7 +172,7 @@ function sceneView:getCreationRect()
   return x, y, w, h
 end
 
-function sceneView:mousePressed(button)
+function SceneView:mousePressed(button)
   if (self.creatingSprite or self.creatingText) and button == 1 then
     self.creationX, self.creationY = self.viewTransform:inverseTransformPoint(self:getRelativeMouse())
     return
@@ -202,7 +202,7 @@ function sceneView:mousePressed(button)
     end
   end
   if button == 2 and self.selectedObject then
-    local menu = popupMenu()
+    local menu = PopupMenu()
     menu:setItems {
       {
         text = "Draw",
@@ -237,7 +237,7 @@ function sceneView:mousePressed(button)
   end
 end
 
-function sceneView:mouseReleased(button)
+function SceneView:mouseReleased(button)
   if button == 1 then
     if self.creatingSprite then
       local x, y, w, h = self:getCreationRect()
@@ -284,7 +284,7 @@ function sceneView:mouseReleased(button)
   end
 end
 
-function sceneView:mouseMoved(x, y)
+function SceneView:mouseMoved(x, y)
   if self.draggingObject then
     x, y = self.viewTransform:inverseTransformPoint(x, y)
     self.draggingObject.object.x = x + self.draggingObject.offsetX
@@ -296,7 +296,7 @@ function sceneView:mouseMoved(x, y)
   end
 end
 
-function sceneView:mouseDoubleClicked(button)
+function SceneView:mouseDoubleClicked(button)
   if button == 1 and self.selectedObject then
     if self.selectedObject.type == "sprite" then
       self:openSpriteEditor(self.selectedObject --[[@as Sprite]])
@@ -307,7 +307,7 @@ function sceneView:mouseDoubleClicked(button)
   end
 end
 
-function sceneView:wheelMoved(x, y)
+function SceneView:wheelMoved(x, y)
   local newZoom = self.zoom
   if y > 0 then
     for i = 1, #zoomValues do
@@ -339,7 +339,7 @@ function sceneView:wheelMoved(x, y)
   end
 end
 
-function sceneView:getCursor()
+function SceneView:getCursor()
   if self.creatingSprite or self.creatingText then
     return love.mouse.getSystemCursor("crosshair")
   else
@@ -347,16 +347,16 @@ function sceneView:getCursor()
   end
 end
 
-function sceneView:resized(w, h, prevW, prevH)
+function SceneView:resized(w, h, prevW, prevH)
   self.panX = self.panX + (prevW - w) / 2 / self.zoom
   self.panY = self.panY + (prevH - h) / 2 / self.zoom
 end
 
-function sceneView:render(x, y, w, h)
+function SceneView:render(x, y, w, h)
   if not self.initialPanDone then
     self.initialPanDone = true
-    self.panX = -math.floor(w / 2 - project.currentProject.windowWidth / 2)
-    self.panY = -math.floor(h / 2 - project.currentProject.windowHeight / 2)
+    self.panX = -math.floor(w / 2 - Project.currentProject.windowWidth / 2)
+    self.panY = -math.floor(h / 2 - Project.currentProject.windowHeight / 2)
   end
 
   pushScissor(x, y, w, h)
@@ -391,7 +391,7 @@ function sceneView:render(x, y, w, h)
 
   lg.setColor(0.2, 0.6, 1, 0.2) -- unstyled
   lg.setLineWidth(2)
-  lg.rectangle("line", 0, 0, project.currentProject.windowWidth, project.currentProject.windowHeight)
+  lg.rectangle("line", 0, 0, Project.currentProject.windowWidth, Project.currentProject.windowHeight)
 
   self.engine:draw()
 
@@ -440,16 +440,16 @@ end
 ---@class SceneEditor: ResourceEditor
 ---@field propertiesPanel DataPanel?
 ---@operator call:SceneEditor
-local sceneEditor = zap.elementClass()
+local SceneEditor = zap.elementClass()
 
 ---@param scene Scene
-function sceneEditor:init(scene)
+function SceneEditor:init(scene)
   self.originalScene = scene
   self.engine = engine.createEngine(scene)
 
-  self.sceneView = sceneView(self)
+  self.sceneView = SceneView(self)
 
-  self.toolbar = toolbar()
+  self.toolbar = Toolbar()
   self.toolbar:setItems {
     {
       text = "New Sprite",
@@ -467,15 +467,15 @@ function sceneEditor:init(scene)
     },
   }
 
-  self.zoomSlider = zoomSlider()
+  self.zoomSlider = ZoomSlider()
   self.zoomSlider.targetTable = self.sceneView
 end
 
-function sceneEditor:resourceId()
+function SceneEditor:resourceId()
   return self.originalScene.id
 end
 
-function sceneEditor:writeToScene()
+function SceneEditor:writeToScene()
   if self.sceneView.editingText then
     self.sceneView:stopEditingText()
   end
@@ -486,11 +486,11 @@ function sceneEditor:writeToScene()
   end
 end
 
-function sceneEditor:saveResource()
+function SceneEditor:saveResource()
   self:writeToScene()
 end
 
-function sceneEditor:keyPressed(key)
+function SceneEditor:keyPressed(key)
   if key == "f9" and self.sceneView.selectedObject then
     openCodeEditor(self.sceneView.selectedObject)
   elseif self.sceneView.editingText then
@@ -498,13 +498,13 @@ function sceneEditor:keyPressed(key)
   end
 end
 
-function sceneEditor:textInput(text)
+function SceneEditor:textInput(text)
   if self.sceneView.editingText then
     self.sceneView.editingTextEditor:textInput(text)
   end
 end
 
-function sceneEditor:render(x, y, w, h)
+function SceneEditor:render(x, y, w, h)
   local toolbarH = self.toolbar:desiredHeight()
 
   self.sceneView:render(x, y + toolbarH, w, h - toolbarH)
@@ -527,4 +527,4 @@ function sceneEditor:render(x, y, w, h)
   end
 end
 
-return sceneEditor
+return SceneEditor

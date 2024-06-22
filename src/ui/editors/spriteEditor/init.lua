@@ -4,12 +4,12 @@ local lg = love.graphics
 local compareColors = require "util.compareColors"
 local dist = require "util.dist"
 local zap = require "lib.zap.zap"
-local toolbar = require "ui.editors.spriteEditor.toolbar"
+local SpriteToolbar = require "ui.editors.spriteEditor.toolbar"
 local images = require "images"
-local colorPicker = require "ui.components.colorPicker"
+local ColorPicker = require "ui.components.colorPicker"
 local sign = require "util.sign"
-local topToolbar = require "ui.components.toolbar"
-local zoomSlider = require "ui.components.zoomSlider"
+local Toolbar = require "ui.components.toolbar"
+local ZoomSlider = require "ui.components.zoomSlider"
 local clamp = require "util.clamp"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
@@ -125,10 +125,10 @@ end
 ---@field currentColor number[]
 ---@field embedded boolean Whether this spriteEditor is embedded in a sceneEditor.
 ---@operator call:SpriteEditor
-local spriteEditor = zap.elementClass()
+local SpriteEditor = zap.elementClass()
 
 ---@param sceneView SceneView
-function spriteEditor:init(sceneView)
+function SpriteEditor:init(sceneView)
   self.panX = 0
   self.panY = 0
   self.zoom = 1
@@ -138,9 +138,9 @@ function spriteEditor:init(sceneView)
 
   self.currentColor = { 1, 1, 1, 1 }
 
-  self.toolbar = toolbar(self.currentColor)
+  self.toolbar = SpriteToolbar(self.currentColor)
 
-  self.colorPicker = colorPicker(self.currentColor)
+  self.colorPicker = ColorPicker(self.currentColor)
 
   self.tools = {
     pencil = {
@@ -163,7 +163,7 @@ function spriteEditor:init(sceneView)
   self.toolSize = 1
 
   self.embedded = not not sceneView
-  self.topToolbar = topToolbar()
+  self.topToolbar = Toolbar()
   self.topToolbar:setItems {
     {
       text = "Back",
@@ -201,7 +201,7 @@ function spriteEditor:init(sceneView)
     }
   }
 
-  self.zoomSlider = zoomSlider()
+  self.zoomSlider = ZoomSlider()
   self.zoomSlider.targetTable = self
 
   self.brushPreviewData = love.image.newImageData(128, 128)
@@ -217,12 +217,12 @@ function spriteEditor:init(sceneView)
   end
 end
 
-function spriteEditor:resourceId()
+function SpriteEditor:resourceId()
   return self.editingSprite.id
 end
 
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
-function spriteEditor:updateViewTransform()
+function SpriteEditor:updateViewTransform()
   local _, _, w, h = self:getView()
   self.viewTransform:reset():setTransformation(
     math.floor(self.panX),
@@ -235,7 +235,7 @@ function spriteEditor:updateViewTransform()
 end
 
 ---Updates `transparencyQuad`'s viewport to fit the size of the image.
-function spriteEditor:updateTransparencyQuad()
+function SpriteEditor:updateTransparencyQuad()
   self.transparencyQuad:setViewport(0, 0,
     self:currentImageData():getWidth() * self.zoom,
     self:currentImageData():getHeight() * self.zoom,
@@ -243,7 +243,7 @@ function spriteEditor:updateTransparencyQuad()
 end
 
 ---Updates the brush preview to match the current size.
-function spriteEditor:updateBrushPreview()
+function SpriteEditor:updateBrushPreview()
   self.brushPreviewData:mapPixel(clearMap)
   fillEllipse(self.brushPreviewData, 0, 0, self.toolSize - 1, self.toolSize - 1, { 1, 1, 1, 1 })
   self.brushPreview:replacePixels(self.brushPreviewData)
@@ -251,26 +251,26 @@ end
 
 ---Returns the frame currently being edited.
 ---@return SpriteFrame
-function spriteEditor:currentFrame()
+function SpriteEditor:currentFrame()
   return self.editingSprite.frames[self.currentFrameIndex]
 end
 
 ---Returns the ImageData currently being edited.
 ---@return love.ImageData
-function spriteEditor:currentImageData()
+function SpriteEditor:currentImageData()
   return self:currentFrame().imageData
 end
 
 ---Returns the currently active tool.
 ---@return table
-function spriteEditor:currentTool()
+function SpriteEditor:currentTool()
   return self.tools[self.currentToolType]
 end
 
 ---Returns the position of the mouse in image coordinates.
 ---@return number x
 ---@return number y
-function spriteEditor:mouseImageCoords()
+function SpriteEditor:mouseImageCoords()
   local mx, my = self:getRelativeMouse()
   my = my - self.topToolbar:desiredHeight()
   local ix, iy = self.viewTransform:inverseTransformPoint(mx, my)
@@ -278,7 +278,7 @@ function spriteEditor:mouseImageCoords()
 end
 
 ---Appends a new frame to the edited object.
-function spriteEditor:addFrame()
+function SpriteEditor:addFrame()
   local frame = {
     imageData = love.image.newImageData(self.editingSprite.w, self.editingSprite.h)
   }
@@ -294,7 +294,7 @@ end
 ---@param x number
 ---@param y number
 ---@return boolean
-function spriteEditor:inRange(x, y)
+function SpriteEditor:inRange(x, y)
   return x >= 0 and x < self:currentImageData():getWidth() and y >= 0 and y < self:currentImageData():getHeight()
 end
 
@@ -302,14 +302,14 @@ end
 ---@param x number
 ---@param y number
 ---@param color number[]
-function spriteEditor:setPixel(x, y, color)
+function SpriteEditor:setPixel(x, y, color)
   if self:inRange(x, y) then
     self:currentImageData():setPixel(x, y, color)
   end
 end
 
 ---Updates the displayed image of the current frame to the contents of the ImageData.
-function spriteEditor:updateImage()
+function SpriteEditor:updateImage()
   self:currentFrame().image:replacePixels(self:currentImageData())
 end
 
@@ -319,7 +319,7 @@ end
 ---@param fromX number
 ---@param fromY number
 ---@param color number[]
-function spriteEditor:paintCircle(fromX, fromY, toX, toY, color)
+function SpriteEditor:paintCircle(fromX, fromY, toX, toY, color)
   local size = self.toolSize
 
   local currentX, currentY = fromX, fromY
@@ -348,7 +348,7 @@ end
 ---@param origX number
 ---@param origY number
 ---@param newColor number[]
-function spriteEditor:floodFill(origX, origY, newColor)
+function SpriteEditor:floodFill(origX, origY, newColor)
   local imageData = self:currentImageData()
 
   local oldColor = { imageData:getPixel(origX, origY) }
@@ -394,7 +394,7 @@ function spriteEditor:floodFill(origX, origY, newColor)
   end
 end
 
-function spriteEditor:openColorPicker()
+function SpriteEditor:openColorPicker()
   local pickerWidth = 200
   local pickerHeight = 80
   local ix, iy, iw, ih = self.toolbar.colorTool:getView()
@@ -405,7 +405,7 @@ function spriteEditor:openColorPicker()
     pickerHeight)
 end
 
-function spriteEditor:clampPan()
+function SpriteEditor:clampPan()
   local margin = self.zoom * 4
   local _, _, w, h = self:getView()
   self.panX = clamp(
@@ -418,7 +418,7 @@ function spriteEditor:clampPan()
     h - margin)
 end
 
-function spriteEditor:mousePressed(button)
+function SpriteEditor:mousePressed(button)
   if button == 1 then
     local ix, iy = self:mouseImageCoords()
     local tool = self:currentTool()
@@ -442,7 +442,7 @@ function spriteEditor:mousePressed(button)
   end
 end
 
-function spriteEditor:mouseReleased(button)
+function SpriteEditor:mouseReleased(button)
   if button == 1 then
     self.dragDrawing = false
   elseif button == 3 then
@@ -450,7 +450,7 @@ function spriteEditor:mouseReleased(button)
   end
 end
 
-function spriteEditor:mouseMoved(x, y)
+function SpriteEditor:mouseMoved(x, y)
   if self.dragDrawing then
     local ix, iy = self:mouseImageCoords()
     self:currentTool().onDrag(self.prevToolX, self.prevToolY, ix, iy)
@@ -464,7 +464,7 @@ function spriteEditor:mouseMoved(x, y)
   end
 end
 
-function spriteEditor:wheelMoved(x, y)
+function SpriteEditor:wheelMoved(x, y)
   if love.keyboard.isDown("lctrl", "rctrl") then
     -- change brush size
     self.toolSize = math.min(math.max(self.toolSize + sign(y), 1), 100)
@@ -508,16 +508,16 @@ function spriteEditor:wheelMoved(x, y)
   end
 end
 
-function spriteEditor:resized(w, h, prevW, prevH)
+function SpriteEditor:resized(w, h, prevW, prevH)
   self.panX = self.panX - (prevW - w) / 2
   self.panY = self.panY - (prevH - h) / 2
   self:clampPan()
 end
 
-function spriteEditor:render(x, y, w, h)
+function SpriteEditor:render(x, y, w, h)
   self:updateViewTransform()
 
-  self.topToolbar:render(x, y, w, topToolbar:desiredHeight())
+  self.topToolbar:render(x, y, w, Toolbar:desiredHeight())
   y = y + self.topToolbar:desiredHeight()
   h = h - self.topToolbar:desiredHeight()
 
@@ -576,4 +576,4 @@ function spriteEditor:render(x, y, w, h)
   popScissor()
 end
 
-return spriteEditor
+return SpriteEditor

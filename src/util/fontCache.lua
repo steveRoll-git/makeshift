@@ -3,14 +3,14 @@ local fontsDirectory = "fonts/"
 ---@class FontCache
 ---@field base FontCache?
 ---@field cache table<string, table<number, love.Font>>
-local fontCache = {}
-fontCache.__index = fontCache
+local FontCache = {}
+FontCache.__index = FontCache
 
 ---Creates a new FontCache.
 ---@param base? FontCache
 ---@return FontCache
 local function newFontCache(base)
-  local self = setmetatable({}, fontCache)
+  local self = setmetatable({}, FontCache)
   self.base = base
   self.cache = {}
   return self
@@ -20,7 +20,7 @@ end
 ---@param font string
 ---@param size number
 ---@return love.Font?
-function fontCache:tryGet(font, size)
+function FontCache:tryGet(font, size)
   return (self.cache[font] and self.cache[font][size]) or (self.base and self.base:tryGet(font, size))
 end
 
@@ -28,7 +28,7 @@ end
 ---@param font string
 ---@param size number
 ---@return love.Font
-function fontCache:get(font, size)
+function FontCache:get(font, size)
   if self.base then
     local baseFont = self.base:tryGet(font, size)
     if baseFont then

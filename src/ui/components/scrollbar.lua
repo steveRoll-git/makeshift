@@ -6,22 +6,22 @@ local clamp = require "util.clamp"
 
 local size = 14
 
----@class ScrollbarThumb: Zap.ElementClass
----@operator call:ScrollbarThumb
-local thumb = zap.elementClass()
+---@class Scrollbar.Thumb: Zap.ElementClass
+---@operator call:Scrollbar.Thumb
+local Thumb = zap.elementClass()
 
 ---@param scrollbar Scrollbar
-function thumb:init(scrollbar)
+function Thumb:init(scrollbar)
   self.scrollbar = scrollbar
 end
 
-function thumb:mousePressed(button)
+function Thumb:mousePressed(button)
   if button == 1 then
     self.pressX, self.pressY = self:getRelativeMouse()
   end
 end
 
-function thumb:mouseMoved()
+function Thumb:mouseMoved()
   if self:isPressed(1) then
     local ax, ay = self:getAbsoluteMouse()
     local newX, newY = ax - self.pressX, ay - self.pressY
@@ -33,7 +33,7 @@ function thumb:mouseMoved()
   end
 end
 
-function thumb:render(x, y, w, h)
+function Thumb:render(x, y, w, h)
   if self:isPressed(1) then
     lg.setColor(CurrentTheme.elementPressed)
   elseif self:isHovered() then
@@ -51,34 +51,34 @@ end
 ---@field targetTable table The table whose property the scrollbar will control.
 ---@field targetField string The field in targetTable whose value will be controlled.
 ---@operator call:Scrollbar
-local scrollbar = zap.elementClass()
+local Scrollbar = zap.elementClass()
 
-function scrollbar:init()
-  self.thumb = thumb(self)
+function Scrollbar:init()
+  self.thumb = Thumb(self)
 end
 
-function scrollbar:desiredWidth()
+function Scrollbar:desiredWidth()
   return size
 end
 
-function scrollbar:desiredHeight()
+function Scrollbar:desiredHeight()
   return size
 end
 
 ---Returns the current value in `targetTable`.
 ---@return number
-function scrollbar:currentValue()
+function Scrollbar:currentValue()
   return self.targetTable[self.targetField]
 end
 
 ---Sets the current value in `targetTable`.
 ---@param value number
-function scrollbar:setValue(value)
+function Scrollbar:setValue(value)
   self.targetTable[self.targetField] = value
 end
 
 ---@return number
-function scrollbar:getViewSize()
+function Scrollbar:getViewSize()
   if type(self.viewSize) == "function" then
     return self.viewSize()
   end
@@ -86,7 +86,7 @@ function scrollbar:getViewSize()
 end
 
 ---@return number
-function scrollbar:getContentSize()
+function Scrollbar:getContentSize()
   if type(self.contentSize) == "function" then
     return self.contentSize()
   end
@@ -95,11 +95,11 @@ end
 
 ---Returns the highest extent to which this scrollbar can scroll.
 ---@return number
-function scrollbar:maximumScroll()
+function Scrollbar:maximumScroll()
   return self:getContentSize() - self:getViewSize()
 end
 
-function scrollbar:render(x, y, w, h)
+function Scrollbar:render(x, y, w, h)
   assert(self.direction == "x" or self.direction == "y", "no direction set for this scrollbar!")
 
   local dx = self.direction == "x"
@@ -114,4 +114,4 @@ function scrollbar:render(x, y, w, h)
   )
 end
 
-return scrollbar
+return Scrollbar

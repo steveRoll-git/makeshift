@@ -14,19 +14,19 @@ local itemPadding = 6
 ---@field image love.Image
 ---@field toolName ToolType
 ---@operator call:SpriteEditorToolbarItem
-local toolbarItem = zap.elementClass()
+local ToolbarItem = zap.elementClass()
 
-function toolbarItem:mousePressed(btn)
+function ToolbarItem:mousePressed(btn)
   self:spriteEditor().currentToolType = self.toolName
 end
 
 ---Gets the parent SpriteEditor.
 ---@return SpriteEditor
-function toolbarItem:spriteEditor()
+function ToolbarItem:spriteEditor()
   return self:getParent():getParent() --[[@as SpriteEditor]]
 end
 
-function toolbarItem:render(x, y, w, h)
+function ToolbarItem:render(x, y, w, h)
   local active = self:spriteEditor().currentToolType == self.toolName
   if active then
     lg.setColor(CurrentTheme.elementPressed)
@@ -43,16 +43,16 @@ end
 ---@class ColorItem: Zap.ElementClass
 ---@field color number[]
 ---@operator call:ColorItem
-local colorItem = zap.elementClass()
+local ColorItem = zap.elementClass()
 
-function colorItem:init()
+function ColorItem:init()
   self.rectFunc = function()
     local x, y, w, h = self:getView()
     lg.rectangle("fill", x, y, w, h, 6)
   end
 end
 
-function colorItem:mousePressed()
+function ColorItem:mousePressed()
   local spriteEditor = self:getParent():getParent() --[[@as SpriteEditor]]
   if not IsPopupOpen(spriteEditor.colorPicker) then
     spriteEditor:openColorPicker()
@@ -61,7 +61,7 @@ function colorItem:mousePressed()
   end
 end
 
-function colorItem:render(x, y, w, h)
+function ColorItem:render(x, y, w, h)
   lg.setStencilTest("greater", 0)
   lg.stencil(self.rectFunc)
   lg.setColor(1, 1, 1) -- unstyled
@@ -78,25 +78,25 @@ function colorItem:render(x, y, w, h)
   lg.rectangle("line", x, y, w, h, 6)
 end
 
----@class SpriteEditorToolbar: Zap.ElementClass
+---@class SpriteEditor.Toolbar: Zap.ElementClass
 ---@field tools Zap.Element[]
----@operator call:SpriteEditorToolbar
-local toolbar = zap.elementClass()
+---@operator call:SpriteEditor.Toolbar
+local Toolbar = zap.elementClass()
 
-function toolbar:init(color)
-  self.pencilTool = toolbarItem()
+function Toolbar:init(color)
+  self.pencilTool = ToolbarItem()
   self.pencilTool.image = images["icons/edit_48.png"]
   self.pencilTool.toolName = "pencil"
 
-  self.eraserTool = toolbarItem()
+  self.eraserTool = ToolbarItem()
   self.eraserTool.image = images["icons/eraser_48.png"]
   self.eraserTool.toolName = "eraser"
 
-  self.fillTool = toolbarItem()
+  self.fillTool = ToolbarItem()
   self.fillTool.image = images["icons/bucket_48.png"]
   self.fillTool.toolName = "fill"
 
-  self.colorTool = colorItem()
+  self.colorTool = ColorItem()
   self.colorTool.color = color
 
   self.tools = {
@@ -107,15 +107,15 @@ function toolbar:init(color)
   }
 end
 
-function toolbar:desiredWidth()
+function Toolbar:desiredWidth()
   return itemSize + itemPadding * 2
 end
 
-function toolbar:desiredHeight()
+function Toolbar:desiredHeight()
   return #self.tools * (itemSize + itemPadding) + itemPadding
 end
 
-function toolbar:render(x, y, w, h)
+function Toolbar:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundActive)
   lg.rectangle("fill", x - 6, y, w + 6, h, 6)
   for i, item in ipairs(self.tools) do
@@ -127,4 +127,4 @@ function toolbar:render(x, y, w, h)
   end
 end
 
-return toolbar
+return Toolbar

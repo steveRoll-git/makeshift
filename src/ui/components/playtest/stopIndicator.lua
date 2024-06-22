@@ -28,14 +28,14 @@ local font = fontCache.get("Inter-Regular.ttf", 14)
 ---@class StopIndicator: Zap.ElementClass
 ---@field stopReason "error" | "wait"
 ---@operator call:StopIndicator
-local stopIndicator = zap.elementClass()
+local StopIndicator = zap.elementClass()
 
----@param playtest PlaytestElement
-function stopIndicator:init(playtest)
+---@param playtest Playtest
+function StopIndicator:init(playtest)
   self.playtest = playtest
 end
 
-function stopIndicator:mouseClicked(btn)
+function StopIndicator:mouseClicked(btn)
   if btn == 1 then
     if self.stopReason == "error" then
       self.playtest.engine:openErroredCodeEditor()
@@ -46,15 +46,15 @@ function stopIndicator:mouseClicked(btn)
   end
 end
 
-function stopIndicator:desiredWidth()
+function StopIndicator:desiredWidth()
   return iconSize + padding * 2 + (self:isHovered() and textPadding + font:getWidth(messages[self.stopReason]) or 0)
 end
 
-function stopIndicator:desiredHeight()
+function StopIndicator:desiredHeight()
   return iconSize + padding * 2
 end
 
-function stopIndicator:render(x, y, w, h)
+function StopIndicator:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundOverlay)
   lg.rectangle("fill", x, y, w, h, 3)
   do
@@ -71,4 +71,4 @@ function stopIndicator:render(x, y, w, h)
   end
 end
 
-return stopIndicator
+return StopIndicator

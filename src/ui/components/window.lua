@@ -2,7 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local button = require "ui.components.button"
+local Button = require "ui.components.button"
 local images = require "images"
 local clamp = require "util.clamp"
 local viewTools = require "util.viewTools"
@@ -11,20 +11,20 @@ local popScissor = require "util.scissorStack".popScissor
 
 local resizeHandleSize = 10
 
----@class WindowResizeHandle: Zap.ElementClass
----@operator call:WindowResizeHandle
-local resizeHandle = zap.elementClass()
+---@class Window.ResizeHandle: Zap.ElementClass
+---@operator call:Window.ResizeHandle
+local ResizeHandle = zap.elementClass()
 
 ---@param w Window
-function resizeHandle:init(w)
+function ResizeHandle:init(w)
   self.window = w
 end
 
-function resizeHandle:getCursor()
+function ResizeHandle:getCursor()
   return love.mouse.getSystemCursor("sizenwse")
 end
 
-function resizeHandle:mousePressed(btn)
+function ResizeHandle:mousePressed(btn)
   if btn == 1 then
     local mx, my = self:getAbsoluteMouse()
     self.offsetX = mx - self.window.x - self.window.width
@@ -32,7 +32,7 @@ function resizeHandle:mousePressed(btn)
   end
 end
 
-function resizeHandle:mouseMoved()
+function ResizeHandle:mouseMoved()
   if self:isPressed(1) then
     local mx, my = self:getAbsoluteMouse()
     self.window.width = mx - self.window.x - self.offsetX
@@ -55,52 +55,52 @@ end
 ---@field dockable boolean
 ---@field focused boolean
 ---@operator call:Window
-local window = zap.elementClass()
+local Window = zap.elementClass()
 
-function window:init()
-  self.closeButton = button()
+function Window:init()
+  self.closeButton = Button()
   self.closeButton.displayMode = "image"
   self.closeButton.image = images["icons/close_18.png"]
   self.closeButton.onClick = function()
     CloseWindow(self)
   end
 
-  self.resizeHandle = resizeHandle(self)
+  self.resizeHandle = ResizeHandle(self)
 end
 
-function window:desiredWidth()
+function Window:desiredWidth()
   return self.width
 end
 
-function window:desiredHeight()
+function Window:desiredHeight()
   return self.height
 end
 
-function window:titleBarHeight()
+function Window:titleBarHeight()
   return self.titleFont:getHeight() + 16
 end
 
 ---Sets the size of the window so that the size of the content will match the provided width and height.
 ---@param width number
 ---@param height number
-function window:setContentSize(width, height)
+function Window:setContentSize(width, height)
   self.width = width
   self.height = height + self:titleBarHeight()
 end
 
-function window:clampPosition()
+function Window:clampPosition()
   self.x = clamp(self.x, -self.width / 2, lg.getWidth() - self.width / 2)
   self.y = clamp(self.y, 0, lg.getHeight() - self.height / 2)
 end
 
-function window:clampSize()
+function Window:clampSize()
   self.width = math.max(self.width, 200)
   self.height = math.max(self.height, 200)
 end
 
 ---Removes this window and creates a new tab with its contents.
 ---@param tabView TabView
-function window:dockIntoTab(tabView)
+function Window:dockIntoTab(tabView)
   local newTab = tabView:addTab({
     text = self.title,
     icon = self.icon,
@@ -117,20 +117,20 @@ function window:dockIntoTab(tabView)
   RemoveWindow(self)
 end
 
-function window:mousePressed(btn)
+function Window:mousePressed(btn)
   if btn == 1 then
     self.dragging = true
     self.dragX, self.dragY = self:getRelativeMouse()
   end
 end
 
-function window:mouseReleased(btn)
+function Window:mouseReleased(btn)
   if btn == 1 and self.dragging then
     self.dragging = false
   end
 end
 
-function window:mouseMoved(x, y, dx, dy)
+function Window:mouseMoved(x, y, dx, dy)
   if self.dragging then
     local mx, my = self:getAbsoluteMouse()
     self.x = mx - self.dragX
@@ -147,25 +147,25 @@ function window:mouseMoved(x, y, dx, dy)
   end
 end
 
-function window:keyPressed(key)
+function Window:keyPressed(key)
   if self.content.class.keyPressed then
     self.content.class.keyPressed(self.content, key)
   end
 end
 
-function window:keyReleased(key)
+function Window:keyReleased(key)
   if self.content.class.keyReleased then
     self.content.class.keyReleased(self.content, key)
   end
 end
 
-function window:textInput(text)
+function Window:textInput(text)
   if self.content.class.textInput then
     self.content.class.textInput(self.content, text)
   end
 end
 
-function window:render(x, y, w, h)
+function Window:render(x, y, w, h)
   local outlineColor = self.focused and CurrentTheme.outlineActive or CurrentTheme.outline
 
   local cornerRadius = 6
@@ -221,4 +221,4 @@ function window:render(x, y, w, h)
   end
 end
 
-return window
+return Window

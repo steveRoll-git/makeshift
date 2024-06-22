@@ -10,23 +10,23 @@ local fontCache = require "util.fontCache"
 ---@field icon love.Image
 ---@field onClick function
 ---@operator call:TreeViewItem
-local treeViewItem = zap.elementClass()
+local TreeViewItem = zap.elementClass()
 
-function treeViewItem:init()
+function TreeViewItem:init()
   self.font = fontCache.get("Inter-Regular.ttf", 14)
 end
 
-function treeViewItem:desiredHeight()
+function TreeViewItem:desiredHeight()
   return self.font:getHeight() + 8
 end
 
-function treeViewItem:mouseClicked(button)
+function TreeViewItem:mouseClicked(button)
   if button == 1 and self.onClick() then
     self.onClick()
   end
 end
 
-function treeViewItem:render(x, y, w, h)
+function TreeViewItem:render(x, y, w, h)
   if self:isHovered() then
     lg.setColor(CurrentTheme.elementHovered)
     lg.rectangle("fill", x, y, w, h)
@@ -43,4 +43,4 @@ function treeViewItem:render(x, y, w, h)
   lg.print(self.text, textX, y + h / 2 - font:getHeight() / 2)
 end
 
-return treeViewItem
+return TreeViewItem

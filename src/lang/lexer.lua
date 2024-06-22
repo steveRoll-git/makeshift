@@ -33,20 +33,20 @@ local groupPunctuation = lookupify {
 ---@field message string
 
 ---@class Lexer
-local lexer = {}
-lexer.__index = lexer
+local Lexer = {}
+Lexer.__index = Lexer
 
 ---@param code string
 ---@param sourceScript? Script
-function lexer.new(code, sourceScript)
-  local self = setmetatable({}, lexer)
+function Lexer.new(code, sourceScript)
+  local self = setmetatable({}, Lexer)
   self:init(code, sourceScript)
   return self
 end
 
 ---@param code string
 ---@param sourceScript? Script
-function lexer:init(code, sourceScript)
+function Lexer:init(code, sourceScript)
   self.code = code
   self.sourceScript = sourceScript
   self.index = 1
@@ -62,17 +62,17 @@ end
 ---Returns the next string of the given length.
 ---@param length number
 ---@return string
-function lexer:lookAhead(length)
+function Lexer:lookAhead(length)
   return self.code:sub(self.index, self.index + length - 1)
 end
 
-function lexer:curChar()
+function Lexer:curChar()
   return self.code:sub(self.index, self.index)
 end
 
 ---Advances by the given number of characters (or 1).
 ---@param times? number
-function lexer:advanceChar(times)
+function Lexer:advanceChar(times)
   if self.reachedEnd then
     return
   end
@@ -97,7 +97,7 @@ end
 
 ---Reads and returns the next token.
 ---@return Token
-function lexer:nextToken()
+function Lexer:nextToken()
   -- skip past spaces and newlines
   while not self.reachedEnd and self:curChar():find("%s") do
     self:advanceChar()
@@ -191,7 +191,7 @@ end
 
 ---Returns a token to be returned on errors.
 ---@return Token
-function lexer:errorToken()
+function Lexer:errorToken()
   return {
     kind = "error",
     value = "",
@@ -203,7 +203,7 @@ end
 ---Creates a syntax error table and pushes it onto the error stack, and returns an error token.
 ---@param message string
 ---@return Token
-function lexer:syntaxError(message)
+function Lexer:syntaxError(message)
   local toLine, toColumn = self.line, self.column
   if toLine ~= self.prevLine then
     toLine = self.prevLine
@@ -223,4 +223,4 @@ function lexer:syntaxError(message)
   return self:errorToken()
 end
 
-return lexer
+return Lexer

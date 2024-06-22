@@ -1,10 +1,10 @@
 local love = love
 local lg = love.graphics
 
-local orderedSet = require "util.orderedSet"
-local strongType = require "lang.strongType"
+local OrderedSet = require "util.orderedSet"
+local StrongType = require "lang.strongType"
 local hexToUID = require "util.hexToUid"
-local project = require "project"
+local Project = require "project"
 local fontCache = require "util.fontCache"
 
 ---@alias ObjectType "object" | "sprite" | "text"
@@ -42,14 +42,14 @@ local fontCache = require "util.fontCache"
 ---@class Scene: Resource
 ---@field objects Object[]
 
-local objectType = strongType.new("Object", {
+local objectType = StrongType.new("Object", {
   x = { type = "number" },
   y = { type = "number" },
 })
 
-local spriteType = strongType.new("Sprite", {}, objectType)
+local spriteType = StrongType.new("Sprite", {}, objectType)
 
-local textType = strongType.new("Text", {
+local textType = StrongType.new("Text", {
   text = {
     type = "string",
 
@@ -111,12 +111,12 @@ end
 -- Used in the editor and the runtime.
 ---@class Engine
 ---@field objects OrderedSet
-local engine = {}
-engine.__index = engine
+local Engine = {}
+Engine.__index = Engine
 
 ---@param scene Scene?
 ---@param active boolean?
-function engine:init(scene, active)
+function Engine:init(scene, active)
   if active then
     self.running = true
 
@@ -145,7 +145,7 @@ function engine:init(scene, active)
     coroutine.resume(self.codeRunner)
   end
 
-  self.objects = orderedSet.new()
+  self.objects = OrderedSet.new()
   if scene then
     for _, obj in ipairs(scene.objects) do
       local newObj = copyObject(obj)
@@ -164,7 +164,7 @@ end
 ---Returns the same object for convenience.
 ---@param obj Object
 ---@return Object
-function engine:prepareObjectRuntime(obj)
+function Engine:prepareObjectRuntime(obj)
   obj.visible = true -- TODO temporary before this property is serialized in the project
   if obj.type == "sprite" then
     ---@cast obj Sprite
@@ -181,7 +181,7 @@ end
 
 ---Prepares a resource with any runtime objects that it needs, that weren't loaded from the file (such as images and Text objects.)
 ---@param r Resource
-function engine:prepareResourceRuntime(r)
+function Engine:prepareResourceRuntime(r)
   if r.type == "scene" then
     ---@cast r Scene
     for _, o in ipairs(r.objects) do
@@ -201,10 +201,10 @@ end
 ---Decodes the error message string to figure out which script and on which line the error occured,
 ---and opens the code editor for that script.
 ---@param fullMessage string
-function engine:handleError(fullMessage)
+function Engine:handleError(fullMessage)
   local source, line, message = fullMessage:match('%[string "(.*)"%]:(%d*): (.*)')
   self.errorSource = hexToUID(source)
-  local script = project.currentProject:getResourceById(self.errorSource)
+  local script = Project.currentProject:getResourceById(self.errorSource)
   if not script then
     return
   end
@@ -224,13 +224,13 @@ function engine:handleError(fullMessage)
 end
 
 ---Opens the resource editor for the script where the current error happened.
-function engine:openErroredCodeEditor()
+function Engine:openErroredCodeEditor()
   local editor = OpenResourceTab(self.errorScript) --[[@as CodeEditor]]
   editor:showError()
 end
 
 ---Figures out the Script and line which the code is currently suck on.
-function engine:parseLoopStuckCode()
+function Engine:parseLoopStuckCode()
   local maxStuckLoop
   local maxStuckLoopCount
   for k, v in pairs(self.loopCounts) do
@@ -240,12 +240,12 @@ function engine:parseLoopStuckCode()
     end
   end
   local id, startLine, endLine = maxStuckLoop:match("loop (%w+) (%d+) (%d+)")
-  self.loopStuckScript = project.currentProject:getResourceById(hexToUID(id)) --[[@as Script]]
+  self.loopStuckScript = Project.currentProject:getResourceById(hexToUID(id)) --[[@as Script]]
   self.loopStuckStartLine = tonumber(startLine)
   self.loopStuckEndLine = tonumber(endLine)
 end
 
-function engine:createEnvironment()
+function Engine:createEnvironment()
   return {
     _yield = coroutine.yield,
     keyDown = function(key)
@@ -269,7 +269,7 @@ end
 ---@param p3 any
 ---@param p4 any
 ---@overload fun()
-function engine:tryContinueRunner(object, event, p1, p2, p3, p4)
+function Engine:tryContinueRunner(object, event, p1, p2, p3, p4)
   local stillInLoop = true
 
   -- whether the initial call to `resume` was already done for this event
@@ -324,7 +324,7 @@ end
 ---@param p2 any
 ---@param p3 any
 ---@param p4 any
-function engine:callObjectEvent(object, event, p1, p2, p3, p4)
+function Engine:callObjectEvent(object, event, p1, p2, p3, p4)
   if not self.running then
     return
   end
@@ -344,7 +344,7 @@ end
 
 ---Add an object into the scene.
 ---@param obj Object
-function engine:addObject(obj)
+function Engine:addObject(obj)
   self:prepareObjectRuntime(obj)
   self.objects:add(obj)
 end
@@ -352,7 +352,7 @@ end
 ---Returns the bounding box that this Object occupies.
 ---@param object Object
 ---@return number, number, number, number
-function engine:getObjectBoundingBox(object)
+function Engine:getObjectBoundingBox(object)
   if object.type == "text" then
     ---@cast object Text
     local w, h = object.text:getDimensions()
@@ -373,11 +373,11 @@ local tempTransform = love.math.newTransform()
 ---Returns the transform needed to display this object at its correct position.
 ---@param object Object
 ---@return love.Transform
-function engine:getObjectTransform(object)
+function Engine:getObjectTransform(object)
   return tempTransform:setTransformation(object.x, object.y)
 end
 
-function engine:update(dt)
+function Engine:update(dt)
   if not self.running then return end
 
   -- if the code is currently stuck in a loop, we only focus on trying to
@@ -403,7 +403,7 @@ function engine:update(dt)
   end
 end
 
-function engine:draw()
+function Engine:draw()
   for _, o in ipairs(self.objects.list) do
     ---@cast o Object
     if o.visible then
@@ -428,7 +428,7 @@ end
 ---@param active boolean?
 ---@return Engine
 local function createEngine(scene, active)
-  local self = setmetatable({}, engine)
+  local self = setmetatable({}, Engine)
   self:init(scene, active)
   return self
 end

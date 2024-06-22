@@ -17,14 +17,14 @@ end
 ---@field name string
 ---@field fields {[string]: StrongTypeField}
 ---@field parent StrongType?
-local strongType = {}
-strongType.__index = strongType
+local StrongType = {}
+StrongType.__index = StrongType
 
 ---@param name string
 ---@param fields {[string]: StrongTypeField}
 ---@param parent? StrongType
-function strongType.new(name, fields, parent)
-  local self = setmetatable({}, strongType)
+function StrongType.new(name, fields, parent)
+  local self = setmetatable({}, StrongType)
   self:init(name, fields, parent)
   return self
 end
@@ -32,7 +32,7 @@ end
 ---@param name string
 ---@param fields {[string]: StrongTypeField}
 ---@param parent? StrongType
-function strongType:init(name, fields, parent)
+function StrongType:init(name, fields, parent)
   self.name = name
   self.fields = fields
   self.parent = parent
@@ -81,7 +81,7 @@ end
 ---Returns this type's field of this name, if it exists.
 ---@param name string
 ---@return StrongTypeField?
-function strongType:getField(name)
+function StrongType:getField(name)
   if self.fields[name] then
     return self.fields[name]
   end
@@ -94,7 +94,7 @@ end
 ---Creates a new instance of this StrongType.
 ---@param init table
 ---@return StrongTypeInstance
-function strongType:instance(init)
+function StrongType:instance(init)
   local actual = init or {}
   return setmetatable({}, {
     __actualValue = actual,
@@ -104,4 +104,4 @@ function strongType:instance(init)
   })
 end
 
-return strongType
+return StrongType

@@ -58,16 +58,16 @@ end
 ---@field windowHeight number
 ---@field initialSceneId string
 ---@field resources table<string, Resource>
-local project = {}
-project.__index = project
+local Project = {}
+Project.__index = Project
 
-function project.new(init)
-  return setmetatable(init or {}, project)
+function Project.new(init)
+  return setmetatable(init or {}, Project)
 end
 
 ---Adds a resource to the project.
 ---@param resource Resource
-function project:addResource(resource)
+function Project:addResource(resource)
   self.resources[resource.id] = resource
 end
 
@@ -90,7 +90,7 @@ end
 ---@param resource Resource
 ---@param id string
 ---@return Resource?
-function project:searchForResource(resource, id)
+function Project:searchForResource(resource, id)
   if id == resource.id then
     return resource
   end
@@ -108,7 +108,7 @@ end
 ---Finds and returns the resource with this id.
 ---@param id string
 ---@return Resource?
-function project:getResourceById(id)
+function Project:getResourceById(id)
   if self.resources[id] then
     return self.resources[id]
   end
@@ -124,12 +124,12 @@ end
 ---Returns whether this resource is an external resource.
 ---@param resource Resource
 ---@return boolean
-function project:isResourceExternal(resource)
+function Project:isResourceExternal(resource)
   return not not self.resources[resource.id]
 end
 
 ---Adds a new scene to the project and returns it.
-function project:addScene()
+function Project:addScene()
   -- If there are already scenes named "Untitled Scene", append an incrementing number to the name.
   local lastUntitledNumber = 0
   for _, s in pairs(self.resources) do
@@ -156,7 +156,7 @@ end
 ---For every object in all scenes, compile its script and store it.
 ---@return boolean success Whether compilation of all object scripts succeeded.
 ---@return SyntaxError[] errors A list of errors encountered during compilation.
-function project:compileScripts()
+function Project:compileScripts()
   ---@type SyntaxError[]
   local errors = {}
   for _, r in pairs(self.resources) do
@@ -190,7 +190,7 @@ function project:compileScripts()
   return #errors <= 0, errors
 end
 
-function project:saveToFile()
+function Project:saveToFile()
   love.filesystem.createDirectory(projectsDirectory)
 
   local f = love.filesystem.newFile(projectsDirectory .. self.name .. projectFileExtension)
@@ -296,7 +296,7 @@ function project:saveToFile()
   f:close()
 end
 
-function project:loadFromFile(projectName)
+function Project:loadFromFile(projectName)
   local file = love.filesystem.newFile(projectsDirectory .. projectName .. projectFileExtension)
   file:open("r")
 
@@ -426,16 +426,16 @@ function project:loadFromFile(projectName)
 end
 
 if love.filesystem.getInfo(projectsDirectory .. "Untitled Project" .. projectFileExtension) then
-  project.currentProject = project.new():loadFromFile("Untitled Project")
+  Project.currentProject = Project.new():loadFromFile("Untitled Project")
 else
-  project.currentProject = project.new {
+  Project.currentProject = Project.new {
     name = "Untitled Project",
     resources = {},
     windowWidth = 800,
     windowHeight = 600,
     initialSceneId = "",
   }
-  project.currentProject:addScene()
+  Project.currentProject:addScene()
 end
 
-return project
+return Project

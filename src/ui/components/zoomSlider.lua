@@ -12,21 +12,21 @@ local font = fontCache.get("Inter-Regular.ttf", 16)
 ---@class ZoomSlider: Zap.ElementClass
 ---@field targetTable {zoom: number}
 ---@operator call:ZoomSlider
-local zoomSlider = zap.elementClass()
+local ZoomSlider = zap.elementClass()
 
-function zoomSlider:percentString()
+function ZoomSlider:percentString()
   return ("%d%%"):format(self.targetTable.zoom * 100)
 end
 
-function zoomSlider:desiredWidth()
+function ZoomSlider:desiredWidth()
   return font:getWidth(self:percentString()) + icon:getWidth()
 end
 
-function zoomSlider:desiredHeight()
+function ZoomSlider:desiredHeight()
   return font:getHeight()
 end
 
-function zoomSlider:render(x, y, w, h)
+function ZoomSlider:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundOverlay)
   lg.rectangle("fill", x, y, w + 3, h + 3, 3)
 
@@ -38,4 +38,4 @@ function zoomSlider:render(x, y, w, h)
   lg.print(self:percentString(), math.floor(x + 2), math.floor(y + h / 2 - font:getHeight() / 2))
 end
 
-return zoomSlider
+return ZoomSlider

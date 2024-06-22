@@ -2,10 +2,9 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local images = require "images"
 local fontCache = require "util.fontCache"
 local viewTools = require "util.viewTools"
-local dragInput = require "ui.components.dragInput"
+local DragInput = require "ui.components.dragInput"
 
 local font = fontCache.get("Inter-Regular.ttf", 14)
 
@@ -33,20 +32,20 @@ local font = fontCache.get("Inter-Regular.ttf", 14)
 ---@field icon love.Image
 ---@field text string
 ---@operator call:DataPanel
-local dataPanel = zap.elementClass()
+local DataPanel = zap.elementClass()
 
 ---@param fields DataPanel.FieldModel[]
-function dataPanel:init(fields)
+function DataPanel:init(fields)
   self.fields = {}
   for _, f in ipairs(fields) do
     if f.type == "vec2" then
       ---@cast f DataPanel.Vec2Model
-      local xInput = dragInput()
+      local xInput = DragInput()
       xInput.font = font
       xInput.targetObject = f.targetObject
       xInput.targetKey = f.xKey
       xInput.numberFormat = "%.1f"
-      local yInput = dragInput()
+      local yInput = DragInput()
       yInput.font = font
       yInput.targetObject = f.targetObject
       yInput.targetKey = f.yKey
@@ -63,7 +62,7 @@ function dataPanel:init(fields)
   end
 end
 
-function dataPanel:render(x, y, w, h)
+function DataPanel:render(x, y, w, h)
   lg.setColor(CurrentTheme.backgroundBright)
   lg.rectangle("fill", x, y, w, h, 4)
 
@@ -105,4 +104,4 @@ function dataPanel:render(x, y, w, h)
   end
 end
 
-return dataPanel
+return DataPanel

@@ -13,23 +13,23 @@ local zap = require "lib.zap.zap"
 ---@field alignText? "left" | "center"
 ---@field textPadding? number
 ---@operator call:Button
-local button = zap.elementClass()
+local Button = zap.elementClass()
 
-function button:mouseClicked(btn)
+function Button:mouseClicked(btn)
   if btn == 1 then
     self.onClick()
   end
 end
 
-function button:showsText()
+function Button:showsText()
   return self.displayMode == "text" or self.displayMode == "textAfterImage"
 end
 
-function button:showsImage()
+function Button:showsImage()
   return self.displayMode == "image" or self.displayMode == "textAfterImage"
 end
 
-function button:desiredWidth()
+function Button:desiredWidth()
   local totalW = 0
   if self:showsText() then
     totalW = totalW + self.font:getWidth(self.text)
@@ -43,7 +43,7 @@ function button:desiredWidth()
   return totalW
 end
 
-function button:desiredHeight()
+function Button:desiredHeight()
   local height = 0
   if self:showsText() then
     height = math.max(height, self.font:getHeight())
@@ -54,7 +54,7 @@ function button:desiredHeight()
   return height
 end
 
-function button:render(x, y, w, h)
+function Button:render(x, y, w, h)
   if self:isPressed(1) then
     lg.setColor(CurrentTheme.elementPressed)
   elseif self:isHovered() then
@@ -87,4 +87,4 @@ function button:render(x, y, w, h)
   end
 end
 
-return button
+return Button

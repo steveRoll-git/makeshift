@@ -2,7 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local tabView = require "ui.components.tabView"
+local TabView = require "ui.components.tabView"
 local clamp = require "util.clamp"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
@@ -13,24 +13,24 @@ local minimumSplitSize = 200
 
 ---@class SplitViewSplitter: Zap.ElementClass
 ---@operator call:SplitViewSplitter
-local splitter = zap.elementClass()
+local Splitter = zap.elementClass()
 
 ---@param splitView SplitView
-function splitter:init(splitView)
+function Splitter:init(splitView)
   self.splitView = splitView
 end
 
-function splitter:getCursor()
+function Splitter:getCursor()
   return love.mouse.getSystemCursor(self.splitView.orientation == "horizontal" and "sizens" or "sizewe")
 end
 
-function splitter:mousePressed(button)
+function Splitter:mousePressed(button)
   if button == 1 then
     self.offsetX, self.offsetY = self:getRelativeMouse()
   end
 end
 
-function splitter:mouseMoved()
+function Splitter:mouseMoved()
   if self:isPressed(1) then
     local mx, my = self:getAbsoluteMouse()
     if self.splitView.orientation == "horizontal" then
@@ -48,13 +48,13 @@ end
 ---@field orientation "horizontal" | "vertical"
 ---@field splitDistance number
 ---@operator call:SplitView
-local splitView = zap.elementClass()
+local SplitView = zap.elementClass()
 
-function splitView:init()
-  self.splitter = splitter(self)
+function SplitView:init()
+  self.splitter = Splitter(self)
 end
 
-function splitView:clampSplitDistance()
+function SplitView:clampSplitDistance()
   local _, _, w, h = self:getView()
   self.splitDistance = clamp(
     self.splitDistance,
@@ -62,11 +62,11 @@ function splitView:clampSplitDistance()
     (self.orientation == "horizontal" and h or w) - minimumSplitSize)
 end
 
-function splitView:resized(w, h, prevW, prevH)
+function SplitView:resized(w, h, prevW, prevH)
   self:clampSplitDistance()
 end
 
-function splitView:render(x, y, w, h)
+function SplitView:render(x, y, w, h)
   local horizontal = self.orientation == "horizontal"
   local vertical = self.orientation == "vertical"
 
@@ -102,7 +102,7 @@ function splitView:render(x, y, w, h)
     lg.line(x, self.splitDistance, x + w, self.splitDistance)
   else
     local y1 = y
-    if self.side2.class == tabView then
+    if self.side2.class == TabView then
       local tv = self.side2 --[[@as TabView]]
       if #tv.tabs > 0 then
         y1 = y1 + tv:tabBarHeight()
@@ -112,4 +112,4 @@ function splitView:render(x, y, w, h)
   end
 end
 
-return splitView
+return SplitView
