@@ -6,13 +6,20 @@ local Button = require "ui.components.button"
 local fontCache = require "util.fontCache"
 local viewTools = require "util.viewTools"
 
+---@class Toolbar.ItemModel
+---@field image love.Image
+---@field text string
+---@field action fun()
+---@field visible? boolean | fun(): boolean
+---@field enabled? boolean | fun(): boolean
+
 ---@class Toolbar: Zap.ElementClass
 ---@field private buttons Zap.Element[]
 ---@operator call:Toolbar
 local Toolbar = zap.elementClass()
 
 ---Sets this toolbar's items.
----@param items {image: love.Image, text: string, action: fun(), visible?: boolean | fun(): boolean}[]
+---@param items Toolbar.ItemModel[]
 function Toolbar:setItems(items)
   self.models = items
   self.buttons = {}
@@ -20,6 +27,7 @@ function Toolbar:setItems(items)
     local b = Button()
     b.image = item.image
     b.text = item.text
+    b.enabled = item.enabled
     b.onClick = item.action
     b.displayMode = "textAfterImage"
     b.font = fontCache.get("Inter-Regular.ttf", 14)

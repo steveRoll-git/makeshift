@@ -62,6 +62,10 @@ function SceneView:updateViewTransform()
   end
 end
 
+function SceneView:doingNothing()
+  return not self.creatingSprite and not self.creatingText
+end
+
 function SceneView:startCreatingSprite()
   if self.editingText then
     self:stopEditingText()
@@ -460,6 +464,9 @@ function SceneEditor:init(scene)
       image = images["icons/sprite_add_24.png"],
       action = function()
         self.sceneView:startCreatingSprite()
+      end,
+      enabled = function ()
+        return self.sceneView:doingNothing()
       end
     },
     {
@@ -467,6 +474,9 @@ function SceneEditor:init(scene)
       image = images["icons/text_add_24.png"],
       action = function()
         self.sceneView:startCreatingText()
+      end,
+      enabled = function ()
+        return self.sceneView:doingNothing()
       end
     },
   }
