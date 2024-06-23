@@ -7,6 +7,7 @@ local zap = require "lib.zap.zap"
 ---@field image love.Image
 ---@field text string
 ---@field font love.Font
+---@field enabled? boolean | fun(): boolean
 ---@field onClick fun()
 ---@field displayMode "image" | "text" | "textAfterImage"
 ---@field textImageMargin number
@@ -15,9 +16,12 @@ local zap = require "lib.zap.zap"
 ---@operator call:Button
 local Button = zap.elementClass()
 
-function Button:mouseClicked(btn)
-  if btn == 1 then
-    self.onClick()
+---@return boolean
+function Button:isEnabled()
+  if type(self.enabled) == "function" then
+    return self.enabled()
+  else
+    return self.enabled == nil or self.enabled --[[@as boolean]]
   end
 end
 
@@ -54,8 +58,14 @@ function Button:desiredHeight()
   return height
 end
 
+function Button:mouseClicked(btn)
+  if btn == 1 and self:isEnabled() then
+    self.onClick()
+  end
+end
+
 function Button:render(x, y, w, h)
-  if self:isPressed(1) then
+  if self:isPressed(1) and self:isEnabled() then
     lg.setColor(CurrentTheme.elementPressed)
   elseif self:isHovered() then
     lg.setColor(CurrentTheme.elementHovered)
@@ -65,9 +75,10 @@ function Button:render(x, y, w, h)
   lg.rectangle("fill", x, y, w, h, 6)
 
   local totalW = self:desiredWidth()
-  local foregroundColor = (self:isHovered() or self:isPressed(1)) and
-      CurrentTheme.foregroundActive or
-      CurrentTheme.foreground
+  local foregroundColor = self:isEnabled() and (
+    (self:isHovered() or self:isPressed(1)) and
+    CurrentTheme.foregroundActive or
+    CurrentTheme.foreground) or CurrentTheme.foregroundDimmed
 
   if self:showsImage() then
     lg.setColor(foregroundColor)
