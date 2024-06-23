@@ -69,7 +69,7 @@ function StrongType:init(name, fields, parent)
         error(
           ("Field %q is of type %s - can't assign value of type %s to it"):format(
             key,
-            self.fields[key].type,
+            field.type,
             getType(value)), 2)
       end
     else
