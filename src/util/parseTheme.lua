@@ -19,6 +19,7 @@ local parseColor = require "util.parseColor"
 ---@field elementNeutral Color
 ---@field outline Color
 ---@field outlineActive Color
+---@field sceneEditorOverlay Color
 ---@field codeEditor CodeEditorTheme
 
 ---@class CodeEditorTheme

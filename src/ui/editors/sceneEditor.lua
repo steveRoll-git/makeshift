@@ -514,6 +514,8 @@ function SceneEditor:render(x, y, w, h)
   self.sceneView:render(x, y + toolbarH, w, h - toolbarH)
 
   if self.sceneView.spriteEditor then
+    lg.setColor(CurrentTheme.sceneEditorOverlay)
+    lg.rectangle("fill", x, y, w, h)
     self.sceneView.spriteEditor:render(x, y, w, h)
   else
     self.toolbar:render(x, y, w, toolbarH)

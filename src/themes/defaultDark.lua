@@ -15,6 +15,7 @@ return parseTheme {
   elementPressed = "#5f5f5f",
   outline = "#2b2b2b",
   outlineActive = "#454545",
+  sceneEditorOverlay = "#1111116a",
   codeEditor = {
     default = "#d4d4d4",
     comment = "#6a9955",
