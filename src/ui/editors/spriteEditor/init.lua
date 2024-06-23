@@ -415,7 +415,7 @@ function SpriteEditor:clampPan()
   self.panY = clamp(
     self.panY,
     -self:currentImageData():getHeight() * self.zoom + margin,
-    h - margin)
+    h - self.topToolbar:desiredHeight() - margin)
 end
 
 function SpriteEditor:mousePressed(button)
@@ -517,7 +517,7 @@ end
 function SpriteEditor:render(x, y, w, h)
   self:updateViewTransform()
 
-  self.topToolbar:render(x, y, w, Toolbar:desiredHeight())
+  self.topToolbar:render(x, y, w, self.topToolbar:desiredHeight())
   y = y + self.topToolbar:desiredHeight()
   h = h - self.topToolbar:desiredHeight()
 
