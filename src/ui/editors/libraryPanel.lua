@@ -6,6 +6,7 @@ local Toolbar = require "ui.components.toolbar"
 local images = require "images"
 local TreeView = require "ui.components.treeView"
 local Project = require "project"
+local viewTools = require "util.viewTools"
 
 ---@class LibraryPanel: Zap.ElementClass
 ---@operator call:LibraryPanel
@@ -46,9 +47,12 @@ end
 function LibraryPanel:render(x, y, w, h)
   local toolbarH = 28
 
-  self.toolbar:render(x, y, w, toolbarH)
-
-  self.treeView:render(x, y + toolbarH, w, h - toolbarH)
+  viewTools.renderSplit(
+    x, y, w, h,
+    self.toolbar, self.treeView,
+    "horizontal",
+    toolbarH
+  )
 end
 
 return LibraryPanel

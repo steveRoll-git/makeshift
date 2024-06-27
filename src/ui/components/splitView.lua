@@ -4,8 +4,7 @@ local lg = love.graphics
 local zap = require "lib.zap.zap"
 local TabView = require "ui.components.tabView"
 local clamp = require "util.clamp"
-local pushScissor = require "util.scissorStack".pushScissor
-local popScissor = require "util.scissorStack".popScissor
+local viewTools = require "util.viewTools"
 
 local splitterWidth = 6
 
@@ -45,7 +44,7 @@ end
 ---@class SplitView: Zap.ElementClass
 ---@field side1 Zap.Element
 ---@field side2 Zap.Element
----@field orientation "horizontal" | "vertical"
+---@field orientation SplitOrientation
 ---@field splitDistance number
 ---@operator call:SplitView
 local SplitView = zap.elementClass()
@@ -72,21 +71,12 @@ function SplitView:render(x, y, w, h)
 
   assert(horizontal or vertical, "no orientation set for this splitter!")
 
-  local x1 = x
-  local y1 = y
-  local w1 = horizontal and w or self.splitDistance
-  local h1 = vertical and h or self.splitDistance
-  pushScissor(x1, y1, w1, h1)
-  self.side1:render(x1, y1, w1, h1)
-  popScissor()
-
-  local x2 = horizontal and x or x + self.splitDistance
-  local y2 = vertical and y or y + self.splitDistance
-  local w2 = horizontal and w or w - self.splitDistance
-  local h2 = vertical and h or h - self.splitDistance
-  pushScissor(x2, y2, w2, h2)
-  self.side2:render(x2, y2, w2, h2)
-  popScissor()
+  viewTools.renderSplit(
+    x, y, w, h,
+    self.side1, self.side2,
+    self.orientation,
+    self.splitDistance, true
+  )
 
   self.splitter:render(
     horizontal and x or x + self.splitDistance - splitterWidth / 2,
