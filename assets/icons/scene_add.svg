@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="24px"
+   viewBox="0 0 24 24"
+   width="24px"
+   fill="#FFFFFF"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="scene_add.svg"
+   inkscape:version="1.3.2 (091e20ef0f, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#232323"
+     showgrid="true"
+     inkscape:zoom="32"
+     inkscape:cx="13.953125"
+     inkscape:cy="15"
+     inkscape:window-width="1920"
+     inkscape:window-height="1006"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2">
+    <inkscape:grid
+       id="grid2"
+       units="px"
+       originx="0"
+       originy="0"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       dotted="false"
+       gridanglex="30"
+       gridanglez="30"
+       visible="true" />
+  </sodipodi:namedview>
+  <path
+     d="M 4,4 C 2.9000011,4 2,4.9000011 2,6 v 12 c 0,1.099999 0.9000011,2 2,2 h 8.425781 A 5,5 0 0 1 12,18 a 5,5 0 0 1 5,-5 5,5 0 0 1 5,5 V 5 C 22,4.4500006 21.549999,4 21,4 h -3 l 1.820312,3.640625 C 19.900312,7.8006248 19.779609,8 19.599609,8 h -1.980468 c -0.38,0 -0.728672,-0.2107816 -0.888672,-0.5507813 L 15,4 h -2 l 1.820313,3.640625 C 14.900312,7.8006248 14.779609,8 14.599609,8 h -1.980468 c -0.38,0 -0.728672,-0.2107816 -0.888672,-0.5507813 L 10,4 H 8 L 9.8203125,7.640625 C 9.9003124,7.8006248 9.7796092,8 9.5996094,8 H 7.6191406 C 7.239141,8 6.890703,7.7892184 6.7207031,7.4492187 L 5,4 Z"
+     style="display:inline"
+     id="path4" />
+  <path
+     d="m 16,22 v -3 h -3 v -2 h 3 v -3 h 2 v 3 h 3 v 2 h -3 v 3 z"
+     id="path2-3"
+     inkscape:label="plus"
+     style="display:inline;stroke-width:0.025" />
+</svg>

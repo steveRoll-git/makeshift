@@ -7,11 +7,12 @@ local fontCache = require "util.fontCache"
 local viewTools = require "util.viewTools"
 
 ---@class Toolbar.ItemModel
----@field image love.Image
----@field text string
+---@field image? love.Image
+---@field text? string
 ---@field action fun()
 ---@field visible? boolean | fun(): boolean
 ---@field enabled? boolean | fun(): boolean
+---@field displayMode? Button.DisplayMode
 
 ---@class Toolbar: Zap.ElementClass
 ---@field private buttons Zap.Element[]
@@ -29,7 +30,7 @@ function Toolbar:setItems(items)
     b.text = item.text
     b.enabled = item.enabled
     b.onClick = item.action
-    b.displayMode = "textAfterImage"
+    b.displayMode = item.displayMode or "textAfterImage"
     b.font = fontCache.get("Inter-Regular.ttf", 14)
     b.textImageMargin = 6
     table.insert(self.buttons, b)

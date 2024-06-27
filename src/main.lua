@@ -34,6 +34,7 @@ local Window = require "ui.components.window"
 local SplitView = require "ui.components.splitView"
 local Playtest = require "ui.components.playtest"
 local CodeEditor = require "ui.editors.codeEditor"
+local LibraryPanel = require "ui.editors.libraryPanel"
 
 require "util.scissorStack"
 
@@ -152,32 +153,13 @@ function CloseWindow(w)
   end
 end
 
-local libraryPanel = TreeView()
-
-local function resourceItemModels()
-  ---@type TreeItemModel[]
-  local items = {}
-  for _, resource in pairs(Project.currentProject.resources) do
-    table.insert(items, {
-      text = resource.name,
-      icon = resource.type == "scene" and images["icons/scene_24.png"],
-      onClick = function()
-        OpenResourceTab(resource)
-      end
-    })
-  end
-  return items
-end
-
-libraryPanel:setItems(resourceItemModels())
-
 local explorerTabView = TabView()
 explorerTabView.font = fontCache.get("Inter-Regular.ttf", 14)
 explorerTabView:setTabs {
   {
     text = "Library",
     icon = images["icons/library_24.png"],
-    content = libraryPanel,
+    content = LibraryPanel(),
   },
 }
 

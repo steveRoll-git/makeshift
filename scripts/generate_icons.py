@@ -37,6 +37,7 @@ def generate_icons():
     icon("object", 14)
     icon("open_in_new", 24)
     icon("properties", 14)
+    icon("scene_add", 18)
     icon("scene", 24)
     icon("sprite_add", 24)
     icon("text_add", 24)

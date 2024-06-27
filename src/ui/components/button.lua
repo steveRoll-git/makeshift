@@ -3,13 +3,15 @@ local lg = love.graphics
 
 local zap = require "lib.zap.zap"
 
+---@alias Button.DisplayMode "image" | "text" | "textAfterImage"
+
 ---@class Button: Zap.ElementClass
 ---@field image love.Image
 ---@field text string
 ---@field font love.Font
 ---@field enabled? boolean | fun(): boolean
 ---@field onClick fun()
----@field displayMode "image" | "text" | "textAfterImage"
+---@field displayMode Button.DisplayMode
 ---@field textImageMargin number
 ---@field alignText? "left" | "center"
 ---@field textPadding? number
