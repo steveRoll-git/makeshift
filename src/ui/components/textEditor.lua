@@ -53,6 +53,7 @@ end
 local TextEditor = zap.elementClass()
 
 function TextEditor:init()
+  self.font = lg.getFont()
   self.lines = {}
   self.offsetX = 0
   self.offsetY = 0
@@ -100,6 +101,15 @@ function TextEditor:setText(text)
     current = current + 1
   end
   self._textChanged = true
+end
+
+---Sets the font to be used.
+---@param font love.Font
+function TextEditor:setFont(font)
+  self.font = font
+  for _, l in ipairs(self.lines) do
+    l.text:setFont(font)
+  end
 end
 
 ---Inserts `text` into where the cursor is.

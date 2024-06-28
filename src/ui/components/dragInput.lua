@@ -2,61 +2,11 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
-local TextEditor = require "ui.components.textEditor"
 local viewTools = require "util.viewTools"
 local clamp = require "util.clamp"
+local TempEditor = require "ui.components.tempEditor"
 
 local defaultNumberFormat = "%d"
-
----@class DragInput.TempEditor: Zap.ElementClass
----@operator call:DragInput.TempEditor
-local TempEditor = zap.elementClass()
-
----@param parent DragInput
----@param viewWidth number
-function TempEditor:init(parent, viewWidth)
-  local valueString = tostring(parent:currentValue())
-  self.dragInput = parent
-  self.textEditor = TextEditor()
-  self.textEditor.font = parent.font
-  self.textEditor.centerHorizontally = true
-  self.textEditor.centerVertically = true
-  self.textEditor:setText(valueString)
-  self.textEditor:selectAll()
-end
-
-function TempEditor:writeValue()
-  local value = tonumber(self.textEditor:getString())
-  if value then
-    self.dragInput:setValue(value)
-  end
-end
-
-function TempEditor:keyPressed(key)
-  self.textEditor:keyPressed(key)
-  if key == "escape" then
-    self.cancel = true
-    ClosePopup(self)
-  elseif key == "return" or key == "kpenter" then
-    ClosePopup(self)
-  end
-end
-
-function TempEditor:textInput(text)
-  self.textEditor:textInput(text)
-end
-
-function TempEditor:popupClosed()
-  if not self.cancel then
-    self:writeValue()
-  end
-end
-
-function TempEditor:render(x, y, w, h)
-  lg.setColor(CurrentTheme.backgroundInactive)
-  lg.rectangle("fill", x, y, w, h, 3)
-  self.textEditor:render(x, y, w, h)
-end
 
 ---@class DragInput: Zap.ElementClass
 ---@field targetObject table
@@ -89,7 +39,15 @@ function DragInput:mouseClicked(button)
     local x, y, w, h = self:getView()
     local textWidth = math.max(self.font:getWidth(tostring(self:currentValue())), w)
     x, y, w, h = viewTools.padding(math.floor(x + w / 2 - textWidth / 2), y, textWidth, h, -3)
-    OpenPopup(TempEditor(self, w), x, y, w, h)
+    local tempEditor = TempEditor(tostring(self:currentValue()))
+    tempEditor:setFont(self.font)
+    tempEditor.writeValue = function(value)
+      local asNumber = tonumber(value)
+      if asNumber then
+        self:setValue(asNumber)
+      end
+    end
+    OpenPopup(tempEditor, x, y, w, h)
   end
 end
 
