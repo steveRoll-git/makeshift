@@ -7,6 +7,7 @@ local images = require "images"
 local TreeView = require "ui.components.treeView"
 local Project = require "project"
 local viewTools = require "util.viewTools"
+local PopupMenu = require "ui.components.popupMenu"
 
 ---@class LibraryPanel: Zap.ElementClass
 ---@operator call:LibraryPanel
@@ -30,15 +31,31 @@ function LibraryPanel:init()
 end
 
 function LibraryPanel:updateItems()
+  ---@type TreeView.ItemModel[]
   local items = {}
   for _, resource in pairs(Project.currentProject.resources) do
-    table.insert(items, {
+    items[#items + 1] = {
       text = resource.name,
-      icon = resource.type == "scene" and images["icons/scene_24.png"],
+      icon = resource.type == "scene" and images["icons/scene_24.png"] or nil,
       onClick = function()
         OpenResourceTab(resource)
+      end,
+      onRightClick = function(item)
+        local menu = PopupMenu()
+        menu:setItems {
+          {
+            text = "Rename",
+            action = function()
+              item:startRename()
+            end
+          }
+        }
+        menu:popupAtCursor()
+      end,
+      onRename = function(_, name)
+        resource.name = name
       end
-    })
+    }
   end
 
   self.treeView:setItems(items)

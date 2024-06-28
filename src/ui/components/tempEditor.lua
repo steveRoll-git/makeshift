@@ -5,14 +5,13 @@ local zap = require "lib.zap.zap"
 local TextEditor = require "ui.components.textEditor"
 
 ---@class TempEditor: Zap.ElementClass
----@field writeValue fun(value: any)
+---@field writeValue fun(value: string)
 ---@operator call:TempEditor
 local TempEditor = zap.elementClass()
 
 ---@param value string
 function TempEditor:init(value)
   self.textEditor = TextEditor()
-  self.textEditor.centerHorizontally = true
   self.textEditor.centerVertically = true
   self.textEditor:setText(value)
   self.textEditor:selectAll()

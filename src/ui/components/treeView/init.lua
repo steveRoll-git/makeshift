@@ -5,13 +5,15 @@ local zap = require "lib.zap.zap"
 
 local TreeViewItem = require "ui.components.treeView.item"
 
----@class TreeItemModel
+---@class TreeView.ItemModel
 ---@field text string
 ---@field icon love.Image?
----@field onClick function
+---@field onClick? fun(self: TreeView.Item)
+---@field onRightClick? fun(self: TreeView.Item)
+---@field onRename? fun(self: TreeView.Item, name: string)
 
 ---@class TreeView: Zap.ElementClass
----@field items TreeViewItem[]
+---@field items TreeView.Item[]
 ---@operator call:TreeView
 local TreeView = zap.elementClass()
 
@@ -20,7 +22,7 @@ function TreeView:init()
 end
 
 ---Sets the items displayed by this TreeView.
----@param items TreeItemModel[]
+---@param items TreeView.ItemModel[]
 function TreeView:setItems(items)
   self.items = {}
   for _, itemModel in ipairs(items) do
@@ -28,6 +30,8 @@ function TreeView:setItems(items)
     item.text = itemModel.text
     item.icon = itemModel.icon
     item.onClick = itemModel.onClick
+    item.onRightClick = itemModel.onRightClick
+    item.onRename = itemModel.onRename
     table.insert(self.items, item)
   end
 end

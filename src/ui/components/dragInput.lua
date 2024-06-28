@@ -40,6 +40,7 @@ function DragInput:mouseClicked(button)
     local textWidth = math.max(self.font:getWidth(tostring(self:currentValue())), w)
     x, y, w, h = viewTools.padding(math.floor(x + w / 2 - textWidth / 2), y, textWidth, h, -3)
     local tempEditor = TempEditor(tostring(self:currentValue()))
+    tempEditor.textEditor.centerHorizontally = true
     tempEditor:setFont(self.font)
     tempEditor.writeValue = function(value)
       local asNumber = tonumber(value)
