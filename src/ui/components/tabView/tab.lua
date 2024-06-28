@@ -131,7 +131,7 @@ end
 function Tab:render(x, y, w, h)
   local cornerRadius = 6
 
-  pushScissor(x - 1, y, w + 2, h)
+  pushScissor(x - 1, y - 1, w + 2, h + 1)
   if self.active or self:isHovered() then
     lg.setColor(CurrentTheme.backgroundActive)
   else
@@ -143,7 +143,7 @@ function Tab:render(x, y, w, h)
     lg.setColor(self:parentTabView().focused and CurrentTheme.outlineActive or CurrentTheme.outline)
     lg.setLineStyle("rough")
     lg.setLineWidth(1)
-    lg.rectangle("line", x, y + 2, w, h + cornerRadius, cornerRadius)
+    lg.rectangle("line", x, y, w, h + cornerRadius, cornerRadius)
   end
 
   popScissor()

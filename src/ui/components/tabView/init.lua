@@ -58,7 +58,7 @@ end
 
 ---Update all the tabs' `index` and `layoutX` according to their index.
 function TabView:layoutTabs()
-  local x = 0
+  local x = 1
   for i, tab in ipairs(self.tabs) do
     tab.layoutX = x
     tab.index = i
@@ -115,7 +115,7 @@ end
 function TabView:renderTab(tab, x, y)
   local tabX = (tab.isDragging and tab.dragX or x + tab.layoutX)
   local tabW = tab:desiredWidth()
-  tab:render(tabX, y, tabW, self:tabBarHeight())
+  tab:render(tabX, y + 2, tabW, self:tabBarHeight() - 2)
 end
 
 function TabView:keyPressed(key)
