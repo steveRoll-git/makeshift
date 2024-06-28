@@ -7,8 +7,6 @@ local reverseLookup = require "util.reverseLookup"
 local numberToBytes = binConvert.numberToBytes
 local bytesToNumber = binConvert.bytesToNumber
 
-local untitledSceneName = "Untitled Scene"
-
 local projectsDirectory = "projects/"
 local projectFileExtension = ".makeshift"
 
@@ -71,6 +69,12 @@ function Project:addResource(resource)
   self.resources[resource.id] = resource
 end
 
+---Removes this resource.
+---@param resource Resource
+function Project:removeResource(resource)
+  self.resources[resource.id] = nil
+end
+
 ---Searches `object` for an embedded resource with the given `id`.
 ---@param object Object
 ---@param id string
@@ -128,21 +132,31 @@ function Project:isResourceExternal(resource)
   return not not self.resources[resource.id]
 end
 
----Adds a new scene to the project and returns it.
-function Project:addScene()
-  -- If there are already scenes named "Untitled Scene", append an incrementing number to the name.
+---Given a string, returns an available name for a resource that contains this string and a number at the end.<br>
+---(For example, if `name` is "Untitled Scene" and a resource named "Untitled Scene 2" exists, this will return "Untitled Scene 3")
+---@param name string
+---@return string
+function Project:getUntitledResourceName(name)
   local lastUntitledNumber = 0
   for _, s in pairs(self.resources) do
-    local number = s.name:match(untitledSceneName .. " ?(%d*)")
-    if #number > 0 then
-      lastUntitledNumber = math.max(lastUntitledNumber, tonumber(number) + 1)
-    else
-      lastUntitledNumber = math.max(lastUntitledNumber, 1)
+    local number = s.name:match(name .. " ?(%d*)")
+    if number then
+      if #number > 0 then
+        lastUntitledNumber = math.max(lastUntitledNumber, tonumber(number) + 1)
+      else
+        lastUntitledNumber = math.max(lastUntitledNumber, 1)
+      end
     end
   end
+  return name .. (lastUntitledNumber > 0 and (" " .. lastUntitledNumber) or "")
+end
 
+---Adds a new scene to the project and returns it.
+---@param name string
+---@return Scene
+function Project:addScene(name)
   local newScene = MakeResource("scene") --[[@as Scene]]
-  newScene.name = untitledSceneName .. (lastUntitledNumber > 0 and (" " .. lastUntitledNumber) or "")
+  newScene.name = name
   newScene.objects = {}
   self:addResource(newScene)
 
@@ -435,7 +449,7 @@ else
     windowHeight = 600,
     initialSceneId = "",
   }
-  Project.currentProject:addScene()
+  Project.currentProject:addScene("Untitled Scene")
 end
 
 return Project

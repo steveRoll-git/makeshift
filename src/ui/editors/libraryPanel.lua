@@ -21,7 +21,15 @@ function LibraryPanel:init()
       image = images["icons/scene_add_18.png"],
       displayMode = "image",
       action = function()
-
+        self.treeView:addItem({
+          text = "",
+          icon = images["icons/scene_24.png"],
+          onRename = function(_, name)
+            local newScene = Project.currentProject:addScene(name)
+            self:updateItems()
+            OpenResourceTab(newScene)
+          end
+        }, true)
       end
     }
   }
@@ -30,33 +38,51 @@ function LibraryPanel:init()
   self:updateItems()
 end
 
+---@param resource Resource
+---@return TreeView.ItemModel
+function LibraryPanel:resourceItemModel(resource)
+  return {
+    text = resource.name,
+    icon = resource.type == "scene" and images["icons/scene_24.png"] or nil,
+    data = resource,
+    onClick = function(item)
+      OpenResourceTab(item.data)
+    end,
+    onRightClick = function(item)
+      local menu = PopupMenu()
+      menu:setItems {
+        {
+          text = "Rename",
+          action = function()
+            item:startRename()
+          end
+        },
+        {
+          text = "Delete",
+          action = function()
+            Project.currentProject:removeResource(resource)
+            self:updateItems()
+          end
+        },
+      }
+      menu:popupAtCursor()
+    end,
+    onRename = function(item, name)
+      RenameResource(item.data, name)
+    end
+  } --[[@as TreeView.ItemModel]]
+end
+
 function LibraryPanel:updateItems()
   ---@type TreeView.ItemModel[]
   local items = {}
   for _, resource in pairs(Project.currentProject.resources) do
-    items[#items + 1] = {
-      text = resource.name,
-      icon = resource.type == "scene" and images["icons/scene_24.png"] or nil,
-      onClick = function()
-        OpenResourceTab(resource)
-      end,
-      onRightClick = function(item)
-        local menu = PopupMenu()
-        menu:setItems {
-          {
-            text = "Rename",
-            action = function()
-              item:startRename()
-            end
-          }
-        }
-        menu:popupAtCursor()
-      end,
-      onRename = function(_, name)
-        RenameResource(resource, name)
-      end
-    }
+    items[#items + 1] = self:resourceItemModel(resource)
   end
+
+  table.sort(items, function(a, b)
+    return (a.data --[[@as Resource]]).name < (b.data --[[@as Resource]]).name
+  end)
 
   self.treeView:setItems(items)
 end

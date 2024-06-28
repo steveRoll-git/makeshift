@@ -6,6 +6,7 @@ local TextEditor = require "ui.components.textEditor"
 
 ---@class TempEditor: Zap.ElementClass
 ---@field writeValue fun(value: string)
+---@field onCancel function
 ---@operator call:TempEditor
 local TempEditor = zap.elementClass()
 
@@ -37,7 +38,11 @@ function TempEditor:textInput(text)
 end
 
 function TempEditor:popupClosed()
-  if not self.cancel then
+  if self.cancel then
+    if self.onCancel then
+      self.onCancel()
+    end
+  else
     self.writeValue(self.textEditor:getString())
   end
 end

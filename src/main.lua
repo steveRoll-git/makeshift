@@ -21,7 +21,6 @@ love.keyboard.setKeyRepeat(true)
 CurrentTheme = require "themes.defaultDark"
 
 local zap = require "lib.zap.zap"
-local TreeView = require "ui.components.treeView"
 local SceneEditor = require "ui.editors.sceneEditor"
 local TabView = require "ui.components.tabView"
 local SpriteEditor = require "ui.editors.spriteEditor"

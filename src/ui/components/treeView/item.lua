@@ -9,9 +9,11 @@ local TempEditor = require "ui.components.tempEditor"
 ---@field text string
 ---@field font love.Font
 ---@field icon love.Image
+---@field data any
 ---@field onClick fun(self: TreeView.Item)
 ---@field onRightClick fun(self: TreeView.Item)
 ---@field onRename fun(self: TreeView.Item, name: string)
+---@field onRenameCancel fun(self: TreeView.Item)
 ---@operator call:TreeView.Item
 local TreeViewItem = zap.elementClass()
 
@@ -24,10 +26,14 @@ function TreeViewItem:startRename()
   tempEditor:setFont(self.font)
   tempEditor.writeValue = function(value)
     if #value == 0 then
+      self:onRenameCancel()
       return
     end
     self.text = value
     self:onRename(value)
+  end
+  tempEditor.onCancel = function()
+    self:onRenameCancel()
   end
   OpenPopup(tempEditor, self:getTextView())
 end
