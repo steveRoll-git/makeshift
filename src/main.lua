@@ -55,7 +55,8 @@ local uiScene = zap.createScene()
 
 ---An Element that edits a certain resource.
 ---@class ResourceEditor: Zap.ElementClass
----@field resourceId fun(self: Zap.Element): string
+---@field resourceId fun(self: Zap.Element): string Returns the ID of the resource that this editor is editing.
+---@field editorTitle fun(self: Zap.Element): string Returns the title of the window/tab that this editor would like to be named with.
 
 local popups = OrderedSet.new()
 ---@type table<Zap.Element, number[]>
@@ -183,25 +184,21 @@ function OpenResourceTab(r)
   if focused then
     return focused
   end
-  local text
   local icon
   local content
   if r.type == "scene" then
-    text = r.name
     icon = images["icons/scene_24.png"]
     content = SceneEditor(r)
   elseif r.type == "spriteData" then
-    text = r.name
     icon = images["icons/brush_24.png"]
     content = SpriteEditor()
     content.editingSprite = r --[[@as SpriteData]]
   elseif r.type == "script" then
-    text = "Code Editor"
     icon = images["icons/code_24.png"]
     content = CodeEditor(r)
   end
   AddNewTab {
-    text = text,
+    text = content:editorTitle(),
     icon = icon,
     content = content,
     closable = true,
@@ -213,11 +210,11 @@ end
 
 ---Returns whether `element` is an editor of the resource with this ID.
 ---@param element Zap.Element
----@param id string
+---@param id? string
 ---@return boolean
 local function isResourceEditor(element, id)
   local class = element.class --[[@as ResourceEditor]]
-  return class.resourceId and class.resourceId(element) == id
+  return class.resourceId and (not id or class.resourceId(element) == id)
 end
 
 ---Searches for a tab or window that is editing the resource with this ID, focuses it if it's found and returns it.
@@ -246,6 +243,32 @@ end
 ---@return TabView[]
 function GetAllDockableTabViews()
   return { mainTabView }
+end
+
+---Update all resource editors' titles based on their `editorTitle` method.
+function UpdateEditorTitles()
+  for _, tabView in ipairs(GetAllDockableTabViews()) do
+    for _, tab in ipairs(tabView.tabs) do
+      if isResourceEditor(tab.content) then
+        tab.text = (tab.content --[[@as ResourceEditor]]):editorTitle()
+      end
+    end
+    tabView:layoutTabs()
+  end
+  for _, w in ipairs(windows.list) do
+    ---@cast w Window
+    if isResourceEditor(w.content) then
+      w.title = (w.content --[[@as ResourceEditor]]):editorTitle()
+    end
+  end
+end
+
+---Changes the resource's name, and updates all of the currently open editors' titles as needed.
+---@param resource Resource
+---@param newName string
+function RenameResource(resource, newName)
+  resource.name = newName
+  UpdateEditorTitles()
 end
 
 ---Returns the element that currently has keyboard focus.

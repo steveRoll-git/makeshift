@@ -221,6 +221,10 @@ function SpriteEditor:resourceId()
   return self.editingSprite.id
 end
 
+function SpriteEditor:editorTitle()
+  return "Sprite Editor"
+end
+
 ---Updates `viewTransform` according to the current values of `panX`, `panY` and `zoom`.
 function SpriteEditor:updateViewTransform()
   local _, _, w, h = self:getView()

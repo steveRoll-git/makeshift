@@ -53,7 +53,7 @@ function LibraryPanel:updateItems()
         menu:popupAtCursor()
       end,
       onRename = function(_, name)
-        resource.name = name
+        RenameResource(resource, name)
       end
     }
   end

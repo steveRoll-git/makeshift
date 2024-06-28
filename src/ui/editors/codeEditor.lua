@@ -70,6 +70,10 @@ function CodeEditor:resourceId()
   return self.script.id
 end
 
+function CodeEditor:editorTitle()
+  return "Code Editor"
+end
+
 function CodeEditor:write()
   self.script.code = self.textEditor:getString()
 end

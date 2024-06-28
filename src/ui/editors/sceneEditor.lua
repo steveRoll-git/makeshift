@@ -465,7 +465,7 @@ function SceneEditor:init(scene)
       action = function()
         self.sceneView:startCreatingSprite()
       end,
-      enabled = function ()
+      enabled = function()
         return self.sceneView:doingNothing()
       end
     },
@@ -475,7 +475,7 @@ function SceneEditor:init(scene)
       action = function()
         self.sceneView:startCreatingText()
       end,
-      enabled = function ()
+      enabled = function()
         return self.sceneView:doingNothing()
       end
     },
@@ -487,6 +487,10 @@ end
 
 function SceneEditor:resourceId()
   return self.originalScene.id
+end
+
+function SceneEditor:editorTitle()
+  return self.originalScene.name
 end
 
 function SceneEditor:writeToScene()
