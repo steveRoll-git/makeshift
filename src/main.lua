@@ -383,24 +383,27 @@ end
 
 function love.mousepressed(x, y, btn)
   uiScene:pressMouse(btn, beforeMousePress)
+
   local pressedElement = uiScene:getPressedElement()
 
-  if btn == lastPressButton and
-      love.timer.getTime() - lastPressTime <= doubleClickTime and
-      pressedElement == lastPressedElement and
-      pressedElement.class.mouseDoubleClicked then
-    pressedElement.class.mouseDoubleClicked(pressedElement, btn)
-  end
+  if pressedElement then
+    if btn == lastPressButton and
+        love.timer.getTime() - lastPressTime <= doubleClickTime and
+        pressedElement == lastPressedElement and
+        pressedElement.class.mouseDoubleClicked then
+      pressedElement.class.mouseDoubleClicked(pressedElement, btn)
+    end
 
-  if pressedElement:getRoot().class == Window then
-    SetFocusedWindow(pressedElement:getRoot() --[[@as Window]])
-  else
-    SetFocusedWindow(nil)
-  end
+    if pressedElement:getRoot().class == Window then
+      SetFocusedWindow(pressedElement:getRoot() --[[@as Window]])
+    else
+      SetFocusedWindow(nil)
+    end
 
-  lastPressTime = love.timer.getTime()
-  lastPressButton = btn
-  lastPressedElement = pressedElement
+    lastPressTime = love.timer.getTime()
+    lastPressButton = btn
+    lastPressedElement = pressedElement
+  end
 end
 
 function love.mousereleased(x, y, btn)

@@ -64,6 +64,8 @@ function CodeEditor:init(script)
 
   self.lineNumberColumnWidth = font:getWidth("99999")
   self.leftColumnWidth = self.lineNumberColumnWidth + font:getWidth("  ")
+
+  self:setContainer(true)
 end
 
 function CodeEditor:resourceId()
@@ -85,7 +87,6 @@ end
 function CodeEditor:showError()
   self.errorBubble = ErrorBubble(RunningPlaytest.engine.errorMessage)
   self.errorBubble.tailY = font:getHeight() / 2 + ErrorBubble.padding
-  self.errorBubble:setContained(true)
   self.textEditor:jumpToLine(RunningPlaytest.engine.errorLine)
 end
 
