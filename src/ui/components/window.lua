@@ -111,6 +111,8 @@ function Window:dockIntoTab(tabView)
   newTab.isDragging = true
   newTab.dragStartX = math.min(self.dragX, self.icon:getWidth() + self.titleFont:getWidth(self.title))
   newTab.dragStartY = self.dragY
+  newTab.lastUndockW = self.width
+  newTab.lastUndockH = self.height
   newTab:setScene(self:getScene())
   newTab:updateDragX()
   self:getScene():setPressedElement(newTab, 1)

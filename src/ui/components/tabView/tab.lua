@@ -27,6 +27,8 @@ local iconTextMargin = 6
 ---@field dragStartY number
 ---@field dragX number
 ---@field animX number
+---@field lastUndockW number?
+---@field lastUndockH number?
 ---@operator call:Tab
 local Tab = zap.elementClass()
 
@@ -51,8 +53,8 @@ function Tab:undockIntoWindow()
   newWindow.title = self.text
   newWindow.icon = self.icon
   newWindow.content = self.content
-  newWindow.width = 600
-  newWindow.height = 400
+  newWindow.width = self.lastUndockW or 600
+  newWindow.height = self.lastUndockH or 400
   newWindow.x = mx - self.dragStartX
   newWindow.y = my - self.dragStartY
   newWindow.dragging = true
