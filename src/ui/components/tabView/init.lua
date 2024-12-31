@@ -60,8 +60,15 @@ end
 function TabView:layoutTabs()
   local x = 1
   for i, tab in ipairs(self.tabs) do
+    local previousX = tab.layoutX
     tab.layoutX = x
     tab.index = i
+    if previousX and previousX ~= tab.layoutX then
+      tab.animX = previousX
+      tab:tweenX()
+    else
+      tab.animX = tab.layoutX
+    end
     x = x + tab:desiredWidth()
   end
 end
@@ -113,7 +120,7 @@ end
 ---@param x number
 ---@param y number
 function TabView:renderTab(tab, x, y)
-  local tabX = (tab.isDragging and tab.dragX or x + tab.layoutX)
+  local tabX = (tab.isDragging and tab.dragX or x + tab.animX)
   local tabW = tab:desiredWidth()
   tab:render(tabX, y + 2, tabW, self:tabBarHeight() - 2)
 end

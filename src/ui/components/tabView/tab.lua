@@ -26,6 +26,7 @@ local iconTextMargin = 6
 ---@field dragStartX number
 ---@field dragStartY number
 ---@field dragX number
+---@field animX number
 ---@operator call:Tab
 local Tab = zap.elementClass()
 
@@ -72,10 +73,12 @@ end
 
 function Tab:dragReorder()
   local tabView = self:parentTabView()
+  local px = tabView:getView()
   local x, _, w, _ = self:getView()
   for i, otherTab in ipairs(tabView.tabs) do
     if otherTab ~= self then
-      local x2, _, w2, _ = otherTab:getView()
+      local x2 = px + otherTab.layoutX
+      local _, _, w2, _ = otherTab:getView()
       local mid2 = x2 + w2 / 2
       if
           (otherTab.index > self.index and x + w >= mid2 and x + w < x2 + w2) or
@@ -85,6 +88,13 @@ function Tab:dragReorder()
       end
     end
   end
+end
+
+function Tab:tweenX()
+  Tweens:to(
+    self,
+    math.min(math.abs(self.animX - self.layoutX) * 0.005, 0.2),
+    { animX = self.layoutX })
 end
 
 function Tab:mousePressed(btn)
@@ -101,6 +111,9 @@ end
 function Tab:mouseReleased()
   if self.isDragging then
     self.isDragging = false
+    local x = self:getParent():getView()
+    self.animX = self.dragX - x
+    self:tweenX()
   end
 end
 

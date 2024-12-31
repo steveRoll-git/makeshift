@@ -21,6 +21,7 @@ love.keyboard.setKeyRepeat(true)
 CurrentTheme = require "themes.defaultDark"
 
 local zap = require "lib.zap.zap"
+local flux = require "lib.flux"
 local SceneEditor = require "ui.editors.sceneEditor"
 local TabView = require "ui.components.tabView"
 local SpriteEditor = require "ui.editors.spriteEditor"
@@ -34,6 +35,8 @@ local SplitView = require "ui.components.splitView"
 local Playtest = require "ui.components.playtest"
 local CodeEditor = require "ui.editors.codeEditor"
 local LibraryPanel = require "ui.editors.libraryPanel"
+
+Tweens = flux.group()
 
 require "util.scissorStack"
 
@@ -445,6 +448,8 @@ function love.update(dt)
   if RunningPlaytest then
     RunningPlaytest:update(dt)
   end
+
+  Tweens:update(dt)
 end
 
 function love.draw()
