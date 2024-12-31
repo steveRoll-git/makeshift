@@ -2,6 +2,7 @@ local love = love
 local lg = love.graphics
 
 local zap = require "lib.zap.zap"
+local lerp = require "util.lerp"
 local Tab = require "ui.components.tabView.tab"
 
 ---@alias TabModel {text: string, icon: love.Image?, content: Zap.Element, closable: boolean, dockable?: boolean}
@@ -11,6 +12,7 @@ local Tab = require "ui.components.tabView.tab"
 ---@field activeTab Tab
 ---@field font love.Font
 ---@field focused boolean
+---@field animContentView? {progress: number, fromX: number, fromY: number, fromW: number, fromH: number}
 ---@operator call:TabView
 local TabView = zap.elementClass()
 
@@ -151,7 +153,14 @@ function TabView:render(x, y, w, h)
   end
   if self.activeTab then
     self:renderTab(self.activeTab, x, y)
-    self.activeTab.content:render(x, y + self:tabBarHeight(), w, h - self:tabBarHeight())
+    local cx, cy, cw, ch = x, y + self:tabBarHeight(), w, h - self:tabBarHeight()
+    if self.animContentView then
+      cx = lerp(self.animContentView.fromX, cx, self.animContentView.progress)
+      cy = lerp(self.animContentView.fromY, cy, self.animContentView.progress)
+      cw = lerp(self.animContentView.fromW, cw, self.animContentView.progress)
+      ch = lerp(self.animContentView.fromH, ch, self.animContentView.progress)
+    end
+    self.activeTab.content:render(cx, cy, cw, ch)
     lg.setColor(self.focused and CurrentTheme.outlineActive or CurrentTheme.outline)
     lg.setLineStyle("rough")
     lg.setLineWidth(1)

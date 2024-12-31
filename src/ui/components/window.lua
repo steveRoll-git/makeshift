@@ -5,6 +5,7 @@ local zap = require "lib.zap.zap"
 local Button = require "ui.components.button"
 local images = require "images"
 local clamp = require "util.clamp"
+local lerp = require "util.lerp"
 local viewTools = require "util.viewTools"
 local pushScissor = require "util.scissorStack".pushScissor
 local popScissor = require "util.scissorStack".popScissor
@@ -54,6 +55,7 @@ end
 ---@field resizable boolean
 ---@field dockable boolean
 ---@field focused boolean
+---@field animContentView? {progress: number, fromX: number, fromY: number, fromW: number, fromH: number}
 ---@operator call:Window
 local Window = zap.elementClass()
 
@@ -115,6 +117,13 @@ function Window:dockIntoTab(tabView)
   newTab.lastUndockH = self.height
   newTab:setScene(self:getScene())
   newTab:updateDragX()
+  local cx, cy, cw, ch = self.content:getView()
+  tabView.animContentView = { progress = 0, fromX = cx, fromY = cy, fromW = cw, fromH = ch }
+  Tweens:to(tabView.animContentView, 0.3, { progress = 1 })
+      :ease("quintout")
+      :oncomplete(function()
+        tabView.animContentView = nil
+      end)
   self:getScene():setPressedElement(newTab, 1)
   RemoveWindow(self)
 end
@@ -202,21 +211,28 @@ function Window:render(x, y, w, h)
       1))
   end
 
-  lg.setColor(CurrentTheme.backgroundInactive)
-  lg.rectangle("fill", x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
+  local cx, cy, cw, ch = x, y + self:titleBarHeight(), w, h - self:titleBarHeight()
+  if self.animContentView then
+    cx = lerp(self.animContentView.fromX, cx, self.animContentView.progress)
+    cy = lerp(self.animContentView.fromY, cy, self.animContentView.progress)
+    cw = lerp(self.animContentView.fromW, cw, self.animContentView.progress)
+    ch = lerp(self.animContentView.fromH, ch, self.animContentView.progress)
+  end
 
-  pushScissor(x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
-  self.content:render(x, y + self:titleBarHeight(), w, h - self:titleBarHeight())
+  lg.setColor(CurrentTheme.backgroundInactive)
+  lg.rectangle("fill", cx, cy, cw, ch)
+  pushScissor(cx, cy, cw, ch)
+  self.content:render(cx, cy, cw, ch)
   popScissor()
 
   lg.setColor(outlineColor)
   lg.setLineStyle("rough")
   lg.setLineWidth(1)
   lg.line(
-    x, y + self:titleBarHeight(),
-    x, y + h,
-    x + w, y + h,
-    x + w, y + self:titleBarHeight())
+    cx, cy,
+    cx, cy + ch,
+    cx + cw, cy + ch,
+    cx + cw, cy)
 
   if self.resizable then
     self.resizeHandle:render(x + w, y + h, resizeHandleSize, resizeHandleSize)

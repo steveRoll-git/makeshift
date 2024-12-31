@@ -63,6 +63,13 @@ function Tab:undockIntoWindow()
   newWindow.closable = self.closable
   newWindow.resizable = true
   newWindow.dockable = true
+  local cx, cy, cw, ch = self.content:getView()
+  newWindow.animContentView = { progress = 0, fromX = cx, fromY = cy, fromW = cw, fromH = ch }
+  Tweens:to(newWindow.animContentView, 0.3, { progress = 1 })
+      :ease("quintout")
+      :oncomplete(function()
+        newWindow.animContentView = nil
+      end)
   AddWindow(newWindow)
   self:getScene():setPressedElement(newWindow, 1)
   self:parentTabView():removeTab(self)
